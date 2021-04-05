@@ -1,0 +1,8 @@
+<RCC>
+    <qresource prefix="/">
+        <file>qml/main.qml</file>
+        <file>qtquickcontrols2.conf</file>
+        <file>fonts/NotoSans-Regular.ttf</file>
+        <file>qml/js/MethodsDekctopJS.qml</file>
+    </qresource>
+</RCC>
