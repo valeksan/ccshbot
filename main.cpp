@@ -1,4 +1,4 @@
-#include <QGuiApplication>
+#include <QApplication>
 #include <QQmlApplicationEngine>
 #include <QIcon>
 #include <QFontDatabase>
@@ -6,6 +6,7 @@
 #include <QQmlContext>
 #include <QDateTime>
 #include <qtwebengineglobal.h>
+#include <QtWebEngineWidgets>
 
 #include "metadata.h"
 #include "desktop.h"
@@ -19,7 +20,7 @@ int main(int argc, char *argv[])
 
     QtWebEngine::initialize();
 
-    QGuiApplication app(argc, argv);
+    QApplication app(argc, argv);
 
     app.setOrganizationName(ORGANIZATION_STRING);
     app.setOrganizationDomain(DOMAIN_STRING);
@@ -40,16 +41,20 @@ int main(int argc, char *argv[])
     const QString releaseDate = datetime.toString("dd.MM.yyyy hh:mm:ss");
 
     // движок QML
-    QQmlApplicationEngine engine;
+    // QQmlApplicationEngine engine;
 
     // Проброс функциональных объектов в движок QML
     // - Объявление QML-классов
-    qmlRegisterSingletonType<Desktop>("Vip.Desktop", 1, 0, "Desktop", Desktop::desktopSingletonProvider);
+    //qmlRegisterSingletonType<Desktop>("Vip.Desktop", 1, 0, "Desktop", Desktop::desktopSingletonProvider);
 
-    engine.rootContext()->setContextProperty("releaseDate", QVariant::fromValue(releaseDate));
+    //engine.rootContext()->setContextProperty("releaseDate", QVariant::fromValue(releaseDate));
 
     // Подгрузка интерфейса
-    engine.load(QUrl(QStringLiteral("qrc:/qml/main.qml")));
+    //engine.load(QUrl(QStringLiteral("qrc:/qml/main.qml")));
+
+    QWebEngineView *view = new QWebEngineView();
+    view->load(QUrl("https://crazycash.tv/login"));
+    view->show();
 
     return app.exec();
 }
