@@ -26,14 +26,18 @@ CONFIG += use_gold_linker
 # In order to do so, uncomment the following line.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 DEFINES += 'VERSION_STRING=\\\"$$VERSION\\\"'
+DEFINES += DEBUG_SAVE_HTML_TO_TMP
 
 SOURCES += \
+        crazycashapi.cpp \
         main.cpp
 
 HEADERS += \
     core.h \
+    crazycashapi.h \
     desktop.h \
-    metadata.h
+    metadata.h \
+    misc.h
 
 RESOURCES += \
     qml.qrc

@@ -1,6 +1,5 @@
 import QtQuick 2.12
 import QtQuick.Controls 2.12
-import QtWebEngine 1.8
 import QtQml 2.12
 import QtQuick.Layouts 1.12
 
@@ -19,48 +18,6 @@ ApplicationWindow {
     visibility: "Windowed"
 
     visible: true
-
-    RowLayout {
-        spacing: 5
-        anchors.fill: parent
-        Pane {
-            Layout.fillHeight: true
-            Layout.minimumWidth: (parent.width-5)/2
-            WebEngineView {
-                id: browser
-                function getSource(){
-                    var js = "document.documentElement.outerHTML";
-                    browser.runJavaScript(js, function(result){textHtml.text = result;});
-                }
-                anchors.fill: parent
-                url: "https://crazycash.tv/login"
-                onLoadingChanged: {
-                    if(loadRequest.status === WebEngineView.LoadSucceededStatus) {
-                        browser.getSource();
-                    }
-                }
-                onNavigationRequested: {
-                    console.log("nav req")
-                }
-            }
-        }
-        Pane {
-            Layout.fillHeight: true
-            Layout.minimumWidth: (parent.width-5)/2
-            Flickable {
-                clip: true
-                anchors.fill: parent
-                flickableDirection: Flickable.VerticalFlick
-                ScrollBar.vertical: ScrollBar {}
-                ScrollBar.horizontal: null
-                TextArea.flickable: TextArea {
-                    id: textHtml
-                    readOnly: true
-                    wrapMode: TextArea.WordWrap
-                }
-            }
-        }
-    }
 
     footer: RowLayout {
         height: 60
