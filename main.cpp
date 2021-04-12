@@ -6,15 +6,10 @@
 #include <QQmlContext>
 #include <QDateTime>
 #include <qtwebengineglobal.h>
-//#include <QtWebEngineWidgets>
-
-//#include <QDebug>
 
 #include "metadata.h"
 #include "desktop.h"
 #include "properties.h"
-
-//#include "crazycashapi.h"
 
 int main(int argc, char *argv[])
 {
@@ -48,18 +43,11 @@ int main(int argc, char *argv[])
     // движок QML
     QQmlApplicationEngine engine;
 
-    // API
-    //CrazyCashApi api;
-
     // Проброс функциональных объектов в движок QML
     // - Объявление QML-классов
     qmlRegisterSingletonType<Desktop>("Vip.Desktop", 1, 0, "Desktop", Desktop::desktopSingletonProvider);
 
     engine.rootContext()->setContextProperty("releaseDate", QVariant::fromValue(releaseDate));
-    //engine.rootContext()->setContextProperty("api", QVariant::fromValue(api));
-
-    // подгрузка страницы для авторизации
-    //api.loadAuthPage();
 
     // Подгрузка интерфейса
     engine.load(QUrl(QStringLiteral("qrc:/qml/main.qml")));

@@ -30,15 +30,14 @@ DEFINES += DEBUG_SAVE_HTML_TO_TMP
 
 SOURCES += \
         ccbot.cpp \
-        crazycashapi.cpp \
         main.cpp
 
 HEADERS += \
     ccbot.h \
     ccbotengine.h \
     core.h \
-    crazycashapi.h \
     desktop.h \
+    enums.h \
     metadata.h \
     misc.h \
     properties.h

@@ -2,6 +2,7 @@
 #define CCBOTENGINE_H
 
 #include <QObject>
+#include <QMutex>
 
 #include "core.h"
 
@@ -11,6 +12,7 @@ class CCBotEngine : public QObject
 
 protected:
     Core *m_pCore;
+    mutable QMutex mutex;
 
 public:
     explicit CCBotEngine(QObject *parent = nullptr) : QObject(parent), m_pCore(new Core())

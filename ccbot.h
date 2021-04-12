@@ -6,6 +6,7 @@
 
 #include "ccbotengine.h"
 #include "properties.h"
+#include "enums.h"
 
 class CCBot : public CCBotEngine
 {

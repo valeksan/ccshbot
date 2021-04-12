@@ -16,8 +16,8 @@ ApplicationWindow {
     y: settings.y
     height: settings.height
     width: settings.width
-    minimumWidth: 600
-    minimumHeight: 400
+    minimumWidth: 640
+    minimumHeight: 620
 
     color: "#1f1f2a"
 
@@ -52,7 +52,7 @@ ApplicationWindow {
 
     Drawer {
         id: drawer
-        width: window.minimumWidth
+        width: window.minimumWidth / 2
         height: window.height
 
         Column {
@@ -66,9 +66,11 @@ ApplicationWindow {
                     drawer.close()
                 }
             }
+
             MenuSeparator {
                 width: parent.width
             }
+
             ItemDelegate {
                 text: qsTr("Выход")
                 width: parent.width
