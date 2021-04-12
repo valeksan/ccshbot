@@ -4,5 +4,9 @@
         <file>qtquickcontrols2.conf</file>
         <file>fonts/NotoSans-Regular.ttf</file>
         <file>qml/js/MethodsDekctopJS.qml</file>
+        <file>qml/pages/AuthForm.ui.qml</file>
+        <file>qml/pages/AuthWaitForm.ui.qml</file>
+        <file>qml/pages/Auth.qml</file>
+        <file>qml/pages/AuthWait.qml</file>
     </qresource>
 </RCC>

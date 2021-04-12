@@ -12,8 +12,9 @@
 
 #include "metadata.h"
 #include "desktop.h"
+#include "properties.h"
 
-#include "crazycashapi.h"
+//#include "crazycashapi.h"
 
 int main(int argc, char *argv[])
 {
@@ -48,7 +49,7 @@ int main(int argc, char *argv[])
     QQmlApplicationEngine engine;
 
     // API
-    CrazyCashApi api;
+    //CrazyCashApi api;
 
     // Проброс функциональных объектов в движок QML
     // - Объявление QML-классов
@@ -58,58 +59,10 @@ int main(int argc, char *argv[])
     //engine.rootContext()->setContextProperty("api", QVariant::fromValue(api));
 
     // подгрузка страницы для авторизации
-    api.loadAuthPage();
+    //api.loadAuthPage();
 
     // Подгрузка интерфейса
     engine.load(QUrl(QStringLiteral("qrc:/qml/main.qml")));
-
-    /*
-    QWebEngineProfile *m_profile = new QWebEngineProfile;
-    m_profile->setDownloadPath(QDir::tempPath());
-    QWebEnginePage *page = new QWebEnginePage(m_profile);
-    page->settings()->setAttribute(QWebEngineSettings::AutoLoadImages, false);
-    page->settings()->setAttribute(QWebEngineSettings::JavascriptEnabled, true);
-
-    QEventLoop *event = new QEventLoop;
-    QObject::connect(page, &QWebEnginePage::loadFinished, event, &QEventLoop::quit);
-
-    page->load(QUrl("https://crazycash.tv/login"));
-
-    event->exec();
-
-    page->toPlainText([&](const QString &result){
-       qDebug() << "html:";
-       qDebug() << result.size();
-       //ui->textBrowser->append(result);
-       QFile file("crazycash.htm");
-       if(file.open(QFile::WriteOnly | QFile::Text)) {
-           QTextStream out(&file);
-           out << result;
-           file.close();
-       }
-    });
-
-    //QWebEngineView *view = new QWebEngineView();
-
-//    QObject::connect(view->page(), &QWebEnginePage::loadFinished, [&view](bool state) {
-//        QFile htmlFile("crazycash.html");
-//        if(!htmlFile.open(QFile::WriteOnly | QFile::Truncate)) {
-//            return;
-//        }
-//        //...
-//        view->page()->toPlainText([&](const QString &text) {
-//            QTextStream out(&htmlFile);
-//            out.setCodec("UTF-8");
-//            out << text;
-//            //htmlFile.write(text.toLatin1());
-//        });
-//        htmlFile.close();
-//    });
-
-//    view->load(QUrl("https://crazycash.tv/login"));
-//    view->show();
-
-    */
 
     return app.exec();
 }

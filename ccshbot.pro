@@ -29,15 +29,19 @@ DEFINES += 'VERSION_STRING=\\\"$$VERSION\\\"'
 DEFINES += DEBUG_SAVE_HTML_TO_TMP
 
 SOURCES += \
+        ccbot.cpp \
         crazycashapi.cpp \
         main.cpp
 
 HEADERS += \
+    ccbot.h \
+    ccbotengine.h \
     core.h \
     crazycashapi.h \
     desktop.h \
     metadata.h \
-    misc.h
+    misc.h \
+    properties.h
 
 RESOURCES += \
     qml.qrc
