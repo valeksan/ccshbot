@@ -10,6 +10,7 @@
 #include "metadata.h"
 #include "desktop.h"
 #include "properties.h"
+#include "ccbot.h"
 
 int main(int argc, char *argv[])
 {
@@ -34,6 +35,12 @@ int main(int argc, char *argv[])
         app.setFont(QFont(family));
     }
 
+    // Построение необходимых боту объектов
+    Properties *properties = new Properties();
+
+    // Построение объекта бота
+    CCBot *ccbot = new CCBot(properties);
+
     // считывание даты и времени текущей компиляции
     QString build = QString("%1%2").arg(QLocale(QLocale::C).toDate(QString(__DATE__).simplified(), QLatin1String("MMM d yyyy")).toString("yyyyMMdd"))
     .arg( QString("%1%2%3%4%5%6").arg(__TIME__[0]).arg(__TIME__[1]).arg(__TIME__[3]).arg(__TIME__[4]).arg(__TIME__[6]).arg(__TIME__[7]) );
@@ -45,9 +52,12 @@ int main(int argc, char *argv[])
 
     // Проброс функциональных объектов в движок QML
     // - Объявление QML-классов
+    qmlRegisterUncreatableMetaObject(CCBotTaskEnums::staticMetaObject, "ccbot.tasks", 1, 0, "Task", "Access to enums - Tasks");
     qmlRegisterSingletonType<Desktop>("Vip.Desktop", 1, 0, "Desktop", Desktop::desktopSingletonProvider);
 
-    engine.rootContext()->setContextProperty("releaseDate", QVariant::fromValue(releaseDate));
+    engine.rootContext()->setContextProperty("releaseDate", releaseDate);
+    engine.rootContext()->setContextProperty("ccbot", ccbot);
+    engine.rootContext()->setContextProperty("properties", properties);
 
     // Подгрузка интерфейса
     engine.load(QUrl(QStringLiteral("qrc:/qml/main.qml")));

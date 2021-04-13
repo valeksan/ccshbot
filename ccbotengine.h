@@ -6,13 +6,38 @@
 
 #include "core.h"
 
+class TaskResult {
+public:
+    TaskResult() { }
+    TaskResult(int errCode, QString errInfo = "", QVariant data = QVariant()) :
+        m_errCode(errCode), m_errInfo(errInfo), m_data(data)
+    {
+    }
+
+    int errCode() const
+    {
+        return m_errCode;
+    }
+
+    QString errInfo() const
+    {
+        return m_errInfo;
+    }
+
+private:
+    int m_errCode = 0;
+    QString m_errInfo = "";
+    QVariant m_data;
+
+};
+
 class CCBotEngine : public QObject
 {
     Q_OBJECT
 
 protected:
     Core *m_pCore;
-    mutable QMutex mutex;
+    mutable QMutex m_mutex;
 
 public:
     explicit CCBotEngine(QObject *parent = nullptr) : QObject(parent), m_pCore(new Core())
@@ -20,14 +45,25 @@ public:
         connect(m_pCore, &Core::finishedTask, this, &CCBotEngine::slotFinishedTask);
     }
 
-    Q_INVOKABLE virtual void action(int id, QVariantList args = QVariantList()) {
+public slots:
+    virtual void action(int id, QVariantList args = QVariantList()) {
         Q_UNUSED(id)
         Q_UNUSED(args)
     }
-
-public slots:
     virtual void slotFinishedTask(long id, int type, QVariantList argsList, QVariant result) {
         Q_UNUSED(result)
+        Q_UNUSED(type)
+        Q_UNUSED(argsList)
+        Q_UNUSED(id)
+    }
+    virtual void slotTerminatedTask(long id, int type, QVariantList argsList)
+    {
+        Q_UNUSED(type)
+        Q_UNUSED(argsList)
+        Q_UNUSED(id)
+    }
+    virtual void slotStartedTask(long id, int type, QVariantList argsList)
+    {
         Q_UNUSED(type)
         Q_UNUSED(argsList)
         Q_UNUSED(id)
@@ -36,5 +72,7 @@ public slots:
 signals:
     void signQuit();
 };
+
+Q_DECLARE_METATYPE(TaskResult)
 
 #endif // CCBOTENGINE_H

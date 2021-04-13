@@ -35,5 +35,24 @@ bool waitSignalAfterFunction(const typename QtPrivate::FunctionPointer<Signal>::
     else return false;
 }
 
+template <typename T>
+QByteArray toByteArray(T obj)
+{
+    QByteArray ba;
+    ba.resize(sizeof(T));
+    memcpy(ba.data(), &obj, ba.size());
+    return ba;
+}
+
+template <typename T>
+T fromByteArray(QByteArray ba, bool *ok = nullptr)
+{
+    T obj;
+    if(static_cast<std::size_t>(ba.size()) < sizeof(T) && ok) *ok = false;
+    memcpy(&obj, ba.constData(), std::min(static_cast<size_t>(ba.size()), sizeof(T)));
+    if(ok) *ok = true;
+    return obj;
+}
+
 
 #endif // MISC_H

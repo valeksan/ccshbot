@@ -8,5 +8,7 @@
         <file>qml/pages/AuthWaitForm.ui.qml</file>
         <file>qml/pages/Auth.qml</file>
         <file>qml/pages/AuthWait.qml</file>
+        <file>qml/dialogs/About.qml</file>
+        <file>qml/dialogs/Message.qml</file>
     </qresource>
 </RCC>

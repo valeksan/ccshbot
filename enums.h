@@ -24,4 +24,17 @@ namespace CCBotTaskEnums {
     Q_ENUMS(CCBotTaskEnum)
 }
 
+namespace CCBotErrEnums {
+    Q_NAMESPACE
+
+    enum CCBotErrEnum {
+        NoInit = -1,
+        Ok = 0,
+        UncorrectPage,
+        UnlodPage,
+        AuthDenied,
+    };
+    Q_ENUMS(CCBotErrEnum)
+}
+
 #endif // ENUMS_H
