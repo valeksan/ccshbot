@@ -71,6 +71,8 @@ void CCBot::initTasks()
         qDebug() << "email:" << args.at(0).toString();
         qDebug() << "password:" << args.at(1).toString();
 
+        m_mutex.lock(); ///
+
         // 1) Загрузка страницы в память программы
 
         auto loadPage = [=]() {
@@ -78,9 +80,8 @@ void CCBot::initTasks()
             QMetaObject::invokeMethod(this, "loadPage", Qt::QueuedConnection, Q_ARG(QUrl, url));
         };
 
-        m_mutex.lock();
+
         bool loadOk = waitSignalAfterFunction(m_page, &QWebEnginePage::loadFinished, loadPage, 10000);
-        m_mutex.unlock();
 
         if(!loadOk)
             return TaskResult(CCBotErrEnums::UnlodPage);
@@ -96,16 +97,17 @@ void CCBot::initTasks()
             });
         };
 
-        m_mutex.lock();
         bool getPageOk = waitSignalAfterFunction(this, &CCBot::pageReaded, getPage, 10000);
 
         if(!getPageOk)
             return TaskResult(CCBotErrEnums::UnlodPage);
 
-        if(m_currentHtml.contains("class=\"form_page login\""))
-            qDebug() << "YESSSS!";
+        if(!m_currentHtml.contains("class=\"form_page login\""))
+            return TaskResult(CCBotErrEnums::UncorrectPage);
 
-        m_mutex.unlock();
+        // 3) Ввод полей учетной записи, запуск скрипта авторизации
+
+        m_mutex.unlock(); ///
 
         //qDebug() << "html:" << m_currentHtml;
 
