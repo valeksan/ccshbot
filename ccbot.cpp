@@ -73,33 +73,44 @@ void CCBot::initTasks()
 
         // 1) Загрузка страницы в память программы
 
-
         auto loadPage = [=]() {
             QUrl url("https://crazycash.tv/login?return=%2F");
-            QMetaObject::invokeMethod(m_page, static_cast<void (QWebEnginePage::*)(QUrl) >(&QWebEnginePage::load), Q_ARG(QUrl, url));
+            QMetaObject::invokeMethod(this, "loadPage", Qt::QueuedConnection, Q_ARG(QUrl, url));
         };
 
-        //m_page->lo
-
-        //m_mutex.lock();
+        m_mutex.lock();
         bool loadOk = waitSignalAfterFunction(m_page, &QWebEnginePage::loadFinished, loadPage, 10000);
-        //m_mutex.unlock();
+        m_mutex.unlock();
 
         if(!loadOk)
             return TaskResult(CCBotErrEnums::UnlodPage);
 
+        // 2) Анализ и парсинг данных страницы (что страница соответствует требованиям)
+        QString page = "";
+
+        auto getPage = [=]() {
+            m_page->toHtml([=](const QString &result) {
+                m_currentHtml = result;
+                emit pageReaded();
+                //qDebug() << "html:" << m_currentHtml;
+            });
+        };
+
+        m_mutex.lock();
+        bool getPageOk = waitSignalAfterFunction(this, &CCBot::pageReaded, getPage, 10000);
+
+        if(!getPageOk)
+            return TaskResult(CCBotErrEnums::UnlodPage);
+
+        if(m_currentHtml.contains("class=\"form_page login\""))
+            qDebug() << "YESSSS!";
+
+        m_mutex.unlock();
+
+        //qDebug() << "html:" << m_currentHtml;
+
 //#ifdef DEBUG_SAVE_HTML_TO_TMP
-//        m_page->toHtml([](const QString &result) {
-//            qDebug() << "html:" << result;
-//            qDebug() << result.size();
-////            QFile file("cc_auth.htm");
-////            QTextStream out(&file);
-////            out.setCodec("UTF-8");
-////            if(file.open(QFile::WriteOnly | QFile::Text)) {
-////                out << result;
-////            }
-////            file.close();
-//        });
+//        qDebug() << "html:" << page;
 //#endif
 
         // fin
@@ -132,6 +143,11 @@ QString CCBot::generateErrMsg(int type, int errCode)
 void CCBot::action(int id, QVariantList args)
 {
     m_pCore->addTask(id, args);
+}
+
+void CCBot::loadPage(QUrl url)
+{
+    m_page->load(url);
 }
 
 void CCBot::slotFinishedTask(long id, int type, QVariantList argsList, QVariant result)
