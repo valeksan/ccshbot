@@ -7,8 +7,7 @@ namespace PageTypeEnums {
     Q_NAMESPACE
     enum PageTypeEnum {
         NoPage = -1,
-        AuthPage,
-        RoomPage,
+        ChatPage,
     };
     Q_ENUMS(PageTypeEnum)
 }
@@ -16,10 +15,8 @@ namespace PageTypeEnums {
 namespace CCBotTaskEnums {
     Q_NAMESPACE
     enum CCBotTaskEnum {
-        Auth = 0,
-        ConnectToRoom,
-        ParseChat,
-        Voice
+        MergeChat,
+        Voice,
     };
     Q_ENUMS(CCBotTaskEnum)
 }
@@ -30,9 +27,6 @@ namespace CCBotErrEnums {
     enum CCBotErrEnum {
         NoInit = -1,
         Ok = 0,
-        UncorrectPage,
-        UnlodPage,
-        AuthDenied,
     };
     Q_ENUMS(CCBotErrEnum)
 }

@@ -64,80 +64,13 @@ void CCBot::initConnections()
 
 void CCBot::initTasks()
 {
-    // 1. Авторизация
-    m_pCore->registerTask(CCBotTaskEnums::Auth, [this](QVariantList args) -> TaskResult
-    {
-        qDebug() << "AUTH";
-        qDebug() << "email:" << args.at(0).toString();
-        qDebug() << "password:" << args.at(1).toString();
-
-        m_mutex.lock(); ///
-
-        // 1) Загрузка страницы в память программы
-
-        auto loadPage = [=]() {
-            QUrl url("https://crazycash.tv/login?return=%2F");
-            QMetaObject::invokeMethod(this, "loadPage", Qt::QueuedConnection, Q_ARG(QUrl, url));
-        };
-
-
-        bool loadOk = waitSignalAfterFunction(m_page, &QWebEnginePage::loadFinished, loadPage, 10000);
-
-        if(!loadOk)
-            return TaskResult(CCBotErrEnums::UnlodPage);
-
-        // 2) Анализ и парсинг данных страницы (что страница соответствует требованиям)
-        QString page = "";
-
-        auto getPage = [=]() {
-            m_page->toHtml([=](const QString &result) {
-                m_currentHtml = result;
-                emit pageReaded();
-                //qDebug() << "html:" << m_currentHtml;
-            });
-        };
-
-        bool getPageOk = waitSignalAfterFunction(this, &CCBot::pageReaded, getPage, 10000);
-
-        if(!getPageOk)
-            return TaskResult(CCBotErrEnums::UnlodPage);
-
-        if(!m_currentHtml.contains("class=\"form_page login\""))
-            return TaskResult(CCBotErrEnums::UncorrectPage);
-
-        // 3) Ввод полей учетной записи, запуск скрипта авторизации
-
-        m_mutex.unlock(); ///
-
-        //qDebug() << "html:" << m_currentHtml;
-
-//#ifdef DEBUG_SAVE_HTML_TO_TMP
-//        qDebug() << "html:" << page;
-//#endif
-
-        // fin
-        return TaskResult();
-    }, 0);
+    //...
 }
 
 QString CCBot::generateErrMsg(int type, int errCode)
 {
     if(errCode == CCBotErrEnums::Ok) return "";
     if(errCode == CCBotErrEnums::NoInit) return tr("Задача не выполнялась, результат не инициализирован.");
-
-    switch (type) {
-    case CCBotTaskEnums::Auth:
-        switch (errCode) {
-        case CCBotErrEnums::AuthDenied: return tr("Отказано в доступе, неверный логин или пароль.");
-        case CCBotErrEnums::UnlodPage: return tr("Не удалось подгрузить данные необходимые для авторизации от сервера (страница входа, скрипты).");
-        case CCBotErrEnums::UncorrectPage: return tr("Получена некорректная страница входа от сервера, возможно сервер не доступен, либо сервис изменил функционал входа.");
-        default:
-            break;
-        }
-        break;
-    default:
-        break;
-    }
 
     return tr("Неизвестная ошибка, нет описания.");
 }

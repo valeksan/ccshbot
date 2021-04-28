@@ -4,10 +4,8 @@
         <file>qtquickcontrols2.conf</file>
         <file>fonts/NotoSans-Regular.ttf</file>
         <file>qml/js/MethodsDekctopJS.qml</file>
-        <file>qml/pages/AuthForm.ui.qml</file>
-        <file>qml/pages/AuthWaitForm.ui.qml</file>
-        <file>qml/pages/Auth.qml</file>
-        <file>qml/pages/AuthWait.qml</file>
+        <file>qml/pages/ChatForm.ui.qml</file>
+        <file>qml/pages/Chat.qml</file>
         <file>qml/dialogs/About.qml</file>
         <file>qml/dialogs/Message.qml</file>
     </qresource>

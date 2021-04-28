@@ -61,14 +61,6 @@ ApplicationWindow {
             anchors.fill: parent
 
             ItemDelegate {
-                text: qsTr("Auth process test view ...")
-                width: parent.width
-                onClicked: {
-                    stackView.push("qrc:///qml/pages/AuthWaitForm.ui.qml");
-                    drawer.close();
-                }
-            }
-            ItemDelegate {
                 text: qsTr("Test message dialog (normal) ...")
                 width: parent.width
                 onClicked: {
@@ -127,14 +119,11 @@ ApplicationWindow {
         property int width: 1000
         property int x: desktopMethods.getDescktopX()
         property int y: desktopMethods.getDescktopY()
-        property bool authSave: true
-        property string email: ""
-        property string password: ""
     }
 
     StackView {
         id: stackView
-        initialItem: "qrc:///qml/pages/Auth.qml"
+        initialItem: "qrc:///qml/pages/Chat.qml"
         anchors.fill: parent
     }
 
