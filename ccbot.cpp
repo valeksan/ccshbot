@@ -3,15 +3,16 @@
 #include <QSettings>
 #include <QApplication>
 #include <QDir>
-#include <QWebEngineSettings>
 #include <QUrl>
+#include <QJsonObject>
+#include <QJsonArray>
+#include <QJsonDocument>
 #include <QDebug>
 
 CCBot::CCBot(Properties *params, QObject *parent) : CCBotEngine(parent), m_params(params)
 {
     loadSettings();
 
-    initBrowser();
     initConnections();
     initTasks();
     initTimers();
@@ -20,8 +21,6 @@ CCBot::CCBot(Properties *params, QObject *parent) : CCBotEngine(parent), m_param
 CCBot::~CCBot()
 {
     saveSettings();
-
-    delete m_profile;
 }
 
 void CCBot::loadSettings()
@@ -34,18 +33,6 @@ void CCBot::saveSettings()
 {
     QSettings cfg;
     //...
-}
-
-void CCBot::initBrowser()
-{
-    // init profile
-    m_profile = new QWebEngineProfile();
-    m_profile->setDownloadPath(QDir::tempPath());
-
-    // init page
-    m_page = new QWebEnginePage(m_profile);
-    m_page->settings()->setAttribute(QWebEngineSettings::AutoLoadImages, false);
-    m_page->settings()->setAttribute(QWebEngineSettings::JavascriptEnabled, true);
 }
 
 void CCBot::initTimers()
@@ -64,25 +51,47 @@ void CCBot::initConnections()
 
 void CCBot::initTasks()
 {
-    //...
+    m_pCore->registerTask(CCBotTaskEnums::MergeChat, [=](QString streamId, QString messagesJsonStr) -> TaskResult {
+        TaskResult result;
+        // 1. Parse JSON datagram
+        QJsonDocument jsonDoc;
+        QJsonParseError parseError;
+        jsonDoc = QJsonDocument::fromJson(messagesJsonStr.toUtf8(), &parseError);
+        if(parseError.error != QJsonParseError::NoError) {
+            QString info = QString("Parse error at %1:%2").arg(parseError.offset).arg(parseError.errorString());
+            return TaskResult(CCBotErrEnums::ParseJson, info);
+        }
+        QJsonArray jsonArr = jsonDoc.array();
+        // 2. Init variables from datagram
+        //...
+        return TaskResult();
+    });
 }
 
 QString CCBot::generateErrMsg(int type, int errCode)
 {
+    Q_UNUSED(type)
+
     if(errCode == CCBotErrEnums::Ok) return "";
     if(errCode == CCBotErrEnums::NoInit) return tr("Задача не выполнялась, результат не инициализирован.");
 
     return tr("Неизвестная ошибка, нет описания.");
 }
 
-void CCBot::action(int id, QVariantList args)
+void CCBot::action(int type, QVariantList args)
 {
-    m_pCore->addTask(id, args);
-}
+    switch (type) {
+    case CCBotTaskEnums::MergeChat:
+        {
+            QString streamId = args.value(0,"").toString();
+            QString messagesJsonStr = args.value(1,"").toString();
+            m_pCore->addTask(type, streamId, messagesJsonStr);
+        }
+        break;
+    default:
+        break;
+    }
 
-void CCBot::loadPage(QUrl url)
-{
-    m_page->load(url);
 }
 
 void CCBot::slotFinishedTask(long id, int type, QVariantList argsList, QVariant result)

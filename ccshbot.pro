@@ -10,8 +10,8 @@ QT += qml
 QT += quick
 QT += quickcontrols2
 QT += network
-QT += webengine
-QT += webenginewidgets
+QT += websockets
+QT += sql
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 

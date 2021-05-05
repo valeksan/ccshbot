@@ -15,7 +15,7 @@ namespace PageTypeEnums {
 namespace CCBotTaskEnums {
     Q_NAMESPACE
     enum CCBotTaskEnum {
-        MergeChat,
+        MergeChat = 1,
         Voice,
     };
     Q_ENUMS(CCBotTaskEnum)
@@ -27,6 +27,8 @@ namespace CCBotErrEnums {
     enum CCBotErrEnum {
         NoInit = -1,
         Ok = 0,
+        ParseJson,
+        TypeDatagram
     };
     Q_ENUMS(CCBotErrEnum)
 }

@@ -1,8 +1,8 @@
-import QtQuick 2.12
-import QtQuick.Controls 2.12
-import QtQml 2.12
+import QtQuick 2.15
+import QtQuick.Controls 2.15
+import QtQml 2.15
 import QtQuick.Layouts 1.12
-import QtQuick.Controls.Material 2.12
+import QtQuick.Controls.Material 2.15
 import QtQuick.Dialogs 1.2
 
 import Qt.labs.settings 1.1
@@ -13,6 +13,8 @@ import "dialogs"
 
 ApplicationWindow {
     id: window
+
+    property bool listenClients: false
 
     x: settings.x
     y: settings.y
@@ -28,27 +30,48 @@ ApplicationWindow {
     visible: true
 
     header: ToolBar {
-        contentHeight: toolButton.implicitHeight
+        contentHeight: toolButtonMenu.implicitHeight
         background: Rectangle {
             color: "#121217"
         }
 
-        ToolButton {
-            id: toolButton
-            text: stackView.depth > 1 ? "\u25C0" : "\u2630"
-            font.pixelSize: Qt.application.font.pixelSize * 1.6
-            onClicked: {
-                if (stackView.depth > 1) {
-                    stackView.pop()
-                } else {
-                    drawer.open()
+        RowLayout {
+            anchors.fill: parent
+            ToolButton {
+                id: toolButtonMenu
+                text: stackView.depth > 1 ? "\u25C0" : "\u2630"
+                font.pixelSize: Qt.application.font.pixelSize * 1.6
+                onClicked: {
+                    if (stackView.depth > 1) {
+                        stackView.pop()
+                    } else {
+                        drawer.open()
+                    }
                 }
             }
-        }
 
-        Label {
-            text: stackView.currentItem.title
-            anchors.centerIn: parent
+//        TextField {
+//            width: 150
+//            text: settings.listenHost
+//            validator: RegularExpressionValidator { regularExpression:/^(([0-9]{1,3}.){3}([0-9]{1,3})|localhost):\d+$/ }
+//        }
+//        SpinBox {
+//            from: 1
+//            to: 65535
+//        }
+
+            Label {
+                text: stackView.currentItem.title
+                //Layout.alignment:
+            }
+
+            ToolButton {
+                id: toolButtonStartServer
+                text: ""
+                width: 48
+                Layout.alignment: Qt.AlignRight
+            }
+
         }
     }
 
@@ -119,6 +142,8 @@ ApplicationWindow {
         property int width: 1000
         property int x: desktopMethods.getDescktopX()
         property int y: desktopMethods.getDescktopY()
+        property string listenHost: 'localhost'
+        property int listenPort: 3000
     }
 
     StackView {
@@ -153,5 +178,9 @@ ApplicationWindow {
     }
     onYChanged: {
         settings.y = y;
+    }
+
+    Component.onDestruction: {
+        //console.log("test_1")
     }
 }

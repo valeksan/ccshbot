@@ -7,9 +7,8 @@ Page {
     title: qsTr("Чат")
 
     Pane {
-        anchors.centerIn: parent
-        width: 640
-        height: 480
+        anchors.fill: parent
+        anchors.margins: 20
         Material.elevation: 6
         antialiasing: true
     }

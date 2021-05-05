@@ -8,5 +8,7 @@
         <file>qml/pages/Chat.qml</file>
         <file>qml/dialogs/About.qml</file>
         <file>qml/dialogs/Message.qml</file>
+        <file>qml/imgs/start.png</file>
+        <file>qml/imgs/stop.png</file>
     </qresource>
 </RCC>

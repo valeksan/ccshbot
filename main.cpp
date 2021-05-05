@@ -5,7 +5,6 @@
 #include <QFileInfo>
 #include <QQmlContext>
 #include <QDateTime>
-#include <qtwebengineglobal.h>
 
 #include "metadata.h"
 #include "desktop.h"
@@ -18,8 +17,6 @@ int main(int argc, char *argv[])
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
     QCoreApplication::setAttribute(Qt::AA_ShareOpenGLContexts);
 #endif
-
-    QtWebEngine::initialize();
 
     QApplication app(argc, argv);
 
