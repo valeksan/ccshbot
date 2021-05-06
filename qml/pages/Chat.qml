@@ -8,23 +8,38 @@ ChatForm {
 
     property bool clientConnected: false
 
-    property WebSocket ccbotPlugin
-
     WebSocketServer {
         id: server
-        listen: !page.clientConnected && listenClients
-        port: 3000
+        listen: !page.clientConnected && window.listenClients
+        port:  settings.listenPort
+        host: settings.listenHost === 'localhost' ? "127.0.0.1" : settings.listenHost
         onClientConnected: {
             console.log('Client connected!')
-            ccbotPlugin = webSocket;
-            ccbotPlugin.statusChanged.connect(function(status) {
+            webSocket.statusChanged.connect(function(status) {
                 console.log("status:", status)
-                page.clientConnected = (status === WebSocket.Open);
+                try {
+                    switch(status) {
+                    case WebSocket.Connecting:
+                        break;
+                    case WebSocket.Open:
+                        window.changeStatus("CCBot plugin connected", 3000, "yellow");
+                        page.clientConnected = true;
+                        break;
+                    case WebSocket.Closing:
+                        window.changeStatus("CCBot plugin disconnected", 3000, "yellow");
+                        page.clientConnected = false;
+                        window.listenClients = !window.listenClients;
+                        window.setTimeout(() => { window.listenClients = !window.listenClients }, 100);
+                        webSocket.active = false;
+                        break;
+                    case WebSocket.Closed:
+                        break;
+                    case WebSocket.Error:
+                        break;
+                    }
+                } catch(e) {}
             })
-            ccbotPlugin.onTextMessageReceived.connect(function(message) {
-                //appendMessage(qsTr("Server received message: %1").arg(message));
-                //webSocket.sendTextMessage(qsTr("Hello Client!"));
-                //console.log('Server received message', message)
+            webSocket.onTextMessageReceived.connect(function(message) {
                 let datagram;
                 let type;
                 let timestamp1;
@@ -38,6 +53,7 @@ ChatForm {
                     messages = JSON.stringify(datagram['messages']);
                 } catch(err) {
                     console.warn(err);
+                    window.changeStatus("Ошибка: " + err, 2000, "red");
                     return;
                 }
 
@@ -48,12 +64,18 @@ ChatForm {
 
                 if(type === "chat_datagram" && diff < 2) {
                     ccbot.action(Task.MergeChat, [streamId, messages]);
+                } else {
+                    if(diff >= 2)
+                        window.changeStatus("Ошибка обмена: временная метка пакета устарела", 800, "red");
                 }
             });
         }
         onErrorStringChanged: {
-            //appendMessage(qsTr("Server error: %1").arg(errorString));
             console.log('Server error', errorString)
+            window.changeStatus("Server error: " + errorString, 2000, "red");
         }
     }
+//    Component.onDestruction: {
+//        server.listen = false;
+//    }
 }

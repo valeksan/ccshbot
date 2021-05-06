@@ -2,11 +2,15 @@
 #define CCBOT_H
 
 #include <QObject>
+#include <QtSql>
 
 #include "ccbotengine.h"
 #include "properties.h"
 #include "enums.h"
 #include "misc.h"
+#include "messagedata.h"
+
+const QString constNameBaseStr = "ccbot_storage.db";
 
 class CCBot : public CCBotEngine
 {
@@ -18,6 +22,7 @@ public:
 
 private:
     Properties *m_params;
+    QSqlDatabase m_db;
 
     // сохр.\загр. настроек
     void loadSettings();
@@ -30,6 +35,20 @@ private:
 
     // вспомогательные методы
     QString generateErrMsg(int type, int errCode);
+
+    // методы распаковки данных
+    bool readMessagesFromJsonStr(QByteArray jsonData, QList<MessageData> &msgList, QString *errInfo = nullptr);
+
+    // методы для работы с БД
+    bool openDB();
+    bool createTableDB(QString streamId);
+    bool existsTableDB(QString streamId);
+    bool selectMsgsFromTableDB(QString streamId, QList<MessageData> &msgList, int limit = -1);
+    bool appendMsgIntoTableDB(QString streamId, QList<MessageData> msgList);
+    int insertNewMessagesInTable(QString streamId, QByteArray jsonData, QString *errInfo = nullptr);
+
+    // вспомогательные методы
+    void mergeMessages(QList<MessageData> oldMsgList, QList<MessageData> newMsgList, QList<MessageData> &mergedMsgList);
 
     // CCBotEngine interface
 public slots:

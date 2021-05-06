@@ -20,7 +20,7 @@ equals(QT_VERSION, 6) {
 }
 
 CONFIG += c++17
-CONFIG += use_gold_linker
+#CONFIG += use_gold_linker
 
 # You can make your code fail to compile if it uses deprecated APIs.
 # In order to do so, uncomment the following line.
@@ -38,6 +38,7 @@ HEADERS += \
     core.h \
     desktop.h \
     enums.h \
+    messagedata.h \
     metadata.h \
     misc.h \
     properties.h

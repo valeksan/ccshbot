@@ -16,6 +16,33 @@ ApplicationWindow {
 
     property bool listenClients: false
 
+    function setTimeout(func, interval, ...params) {
+        return setTimeoutComponent.createObject(window, { func, interval, params} );
+    }
+
+    Component {
+        id: setTimeoutComponent
+        Timer {
+            property var func
+            property var params
+            running: true
+            repeat: false
+            onTriggered: {
+                func(...params);
+                destroy();
+            }
+        }
+    }
+
+    function changeStatus(text, ms = -1, color = "white") {
+        appState.color = color;
+        appState.text = text;
+        if(ms >= 0)
+            setTimeout(() => {
+                appState.text = "";
+            }, ms);
+    }
+
     x: settings.x
     y: settings.y
     height: settings.height
@@ -62,14 +89,25 @@ ApplicationWindow {
 
             Label {
                 text: stackView.currentItem.title
-                //Layout.alignment:
+                Layout.alignment: Qt.AlignHCenter
+                Layout.fillWidth: true
+                horizontalAlignment: "AlignHCenter"
             }
 
             ToolButton {
                 id: toolButtonStartServer
-                text: ""
+                text: listenClients ? "\u23F9" : "\u23F5"
+                font.pixelSize: Qt.application.font.pixelSize * 1.6
                 width: 48
                 Layout.alignment: Qt.AlignRight
+                Material.foreground: listenClients ? "red" : "lightgreen"
+                onClicked: {
+                    if(!window.listenClients)
+                        window.changeStatus("Запуск сервера ...", 500, "yellow");
+                    else
+                        window.changeStatus("Остановка сервера ...", 500, "yellow");
+                    window.listenClients = !window.listenClients;
+                }
             }
 
         }
@@ -132,6 +170,18 @@ ApplicationWindow {
         height: 60
         background: Rectangle {
             color: "#121217"
+        }
+        RowLayout {
+            anchors.fill: parent
+
+            Label {
+                id: appState
+                text: ""
+                verticalAlignment: "AlignVCenter"
+                horizontalAlignment: "AlignHCenter"
+                Layout.fillWidth: true
+                Layout.margins: 10
+            }
         }
     }
 
