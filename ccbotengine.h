@@ -5,6 +5,7 @@
 #include <QMutex>
 
 #include "core.h"
+#include "enums.h"
 
 class TaskResult {
 public:
@@ -25,7 +26,7 @@ public:
     }
 
 private:
-    int m_errCode = 0;
+    int m_errCode = CCBotErrEnums::Ok;
     QString m_errInfo = "";
     QVariant m_data;
 

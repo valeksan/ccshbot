@@ -14,16 +14,20 @@ CCBot::CCBot(Properties *params, QObject *parent) : CCBotEngine(parent), m_param
 {
     loadSettings();
 
-    //openDB();
-
     initConnections();
     initTasks();
     initTimers();
+
+    if(!openDB()) {
+        qDebug() << "DB not open!";
+    }
 }
 
 CCBot::~CCBot()
 {
     saveSettings();
+
+    closeDB();
 }
 
 void CCBot::loadSettings()
@@ -46,39 +50,50 @@ void CCBot::initTimers()
 void CCBot::initConnections()
 {
     // соединение: завершение программы
-    connect(this, &CCBotEngine::signQuit, [=]()
-    {
+    connect(this, &CCBotEngine::signQuit, [=]() {
         QApplication::quit();
     });
 }
 
 void CCBot::initTasks()
 {
-    m_pCore->registerTask(CCBotTaskEnums::MergeChat, [=](QString streamId, QString messagesJsonStr) -> TaskResult {
+    m_pCore->registerTask(CCBotTaskEnums::MergeChat, [this](QString streamId, QString messagesJsonStr) -> TaskResult {
         TaskResult result;
-        // 1. Parse JSON datagram
-        QJsonDocument jsonDoc;
-        QJsonParseError parseError;
-        jsonDoc = QJsonDocument::fromJson(messagesJsonStr.toUtf8(), &parseError);
-        if(parseError.error != QJsonParseError::NoError) {
-            QString info = QString("Parse error at %1:%2").arg(parseError.offset).arg(parseError.errorString());
-            return TaskResult(CCBotErrEnums::ParseJson, info);
+        QString errInfo = "";
+        int state = 0;
+        //m_mutex.lock();
+        //QMetaObject::invokeMethod(this, "openDB", Qt::QueuedConnection, Q_RETURN_ARG(bool, isOpen));
+
+
+
+        qDebug() << "##";
+        QMetaObject::invokeMethod(this, "insertNewMessagesInTable", Qt::BlockingQueuedConnection,
+                                  Q_RETURN_ARG(int, state),
+                                  Q_ARG(QString, streamId),
+                                  Q_ARG(QByteArray, messagesJsonStr.toUtf8()),
+                                  Q_ARG(QString*, &errInfo)
+                                  );
+        //state = insertNewMessagesInTable(streamId, messagesJsonStr.toUtf8(), &errInfo);
+        qDebug() << "###!";
+
+        //m_mutex.unlock();
+        if(state != CCBotErrEnums::Ok) {
+            return TaskResult(state, errInfo);
         }
-        QJsonArray jsonArr = jsonDoc.array();
-        // 2. Init variables from datagram
-        //...
         return TaskResult();
     });
 }
 
-QString CCBot::generateErrMsg(int type, int errCode)
+QString CCBot::generateErrMsg(int type, int errCode, QString info)
 {
     Q_UNUSED(type)
 
     if(errCode == CCBotErrEnums::Ok) return "";
-    if(errCode == CCBotErrEnums::NoInit) return tr("Задача не выполнялась, результат не инициализирован.");
+    if(errCode == CCBotErrEnums::NoInit) return QString("Задача не выполнялась, результат не инициализирован.");
+    if(errCode == CCBotErrEnums::ParseJson) return QString("Фатальная ошибка, не удалось распарсить JSON-данные.");
+    if(errCode == CCBotErrEnums::Sql) return QString("Ошибка SQL: %1").arg(info);
 
-    return tr("Неизвестная ошибка, нет описания.");
+    return QString("Неизвестная ошибка, нет описания.");
 }
 
 bool CCBot::readMessagesFromJsonStr(QByteArray jsonData, QList<MessageData> &msgList, QString *errInfo)
@@ -99,15 +114,18 @@ bool CCBot::readMessagesFromJsonStr(QByteArray jsonData, QList<MessageData> &msg
 
     for (int i = 0; i < jsonArr.size(); i++) {
         MessageData msg;
+        QJsonObject obj = jsonArr.at(i).toObject();
         msg.id = 0;
-        msg.type = jsonArr.at(i).toInt();
-        msg.sender = jsonArr.at(i).toString();
-        msg.nik_color = jsonArr.at(i).toString();
-        msg.msg = jsonArr.at(i).toString();
-        msg.pay = static_cast<float>(jsonArr.at(i).toDouble());
+        msg.type = obj["type"].toInt();
+        msg.sender = obj["sender"].toString();
+        msg.nik_color = obj["nik_color"].toString();
+        msg.msg = obj["msg"].toString();
+        msg.pay = static_cast<float>(obj["pay"].toDouble());
         msg.flagIsNewMsg = true;
         msgList.append(msg);
     }
+
+
 
     return true;
 }
@@ -148,36 +166,25 @@ bool CCBot::openDB()
     return true;
 }
 
+void CCBot::closeDB()
+{
+    m_db.close();
+}
+
 bool CCBot::createTableDB(QString streamId)
 {
-    if(!m_db.isOpen()) {
-        if(!openDB()) {
-            return false;
-        }
-    }
-
     QSqlQuery qry;
     const QString values = "id INTEGER PRIMARY KEY AUTOINCREMENT, type INTEGER NOT NULL, sender TEXT, nik_color TEXT, msg TEXT, pay REAL, timestamp INTEGER";
 
-    bool state = qry.exec(QString("CREATE TABLE IF NOT EXISTS '%1' (%2)").arg("t_" + streamId).arg(values));
-
-    m_db.close();
+    bool state = qry.exec(QString("CREATE TABLE IF NOT EXISTS 't_%1' (%2)").arg(streamId).arg(values));
 
     return state;
 }
 
 bool CCBot::existsTableDB(QString streamId)
 {
-    if(!m_db.isOpen()) {
-        if(!openDB()) {
-            return false;
-        }
-    }
-
     QString tableName = "t_" + streamId;
     bool state = m_db.tables().contains(tableName);
-
-    m_db.close();
 
     return state;
 }
@@ -186,12 +193,6 @@ bool CCBot::selectMsgsFromTableDB(QString streamId, QList<MessageData> &msgList,
 {
     QSqlQuery qry;
     QString sql;
-
-    if(!m_db.isOpen()) {
-        if(!openDB()) {
-            return false;
-        }
-    }
 
     if(limit > 0) {
         sql = QString("SELECT * FROM ( SELECT * FROM t_%1 ORDER BY id DESC LIMIT %2) ORDER BY id ASC;").arg(streamId).arg(limit);
@@ -214,8 +215,6 @@ bool CCBot::selectMsgsFromTableDB(QString streamId, QList<MessageData> &msgList,
         }
     }
 
-    m_db.close();
-
     return state;
 }
 
@@ -223,12 +222,6 @@ bool CCBot::appendMsgIntoTableDB(QString streamId, QList<MessageData> msgList)
 {
     if (msgList.isEmpty()) {
         return true;
-    }
-
-    if (!m_db.isOpen()) {
-        if(!openDB()) {
-            return false;
-        }
     }
 
     quint32 timestamp = QDateTime::currentDateTime().toTime_t();
@@ -247,24 +240,25 @@ bool CCBot::appendMsgIntoTableDB(QString streamId, QList<MessageData> msgList)
         qry.exec();
     }
 
-    m_db.close();
-
     return false;
 }
 
 int CCBot::insertNewMessagesInTable(QString streamId, QByteArray jsonData, QString *errInfo)
 {
-    QSqlQuery qry;
     QList<MessageData> rowsFromDB;
     QList<MessageData> rowsFromServer;
     QList<MessageData> rowsForInsert;
     bool state = false;
+
+    //qDebug() << "TEST";
 
     // 0. Упаковка данных с CrazyCash
     state = readMessagesFromJsonStr(jsonData, rowsFromServer, errInfo);
     if(!state) {
         return CCBotErrEnums::ParseJson;
     }
+     //for(int i=0; i<rowsFromServer.size(); i++)
+     //qDebug() << "RFS_size" << rowsFromServer.size();
 
     // 1. Проверка что таблица есть, иначе создать ее
     if (!existsTableDB(streamId)) {
@@ -286,13 +280,10 @@ int CCBot::insertNewMessagesInTable(QString streamId, QByteArray jsonData, QStri
     }
 
     // 3. Слияние
-    if (qry.size() > 0) {
-        // * Выборка-поиск новых сообщений из пачки от CrazyCash
-        mergeMessages(rowsFromDB, rowsFromServer, rowsForInsert);
-    } else {
-        // * 3.1 Если в базе ничего нет то сразу записываем новые данные без слияния
-        rowsForInsert.append(rowsFromServer);
-    }
+    mergeMessages(rowsFromDB, rowsFromServer, rowsForInsert);
+
+    // 3.1 test
+    //for(int i=0; i<rowsForInsert.size(); i++) qDebug() << rowsForInsert.at(i).msg;
 
     // 4. Вставка новых сообщений в БД
     state = appendMsgIntoTableDB(streamId, rowsForInsert);
@@ -308,7 +299,110 @@ int CCBot::insertNewMessagesInTable(QString streamId, QByteArray jsonData, QStri
 
 void CCBot::mergeMessages(QList<MessageData> oldMsgList, QList<MessageData> newMsgList, QList<MessageData> &mergedMsgList)
 {
-    //...
+    //for(int i=0; i<newMsgList.size(); i++) qDebug() << "NML" << newMsgList.at(i).msg;
+
+    if (oldMsgList.isEmpty()) {
+        mergedMsgList.append(newMsgList);
+        return;
+    }
+
+    QStringList type3NikNames;
+
+    // Поиск ников помеченных как тип 3 для игнорирования в сравнении списков
+    foreach (const MessageData &msg, newMsgList) {
+        if(msg.type == 3 && !type3NikNames.contains(msg.sender)) {
+            type3NikNames.append(msg.sender);
+        }
+    }
+
+    // Удаление из сравнения сообщений с ником из списка
+    for (const auto &nik : type3NikNames) {
+        for (int i = 0; i < oldMsgList.size(); i++) {
+            if (oldMsgList.at(i).sender == nik)
+                oldMsgList.removeAt(i);
+        }
+    }
+
+    // Поиск интервалов похожести для выбора наилучшего слияния списка (выбирается интервал с большим весом - weight)
+    QList<MessageData>::const_reverse_iterator iOldMsgs;
+    QList<MessageData>::const_reverse_iterator iNewMsgs;
+    QList<QPair<int,int> > intervals;
+    int start = -1;
+    int weight = 0;
+    int spaceMsgCount = 0;
+    bool flagEnterInterval = false;
+    for (iNewMsgs = newMsgList.crbegin(), iOldMsgs = oldMsgList.crbegin(); iNewMsgs != newMsgList.crend() && iOldMsgs != oldMsgList.crend(); ) {
+        if (equalMessages(*iNewMsgs, *iOldMsgs)) {
+            if (!flagEnterInterval) {
+                start = iNewMsgs - newMsgList.crbegin();
+                weight = 1;
+                flagEnterInterval = true;
+            } else {
+                weight += 1;
+            }
+            ++iOldMsgs;
+            ++iNewMsgs;
+            if (iOldMsgs == oldMsgList.crend() || iNewMsgs == newMsgList.crend()) {
+                intervals.append(QPair<int,int>(start, weight));
+            }
+        } else if ((*iNewMsgs).type == 4 || (*iOldMsgs).type == 4) {
+            if ((*iNewMsgs).type == 4) {
+                ++iNewMsgs;
+                if(flagEnterInterval) {
+                    weight += 1;
+                }
+            }
+            if ((*iOldMsgs).type == 4) {
+                ++iOldMsgs;
+                ++spaceMsgCount;
+            }
+        } else {
+            if (flagEnterInterval) {
+                intervals.append(QPair<int,int>(start, weight));
+                flagEnterInterval = false;
+                iOldMsgs -= (weight + spaceMsgCount);
+                spaceMsgCount = 0;
+            }
+            ++iNewMsgs;
+        }
+    }
+
+    // Выбор интервала
+    QPair<int,int> maxInterval = QPair(-1, 0);
+    for (const auto &interval : intervals) {
+        if (interval.second > maxInterval.second) {
+            maxInterval = interval;
+        }
+    }
+
+    // Спам-пакет из пачки сообщений т.к. не найдено совпадений вообще! (если такое возможно) -> передаем его сразу в запись
+    if (maxInterval.first == -1) {
+        mergedMsgList = newMsgList;
+        return;
+    }
+
+    // Отсутствуют новые сообщения!
+    if (maxInterval.first == 0) {
+        return;
+    }
+
+    // Записываем новые сообщения в список слияния
+    int startIndex = oldMsgList.size() - maxInterval.first + 1;
+    for (int i = startIndex; i < newMsgList.size(); i++) {
+        mergedMsgList.append(newMsgList.at(i));
+    }
+}
+
+bool CCBot::equalMessages(const MessageData &msg1, const MessageData &msg2)
+{
+    if (msg1.type == msg2.type
+            && msg1.sender == msg2.sender
+            && msg1.pay == msg2.pay
+            && msg1.msg == msg2.msg
+            ) {
+        return true;
+    }
+    return false;
 }
 
 void CCBot::action(int type, QVariantList args)
@@ -334,8 +428,9 @@ void CCBot::slotFinishedTask(long id, int type, QVariantList argsList, QVariant 
     auto taskResult = result.value<TaskResult>();
     QVariantList args = argsList.value(0).toList();
     int errCode = taskResult.errCode();
+    QString errInfo = taskResult.errInfo();
 
-    if(errCode != CCBotErrEnums::Ok) {
-        emit showMessage(tr("Ошибка"), generateErrMsg(type, errCode), true);
+    if (errCode != CCBotErrEnums::Ok) {
+        emit showMessage(tr("Ошибка"), generateErrMsg(type, errCode, errInfo), true);
     }
 }

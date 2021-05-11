@@ -28,8 +28,7 @@ namespace CCBotErrEnums {
         NoInit = -1,
         Ok = 0,
         ParseJson,
-        Sql,
-        TypeDatagram
+        Sql
     };
     Q_ENUMS(CCBotErrEnum)
 }

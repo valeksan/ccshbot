@@ -34,21 +34,23 @@ private:
     void initTasks();               // инициализация задач
 
     // вспомогательные методы
-    QString generateErrMsg(int type, int errCode);
+    QString generateErrMsg(int type, int errCode, QString info = "");
 
     // методы распаковки данных
     bool readMessagesFromJsonStr(QByteArray jsonData, QList<MessageData> &msgList, QString *errInfo = nullptr);
 
     // методы для работы с БД
-    bool openDB();
+    Q_INVOKABLE bool openDB();
+    Q_INVOKABLE void closeDB();
     bool createTableDB(QString streamId);
     bool existsTableDB(QString streamId);
     bool selectMsgsFromTableDB(QString streamId, QList<MessageData> &msgList, int limit = -1);
     bool appendMsgIntoTableDB(QString streamId, QList<MessageData> msgList);
-    int insertNewMessagesInTable(QString streamId, QByteArray jsonData, QString *errInfo = nullptr);
+    Q_INVOKABLE int insertNewMessagesInTable(QString streamId, QByteArray jsonData, QString *errInfo = nullptr);
 
     // вспомогательные методы
     void mergeMessages(QList<MessageData> oldMsgList, QList<MessageData> newMsgList, QList<MessageData> &mergedMsgList);
+    bool equalMessages(const MessageData& msg1, const MessageData& msg2);
 
     // CCBotEngine interface
 public slots:
