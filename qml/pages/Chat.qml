@@ -60,7 +60,7 @@ ChatForm {
                 let timestamp2 = Math.floor(Date.now() / 1000);
                 let diff = Math.abs(timestamp2 - timestamp1);
 
-                console.log("timestamp_diff", diff)
+                //console.log("timestamp_diff", diff)
 
                 if(type === "chat_datagram" && diff < 2) {
                     ccbot.action(Task.MergeChat, [streamId, messages]);

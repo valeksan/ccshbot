@@ -61,22 +61,17 @@ void CCBot::initTasks()
         TaskResult result;
         QString errInfo = "";
         int state = 0;
-        //m_mutex.lock();
+        m_mutex.lock();
         //QMetaObject::invokeMethod(this, "openDB", Qt::QueuedConnection, Q_RETURN_ARG(bool, isOpen));
 
-
-
-        qDebug() << "##";
         QMetaObject::invokeMethod(this, "insertNewMessagesInTable", Qt::BlockingQueuedConnection,
                                   Q_RETURN_ARG(int, state),
                                   Q_ARG(QString, streamId),
                                   Q_ARG(QByteArray, messagesJsonStr.toUtf8()),
                                   Q_ARG(QString*, &errInfo)
                                   );
-        //state = insertNewMessagesInTable(streamId, messagesJsonStr.toUtf8(), &errInfo);
-        qDebug() << "###!";
 
-        //m_mutex.unlock();
+        m_mutex.unlock();
         if(state != CCBotErrEnums::Ok) {
             return TaskResult(state, errInfo);
         }
@@ -250,15 +245,11 @@ int CCBot::insertNewMessagesInTable(QString streamId, QByteArray jsonData, QStri
     QList<MessageData> rowsForInsert;
     bool state = false;
 
-    //qDebug() << "TEST";
-
     // 0. Упаковка данных с CrazyCash
     state = readMessagesFromJsonStr(jsonData, rowsFromServer, errInfo);
     if(!state) {
         return CCBotErrEnums::ParseJson;
     }
-     //for(int i=0; i<rowsFromServer.size(); i++)
-     //qDebug() << "RFS_size" << rowsFromServer.size();
 
     // 1. Проверка что таблица есть, иначе создать ее
     if (!existsTableDB(streamId)) {
@@ -270,8 +261,17 @@ int CCBot::insertNewMessagesInTable(QString streamId, QByteArray jsonData, QStri
         }
     }
 
+    // Fix remove type 4
+    int removeCount = 0;
+    for (int i = 0; i < rowsFromServer.size(); i++) {
+        if (rowsFromServer.at(i).type == 4) {
+            rowsFromServer.removeAt(i--);
+            ++removeCount;
+        }
+    }
+
     // 2. Запрос 100 сообщений с таблицы
-    state = selectMsgsFromTableDB(streamId, rowsFromDB, 100);
+    state = selectMsgsFromTableDB(streamId, rowsFromDB, 100 + removeCount);
     if (!state) {
         if (errInfo) {
             *errInfo = m_db.lastError().text();
@@ -281,9 +281,6 @@ int CCBot::insertNewMessagesInTable(QString streamId, QByteArray jsonData, QStri
 
     // 3. Слияние
     mergeMessages(rowsFromDB, rowsFromServer, rowsForInsert);
-
-    // 3.1 test
-    //for(int i=0; i<rowsForInsert.size(); i++) qDebug() << rowsForInsert.at(i).msg;
 
     // 4. Вставка новых сообщений в БД
     state = appendMsgIntoTableDB(streamId, rowsForInsert);
@@ -318,8 +315,9 @@ void CCBot::mergeMessages(QList<MessageData> oldMsgList, QList<MessageData> newM
     // Удаление из сравнения сообщений с ником из списка
     for (const auto &nik : type3NikNames) {
         for (int i = 0; i < oldMsgList.size(); i++) {
-            if (oldMsgList.at(i).sender == nik)
-                oldMsgList.removeAt(i);
+            if (oldMsgList.at(i).sender == nik) {
+                oldMsgList.removeAt(i--);
+            }
         }
     }
 
@@ -344,8 +342,9 @@ void CCBot::mergeMessages(QList<MessageData> oldMsgList, QList<MessageData> newM
             ++iNewMsgs;
             if (iOldMsgs == oldMsgList.crend() || iNewMsgs == newMsgList.crend()) {
                 intervals.append(QPair<int,int>(start, weight));
+                break;
             }
-        } else if ((*iNewMsgs).type == 4 || (*iOldMsgs).type == 4) {
+        } /*else if ((*iNewMsgs).type == 4 || (*iOldMsgs).type == 4) {
             if ((*iNewMsgs).type == 4) {
                 ++iNewMsgs;
                 if(flagEnterInterval) {
@@ -356,7 +355,11 @@ void CCBot::mergeMessages(QList<MessageData> oldMsgList, QList<MessageData> newM
                 ++iOldMsgs;
                 ++spaceMsgCount;
             }
-        } else {
+            if (iOldMsgs == oldMsgList.crend() || iNewMsgs == newMsgList.crend()) {
+                intervals.append(QPair<int,int>(start, weight));
+                break;
+            }
+        }*/ else {
             if (flagEnterInterval) {
                 intervals.append(QPair<int,int>(start, weight));
                 flagEnterInterval = false;
@@ -367,6 +370,8 @@ void CCBot::mergeMessages(QList<MessageData> oldMsgList, QList<MessageData> newM
         }
     }
 
+
+
     // Выбор интервала
     QPair<int,int> maxInterval = QPair(-1, 0);
     for (const auto &interval : intervals) {
@@ -375,19 +380,24 @@ void CCBot::mergeMessages(QList<MessageData> oldMsgList, QList<MessageData> newM
         }
     }
 
+    //qDebug() << "intervals:" << intervals;
+
     // Спам-пакет из пачки сообщений т.к. не найдено совпадений вообще! (если такое возможно) -> передаем его сразу в запись
     if (maxInterval.first == -1) {
         mergedMsgList = newMsgList;
+        qDebug() << "spam!";
         return;
     }
 
     // Отсутствуют новые сообщения!
     if (maxInterval.first == 0) {
+        qDebug() << "empty new";
         return;
     }
 
     // Записываем новые сообщения в список слияния
     int startIndex = oldMsgList.size() - maxInterval.first + 1;
+    qDebug() << "stert_index: " << startIndex;
     for (int i = startIndex; i < newMsgList.size(); i++) {
         mergedMsgList.append(newMsgList.at(i));
     }
@@ -397,7 +407,7 @@ bool CCBot::equalMessages(const MessageData &msg1, const MessageData &msg2)
 {
     if (msg1.type == msg2.type
             && msg1.sender == msg2.sender
-            && msg1.pay == msg2.pay
+            && qFuzzyCompare(msg1.pay, msg2.pay)
             && msg1.msg == msg2.msg
             ) {
         return true;
