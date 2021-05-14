@@ -40,8 +40,8 @@ private:
     bool readMessagesFromJsonStr(QByteArray jsonData, QList<MessageData> &msgList, QString *errInfo = nullptr);
 
     // методы для работы с БД
-    Q_INVOKABLE bool openDB();
-    Q_INVOKABLE void closeDB();
+    bool openDB();
+    void closeDB();
     bool createTableDB(QString streamId);
     bool existsTableDB(QString streamId);
     bool selectMsgsFromTableDB(QString streamId, QList<MessageData> &msgList, int limit = -1);
@@ -53,12 +53,18 @@ private:
     bool equalMessages(const MessageData& msg1, const MessageData& msg2);
 
     // CCBotEngine interface
+    void updateChat(const QList<MessageData> &msgsl, bool withTime = false);
+    bool getFullChat(QString streamId, bool withTime = false);
+
 public slots:
     void action(int type, QVariantList args) override;
     void slotFinishedTask(long id, int type, QVariantList argsList, QVariant result) override;
 
 signals:
     void showMessage(QString title, QString text, bool alert);
+    void baseOpenned(bool state);
+    void showChatMessage(QString message);
+    void chatLoadCompleted();
 };
 
 #endif // CCBOT_H

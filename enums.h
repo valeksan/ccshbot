@@ -17,6 +17,9 @@ namespace CCBotTaskEnums {
     enum CCBotTaskEnum {
         MergeChat = 1,
         Voice,
+        OpenBase,
+        CloseBase,
+        LoadChat
     };
     Q_ENUMS(CCBotTaskEnum)
 }

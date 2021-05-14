@@ -96,16 +96,18 @@ ApplicationWindow {
 
             ToolButton {
                 id: toolButtonStartServer
-                text: listenClients ? "\u23F9" : "\u23F5"
+                text: listenClients ? '\u23F9' : '\u23F5'
                 font.pixelSize: Qt.application.font.pixelSize * 1.6
                 width: 48
                 Layout.alignment: Qt.AlignRight
                 Material.foreground: listenClients ? "red" : "lightgreen"
                 onClicked: {
-                    if(!window.listenClients)
-                        window.changeStatus("Запуск сервера ...", 500, "yellow");
-                    else
-                        window.changeStatus("Остановка сервера ...", 500, "yellow");
+                    if(!window.listenClients) {
+                        window.changeStatus("Запуск сервера ...", 1500, "yellow");
+                    } else {
+                        window.changeStatus("Остановка сервера ...", 1500, "yellow");
+                        properties.flagLoadingChat = true;
+                    }
                     window.listenClients = !window.listenClients;
                 }
             }
@@ -194,6 +196,9 @@ ApplicationWindow {
         property int y: desktopMethods.getDescktopY()
         property string listenHost: 'localhost'
         property int listenPort: 3000
+        property string chatFont: "Arial"
+        property int chatFontPointSize: 12
+        property color chatTextColor: "#bfc7d0"
     }
 
     StackView {

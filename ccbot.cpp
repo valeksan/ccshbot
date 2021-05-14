@@ -10,6 +10,8 @@
 #include <QDebug>
 #include <QStandardPaths>
 
+#include "misc.h"
+
 CCBot::CCBot(Properties *params, QObject *parent) : CCBotEngine(parent), m_params(params)
 {
     loadSettings();
@@ -22,252 +24,6 @@ CCBot::CCBot(Properties *params, QObject *parent) : CCBotEngine(parent), m_param
         qDebug() << "DB not open!";
     }
 
-//    QList<QString> oldMsgList = {
-//        "tyki: можно прикрыть и танцевать",
-//        "UskoGlazik: Короче решайте сами, чел не отвечает",
-//        "tyki: так не поворачивайся",
-//        "Qvery: не поворачивайся",
-//        "ssmaster: сзади прикрой",
-//        "Gbird: Nude with hands covering Pus",
-//        "UskoGlazik: Так им же для дрочки",
-//        "UskoGlazik: Им это и нужно",
-//        "ssmaster: может он этого и хочет?)))",
-//        "Gbird: look at the amount",
-//        "Qvery: сомневаюсь что танеч важен)",
-//        "ssmaster: чтобы тебе было ен удобно",
-//        "UskoGlazik: Qvery, А что такое танеч?",
-//        "UskoGlazik: А, бля, тупой я",
-//        "UskoGlazik: Танец",
-//        "lilichan1: ой шо це за интим",
-//        "ssmaster: так видно бедра и все такое..",
-//        "Qvery: UskoGlazik, это какоето национальное блюдо))",
-//        "UskoGlazik: Qvery, Нашёл в гугле, это поэт",
-//        "NancyVicious: Прочитер из какого ввиду города?",
-//        "lilichan1: рука только и лифчик",
-//        "Qvery: NancyVicious, приветик)",
-//        "Gbird: :)",
-//        "lilichan1: боком норм",
-//        "lilichan1: задом не поворачивайся ахах",
-//        "Gbird: oh yes",
-//        "PUMBO22: задание дали. выполняй а нетрепись. не хочешь не выполняй. твои условия нах не нужны никому",
-//        "UskoGlazik: Ну ебать",
-//        "UskoGlazik: 115 долларов",
-//        "lilichan1: потом прочитер апхза",
-//        "NancyVicious: Qvery, здравствуйте:з",
-//        "UskoGlazik: Ооо",
-//        "UskoGlazik: На улице радуга у меня",
-//        "UskoGlazik: Я пошёл на неё смотреть",
-//        "UskoGlazik: пока",
-//        "lilichan1: PUMBO22, странный чел",
-//        "lilichan1: ой я не смотрю",
-//        "lilichan1: ахах",
-//        "AlexNek: lilichan1, опа",
-//        "king768: wooooooow",
-//        "lilichan1: AlexNek, привет извращенец",
-//        "lilichan1: king768, hi hi",
-//        "AlexNek: lilichan1, дарова, от извращенки слышу)))",
-//        "DaybreakToday: Пиздец, расчехлили бабу",
-//        "Gbird: WOW AMAZING",
-//        "lilichan1: AlexNek, все, не могу писать, я дрочить",
-//        "lilichan1: ахпзахп",
-//        "AlexNek: lilichan1, ОРУ",
-//        "PravDa: всем привет кого не видел",
-//        "ssmaster: ну можно передом немного?) прикрытой",
-//        "PravDa: не плохо собрали",
-//        "AlexNek: PravDa, дарова, я кста тебя видел, ты стрим вел, неуспел написать..",
-//        "lilichan1: 2 руками прикрой",
-//        "DaybreakToday: Прочитер сидит как куколд)",
-//        "PravDa: AlexNek, сегодня?",
-//        "lilichan1: тупа советики",
-//        "AlexNek: PravDa, да",
-//        "NancyVicious: DaybreakToday, :D",
-//        "PravDa: AlexNek, как картинка?",
-//        "AlexNek: PravDa, неплохо, только света надо больше",
-//        "UskoGlazik: Ты осторожнее",
-//        "DaybreakToday: Если не завалишь её прям сейчас, то всё, ккуколд)",
-//        "UskoGlazik: Я новосибирских знаю",
-//        "123Aleks123: Вы их сексом ещё заставьте заняться",
-//        "king768: give us a front view pls.",
-//        "UskoGlazik: Приедет закопает тебя в лесу",
-//        "UskoGlazik: тсс",
-//        "Gbird: come closer and turn to us covering it with hands?",
-//        "NancyVicious: AlexNek, лучше чем у нитопы?",
-//        "PravDa: AlexNek, толлькл камера и обс, без телефона",
-//        "AlexNek: NancyVicious, а причем тут нитопа?)",
-
-//        "mintie: you need to turn around - but keep covered",
-//        "Gbird: We love it",
-//        "DaybreakToday: 123Aleks123, кто мешает трахаться по-дружески?)",
-//        "Kv1215: Turn if she wants more tipssssss",
-//        "123Aleks123: По дружески можно",
-//        "mintie: вам нужно развернуться - но держитесь под прикрытием",
-//        "Gbird: face us",
-//        "Gbird: AWSOME",
-//        "Gbird: :) :)",
-//        "ssmaster: Prochiter а ты видел ее голую?",
-//        "Gbird: thank you that was great",
-//        "Gbird: PASS",
-//        "ssmaster: да интересно",
-//        "OneLove2021 задонатил $10!",
-//        "lilichan1: эротика",
-//        "UskoGlazik: Ну всё, пошла ёбка",
-//        "lilichan1: best friend"
-//    };
-
-//    QList<QString> newMsgList = {
-//        "lilichan1: AlexNek, привет извращенец",
-//        "lilichan1: king768, hi hi",
-//        "AlexNek: lilichan1, дарова, от извращенки слышу)))",
-//        "DaybreakToday: Пиздец, расчехлили бабу",
-//        "Gbird: WOW AMAZING",
-//        "lilichan1: AlexNek, все, не могу писать, я дрочить",
-//        "lilichan1: ахпзахп",
-//        "AlexNek: lilichan1, ОРУ",
-//        "PravDa: всем привет кого не видел",
-//        "ssmaster: ну можно передом немного?) прикрытой",
-//        "PravDa: не плохо собрали",
-//        "AlexNek: PravDa, дарова, я кста тебя видел, ты стрим вел, неуспел написать..",
-//        "lilichan1: 2 руками прикрой",
-//        "DaybreakToday: Прочитер сидит как куколд)",
-//        "PravDa: AlexNek, сегодня?",
-//        "lilichan1: тупа советики",
-//        "AlexNek: PravDa, да",
-//        "NancyVicious: DaybreakToday, :D",
-//        "PravDa: AlexNek, как картинка?",
-//        "AlexNek: PravDa, неплохо, только света надо больше",
-//        "UskoGlazik: Ты осторожнее",
-//        "DaybreakToday: Если не завалишь её прям сейчас, то всё, ккуколд)",
-//        "UskoGlazik: Я новосибирских знаю",
-//        "123Aleks123: Вы их сексом ещё заставьте заняться",
-//        "king768: give us a front view pls.",
-//        "UskoGlazik: Приедет закопает тебя в лесу",
-//        "UskoGlazik: тсс",
-//        "Gbird: come closer and turn to us covering it with hands?",
-//        "NancyVicious: AlexNek, лучше чем у нитопы?",
-//        "PravDa: AlexNek, толлькл камера и обс, без телефона",
-//        "AlexNek: NancyVicious, а причем тут нитопа?)",
-
-//        "mintie: you need to turn around - but keep covered",
-//        "Gbird: We love it",
-//        "DaybreakToday: 123Aleks123, кто мешает трахаться по-дружески?)",
-//        "Kv1215: Turn if she wants more tipssssss",
-//        "123Aleks123: По дружески можно",
-//        "mintie: вам нужно развернуться - но держитесь под прикрытием",
-//        "Gbird: face us",
-//        "Gbird: AWSOME",
-//        "Gbird: :) :)",
-//        "ssmaster: Prochiter а ты видел ее голую?",
-//        "Gbird: thank you that was great",
-//        "Gbird: PASS",
-//        "ssmaster: да интересно",
-//        "OneLove2021 задонатил $10!",
-//        "lilichan1: эротика",
-//        "UskoGlazik: Ну всё, пошла ёбка",
-//        "lilichan1: best friend",
-
-//        "Gbird: She's very beautiful",
-//        "PravDa: это плохо",
-//        "lilichan1: тут приличный, а на сливах посмотреть можно и потом",
-//        "UskoGlazik: Импотент получаеца",
-//        "lilichan1: шутка",
-//        "lilichan1: ахах",
-//        "PravDa: у меня бы встал",
-//        "lilichan1: и у меня",
-//        "PravDa: хоть подругу",
-//        "DaybreakToday: Прочитер что-то знает, чего не знаем мы",
-//        "DaybreakToday: У неё усы под маской?",
-//        "lilichan1: ставлю на бороду",
-//        "DaybreakToday: Когда носа нет - это сифак",
-//        "DaybreakToday: Сифилис в серьёзной стадии",
-//        "DaybreakToday: Его сейчас лечат",
-//        "DaybreakToday: Нос только у конченных отваливается",
-//        "UskoGlazik: Слушай",
-//        "AlexTr: Ребята на этом сайте в основном заказывают склеротические стримы так что решайте выходить ли здесь в эфир",
-//        "UskoGlazik: Если это не разобьётся",
-//        "UskoGlazik: То можно и выкинуть",
-//        "DaybreakToday: Не, они на камерах не сидят)",
-//        "DaybreakToday: AlexTr, какие?)",
-//        "UskoGlazik: Я рекламы в тиктоке насмотреля, пойду оформлять себе брокерский счёт",
-//        "Tankist089: Опять голожопы тут ахахахх",
-//        "Gbird: lets do different challenge",
-//        "AlexTr: эротическии",
-//        "Tankist089: Я был цветной, перестал донатить просто",
-//        "Tankist089: Хахаах,ну пасибо блин",
-//        "Tankist089: Ахахахха",
-//        "Tankist089: Вы не думали на Счёт отношений между друг другом?",
-//        "Tankist089: Сделайте тише музыку",
-//        "Tankist089: Слышал,но музыка все ровно перекрикивает",
-//        "Tankist089: Зас норм уже)"
-//    };
-
-    /*
-    QList<QString> oldMsgList = QString("1,2,3,4,5,6,7,1,2,3,6,7,n,a,d,5,6,7").split(',');
-    QList<QString> newMsgList = QString("1,2,3,4,5,6,7,1,2,3,6,7,n,a,d,5,6,7,_,_,_,7").split(',');
-    QList<QString> mergedMsgList;
-    QList<QPair<int,int> > intervals;
-
-    QList<QString>::const_reverse_iterator iOldMsgs;
-    QList<QString>::const_reverse_iterator iNewMsgs;
-    int start = -1;
-    int weight = 0;
-    int spaces = 0;
-    bool flagEnterInterval = false;
-    for (iNewMsgs = newMsgList.crbegin(), iOldMsgs = oldMsgList.crbegin(); iNewMsgs != newMsgList.crend() && iOldMsgs != oldMsgList.crend(); ) {
-        if (*iNewMsgs == *iOldMsgs) {
-            if(!flagEnterInterval) {
-                qDebug() << "start" << *iNewMsgs << ":" << iNewMsgs - newMsgList.crbegin();
-                start = iNewMsgs - newMsgList.crbegin();
-                weight = 1;
-                flagEnterInterval = true;
-            } else {
-                weight += 1;
-            }
-            ++iOldMsgs;
-            ++iNewMsgs;
-            if (iOldMsgs == oldMsgList.crend() || iNewMsgs == newMsgList.crend()) {
-                intervals.append(QPair<int,int>(start, weight));
-            }
-        } else {
-            if (flagEnterInterval) {
-                qDebug() << "stop" << *iNewMsgs << ":" << iNewMsgs - newMsgList.crbegin();
-                intervals.append(QPair<int,int>(start, weight));
-                flagEnterInterval = false;
-                iOldMsgs -= weight + spaces;
-                spaces = 0;
-            }
-            ++iNewMsgs;
-        }
-    }
-    qDebug() << intervals;
-
-    // Выбор интервала
-    QPair<int,int> maxInterval = QPair(-1, 0);
-    for (const auto &interval : intervals) {
-        if (interval.second > maxInterval.second) {
-            maxInterval = interval;
-        }
-    }
-
-    // Отсутствуют новые сообщения!
-    if (maxInterval.first == 0) {
-        qDebug() << "empty new";
-        return;
-    }
-
-    // Записываем новые сообщения в список слияния
-    int startIndex = newMsgList.size() - maxInterval.first;
-    qDebug() << "maxInterval.first: " << maxInterval.first;
-    qDebug() << "oldMsgList.size(): " << oldMsgList.size();
-    qDebug() << "start_index: " << startIndex;
-    //for (int i = startIndex; i < newMsgList.size(); i++) {
-        mergedMsgList.append(newMsgList.mid(startIndex));
-    //}
-
-    qDebug() << "mergedMsgList: " << mergedMsgList.join(",");
-//    for (int i = 0; i < mergedMsgList.size(); i++) {
-//        qDebug() << mergedMsgList.at(i) << ", ";
-//    }
-*/
 }
 
 CCBot::~CCBot()
@@ -450,6 +206,7 @@ bool CCBot::selectMsgsFromTableDB(QString streamId, QList<MessageData> &msgList,
             msg.id = qry.value("id").toULongLong();
             msg.type = qry.value("type").toInt();
             msg.sender = qry.value("sender").toString();
+            msg.nik_color = qry.value("nik_color").toString();
             msg.msg = qry.value("msg").toString();
             msg.pay = qry.value("pay").toFloat();
             msg.timestamp = qry.value("timestamp").toUInt();
@@ -475,7 +232,7 @@ bool CCBot::appendMsgIntoTableDB(QString streamId, QList<MessageData> msgList)
         qry.prepare(sql);
         qry.bindValue(":type", msg.type);
         qry.bindValue(":sender", msg.sender);
-        qry.bindValue(":nik_color", msg.nik_color);
+        qry.bindValue(":nik_color", msg.type == 1 ? "#fff200" : msg.nik_color);
         qry.bindValue(":msg", msg.msg);
         qry.bindValue(":pay", msg.pay);
         qry.bindValue(":timestamp", timestamp);
@@ -483,6 +240,18 @@ bool CCBot::appendMsgIntoTableDB(QString streamId, QList<MessageData> msgList)
     }
 
     return false;
+}
+
+bool CCBot::getFullChat(QString streamId, bool withTime)
+{
+    QList<MessageData> msgsl;
+    bool state = selectMsgsFromTableDB(streamId, msgsl);
+    if (!state) {
+        qWarning() << "Can't get messages from DB";
+        return false;
+    }
+    updateChat(msgsl, withTime);
+    return true;
 }
 
 int CCBot::insertNewMessagesInTable(QString streamId, QByteArray jsonData, QString *errInfo)
@@ -621,6 +390,7 @@ void CCBot::mergeMessages(QList<MessageData> oldMsgList, QList<MessageData> newM
     if (maxInterval.first == -1) {
         mergedMsgList = newMsgList;
         qDebug() << "spam!";
+        updateChat(mergedMsgList);
         return;
     }
 
@@ -635,6 +405,7 @@ void CCBot::mergeMessages(QList<MessageData> oldMsgList, QList<MessageData> newM
     qDebug() << "stert_index: " << startIndex;
     //for (int i = startIndex; i < newMsgList.size(); i++) {
     mergedMsgList.append(newMsgList.mid(startIndex));
+    updateChat(mergedMsgList);
     //}
 }
 
@@ -650,6 +421,24 @@ bool CCBot::equalMessages(const MessageData &msg1, const MessageData &msg2)
     return false;
 }
 
+void CCBot::updateChat(const QList<MessageData> &msgsl, bool withTime)
+{
+    //QString blockStr = "";
+    for (int i = 0; i < msgsl.size(); i++) {
+        MessageData msg = msgsl.value(i);
+        QString timeStr = (withTime ? QDateTime::fromSecsSinceEpoch(msg.timestamp).toString("hh:mm") : "");
+        QString nikStr = _clr_(QString("%1:").arg(msg.sender), msg.nik_color);
+        QString msgStr = QString("%3: %1 %2<br>")
+                .arg(nikStr)
+                .arg(msg.msg)
+                .arg(timeStr);
+
+        //blockStr.append(msgStr);
+        emit showChatMessage(msgStr);
+    }
+    //emit showChatMessage(blockStr);
+}
+
 void CCBot::action(int type, QVariantList args)
 {
     switch (type) {
@@ -658,6 +447,26 @@ void CCBot::action(int type, QVariantList args)
             QString streamId = args.value(0,"").toString();
             QString messagesJsonStr = args.value(1,"").toString();
             m_pCore->addTask(type, streamId, messagesJsonStr);
+        }
+        break;
+//    case CCBotTaskEnums::OpenBase:
+//        {
+//            bool state = openDB();
+//            emit baseOpenned(state);
+//        }
+//        break;
+//    case CCBotTaskEnums::CloseBase:
+//        {
+//            closeDB();
+//            emit baseOpenned(false);
+//        }
+//        break;
+    case CCBotTaskEnums::LoadChat:
+        {
+            QString streamId = args.value(0,"").toString();
+            qDebug() << "streamId:" << streamId;
+            getFullChat(streamId);
+            emit chatLoadCompleted();
         }
         break;
     default:

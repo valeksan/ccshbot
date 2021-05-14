@@ -8,6 +8,22 @@ ChatForm {
 
     property bool clientConnected: false
 
+    title: qsTr("Чат") + " " + properties.currentStreamId
+    chatRepeater.font.family: settings.chatFont
+    chatRepeater.font.pointSize: settings.chatFontPointSize
+    chatRepeater.color: settings.chatTextColor
+    chatRepeater.text: ""
+
+    function chatAddText(msg) {
+        var moveToBottom = flickChat.atYEnd;
+        chatRepeater.append(msg);
+        if (moveToBottom) {
+            if (flickChat.contentHeight > flickChat.height) {
+                flickChat.contentY = flickChat.contentHeight - flickChat.height;
+            }
+        }
+    }
+
     WebSocketServer {
         id: server
         listen: !page.clientConnected && window.listenClients
@@ -60,7 +76,12 @@ ChatForm {
                 let timestamp2 = Math.floor(Date.now() / 1000);
                 let diff = Math.abs(timestamp2 - timestamp1);
 
-                //console.log("timestamp_diff", diff)
+                if (properties.flagLoadingChat || properties.currentStreamId !== streamId) {
+                    properties.currentStreamId = streamId;
+                    chatRepeater.text = ""; //clear();
+                    ccbot.action(Task.LoadChat, [streamId]);
+                    return;
+                }
 
                 if(type === "chat_datagram" && diff < 2) {
                     ccbot.action(Task.MergeChat, [streamId, messages]);
@@ -75,6 +96,18 @@ ChatForm {
             window.changeStatus("Server error: " + errorString, 2000, "red");
         }
     }
+
+    Connections {
+        target: ccbot
+        onShowChatMessage: {
+            page.chatAddText(message);
+        }
+        onChatLoadCompleted: {
+            properties.flagLoadingChat = false;
+            console.log(1234567)
+        }
+    }
+
 //    Component.onDestruction: {
 //        server.listen = false;
 //    }

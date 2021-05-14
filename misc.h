@@ -4,6 +4,14 @@
 #include <QEventLoop>
 #include <QTimer>
 
+// Форматирование для текста в фрмате RichText
+
+//#define _cl_(COLOR) "<span style='color:" COLOR "'>"
+//#define _сr_        "</span>"
+
+// возвратить форматированную html-строку
+#define _clr_(STR, COLOR) QString("<span style=\"color:%1\">%2</span>").arg(COLOR).arg(STR)
+
 template<typename Func>
 bool waitSignal(const typename QtPrivate::FunctionPointer<Func>::Object *sender, Func signal, int timeout = 30000)
 {
