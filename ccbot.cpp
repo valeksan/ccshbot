@@ -449,24 +449,36 @@ void CCBot::action(int type, QVariantList args)
             m_pCore->addTask(type, streamId, messagesJsonStr);
         }
         break;
-//    case CCBotTaskEnums::OpenBase:
-//        {
-//            bool state = openDB();
-//            emit baseOpenned(state);
-//        }
-//        break;
-//    case CCBotTaskEnums::CloseBase:
-//        {
-//            closeDB();
-//            emit baseOpenned(false);
-//        }
-//        break;
+    case CCBotTaskEnums::OpenBase:
+        {
+            bool state = openDB();
+            emit baseOpenned(state);
+        }
+        break;
+    case CCBotTaskEnums::CloseBase:
+        {
+            closeDB();
+            emit baseOpenned(false);
+        }
+        break;
     case CCBotTaskEnums::LoadChat:
         {
             QString streamId = args.value(0,"").toString();
-            qDebug() << "streamId:" << streamId;
-            getFullChat(streamId);
-            emit chatLoadCompleted();
+            QString messagesJsonStr = args.value(1,"").toString();
+            QString errInfo = "";
+            int err = CCBotErrEnums::NoInit;
+            //qDebug() << "streamId:" << streamId;
+            if(existsTableDB(streamId)) {
+                getFullChat(streamId);
+                err = CCBotErrEnums::Ok;
+            } else {
+                createTableDB(streamId);
+                err = insertNewMessagesInTable(streamId, messagesJsonStr.toUtf8(), &errInfo);
+                if(err > CCBotErrEnums::Ok) {
+                    emit showMessage("Ошибка", generateErrMsg(CCBotTaskEnums::LoadChat, err, errInfo), true);
+                }
+            }
+            emit chatLoadCompleted(err);
         }
         break;
     default:

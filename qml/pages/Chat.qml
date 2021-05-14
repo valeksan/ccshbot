@@ -99,12 +99,17 @@ ChatForm {
 
     Connections {
         target: ccbot
-        onShowChatMessage: {
+        function onShowChatMessage(message) {
             page.chatAddText(message);
+            console.log("_1")
         }
-        onChatLoadCompleted: {
-            properties.flagLoadingChat = false;
-            console.log(1234567)
+        function onChatLoadCompleted(err) {
+            if(err === 0) {
+                properties.flagLoadingChat = false;
+                console.log("_2")
+            } else {
+                console.warn("fail load chat!")
+            }
         }
     }
 

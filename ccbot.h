@@ -64,7 +64,7 @@ signals:
     void showMessage(QString title, QString text, bool alert);
     void baseOpenned(bool state);
     void showChatMessage(QString message);
-    void chatLoadCompleted();
+    void chatLoadCompleted(int state);
 };
 
 #endif // CCBOT_H
