@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QString>
+#include <QDateTime>
 
 struct MessageData {
 
@@ -12,7 +13,7 @@ struct MessageData {
     QString nik_color = "";
     QString msg;
     float pay;
-    quint32 timestamp;
+    QDateTime timestamp;
     bool flagIsNewMsg = false;
 
 };

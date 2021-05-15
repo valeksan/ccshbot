@@ -46,15 +46,15 @@ private:
     bool existsTableDB(QString streamId);
     bool selectMsgsFromTableDB(QString streamId, QList<MessageData> &msgList, int limit = -1);
     bool appendMsgIntoTableDB(QString streamId, QList<MessageData> msgList);
-    Q_INVOKABLE int insertNewMessagesInTable(QString streamId, QByteArray jsonData, QString *errInfo = nullptr);
+    Q_INVOKABLE int insertNewMessagesInTable(QString streamId, QByteArray jsonData, bool merge = true, QString *errInfo = nullptr);
 
     // вспомогательные методы
     void mergeMessages(QList<MessageData> oldMsgList, QList<MessageData> newMsgList, QList<MessageData> &mergedMsgList);
     bool equalMessages(const MessageData& msg1, const MessageData& msg2);
 
     // CCBotEngine interface
-    void updateChat(const QList<MessageData> &msgsl, bool withTime = false);
-    bool getFullChat(QString streamId, bool withTime = false);
+    void updateChat(const QList<MessageData> &msgsl, bool withTime = false, QString timeFormat = "hh:mm");
+    bool getFullChat(QString streamId, bool withTime = false, QString timeFormat = "hh:mm");
 
 public slots:
     void action(int type, QVariantList args) override;
@@ -64,7 +64,6 @@ signals:
     void showMessage(QString title, QString text, bool alert);
     void baseOpenned(bool state);
     void showChatMessage(QString message);
-    void chatLoadCompleted(int state);
 };
 
 #endif // CCBOT_H

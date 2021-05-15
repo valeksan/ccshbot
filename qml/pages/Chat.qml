@@ -13,6 +13,7 @@ ChatForm {
     chatRepeater.font.pointSize: settings.chatFontPointSize
     chatRepeater.color: settings.chatTextColor
     chatRepeater.text: ""
+    //chatRepeater.font.family: chatFont.name
 
     function chatAddText(msg) {
         var moveToBottom = flickChat.atYEnd;
@@ -30,14 +31,16 @@ ChatForm {
         port:  settings.listenPort
         host: settings.listenHost === 'localhost' ? "127.0.0.1" : settings.listenHost
         onClientConnected: {
-            console.log('Client connected!')
+            console.log('Client add!');
             webSocket.statusChanged.connect(function(status) {
                 console.log("status:", status)
                 try {
                     switch(status) {
                     case WebSocket.Connecting:
+                        console.log('Client connecting...')
                         break;
                     case WebSocket.Open:
+                        console.log('Client connected!')
                         window.changeStatus("CCBot plugin connected", 3000, "yellow");
                         page.clientConnected = true;
                         break;
@@ -49,6 +52,7 @@ ChatForm {
                         webSocket.active = false;
                         break;
                     case WebSocket.Closed:
+                        console.log('Client disconnected!')
                         break;
                     case WebSocket.Error:
                         break;
@@ -76,18 +80,24 @@ ChatForm {
                 let timestamp2 = Math.floor(Date.now() / 1000);
                 let diff = Math.abs(timestamp2 - timestamp1);
 
-                if (properties.flagLoadingChat || properties.currentStreamId !== streamId) {
+                if (properties.currentStreamId !== streamId) {
                     properties.currentStreamId = streamId;
-                    chatRepeater.text = ""; //clear();
-                    ccbot.action(Task.LoadChat, [streamId]);
-                    return;
+                    properties.flagLoadingChat = true;
+                    chatRepeater.clear();
+                    console.log("LoadChat")
+//                    ccbot.action(Task.LoadChat, [streamId, messages]);
+//                    return;
                 }
 
                 if(type === "chat_datagram" && diff < 2) {
-                    ccbot.action(Task.MergeChat, [streamId, messages]);
+
+                    let loading = properties.flagLoadingChat;
+                    if (loading)
+                        console.log("MergeChat")
+                    ccbot.action(Task.MergeChat, [streamId, messages, loading]);
                 } else {
                     if(diff >= 2)
-                        window.changeStatus("Ошибка обмена: временная метка пакета устарела", 800, "red");
+                        window.changeStatus("Ошибка обмена: временная метка пакета устарела", 1500, "red");
                 }
             });
         }
@@ -101,15 +111,7 @@ ChatForm {
         target: ccbot
         function onShowChatMessage(message) {
             page.chatAddText(message);
-            console.log("_1")
-        }
-        function onChatLoadCompleted(err) {
-            if(err === 0) {
-                properties.flagLoadingChat = false;
-                console.log("_2")
-            } else {
-                console.warn("fail load chat!")
-            }
+            //console.log("_1")
         }
     }
 

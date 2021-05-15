@@ -5,12 +5,18 @@
 #include <QTimer>
 
 // Форматирование для текста в фрмате RichText
+inline const QString _clr_(const QString &str, const QString &color) {
+    return QString("<span style=\"color:") + color + "\">" + str + "</span>";
+}
+inline const QString _bclr_(const QString &str, const QString &color) {
+    return QString("<b style=\"color:") + color + "\">" + str + "</b>";
+}
 
-//#define _cl_(COLOR) "<span style='color:" COLOR "'>"
-//#define _сr_        "</span>"
-
-// возвратить форматированную html-строку
-#define _clr_(STR, COLOR) QString("<span style=\"color:%1\">%2</span>").arg(COLOR).arg(STR)
+template<typename T>
+QList<T> listRight(const QList<T> &list, int n) {
+    int startIndex = list.size() - n;
+    return list.mid(startIndex < 0 ? 0 : list.size() - n);
+}
 
 template<typename Func>
 bool waitSignal(const typename QtPrivate::FunctionPointer<Func>::Object *sender, Func signal, int timeout = 30000)

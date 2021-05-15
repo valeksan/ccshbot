@@ -104,9 +104,9 @@ ApplicationWindow {
                 onClicked: {
                     if(!window.listenClients) {
                         window.changeStatus("Запуск сервера ...", 1500, "yellow");
+                        properties.flagLoadingChat = true;
                     } else {
                         window.changeStatus("Остановка сервера ...", 1500, "yellow");
-                        properties.flagLoadingChat = true;
                     }
                     window.listenClients = !window.listenClients;
                 }
@@ -220,6 +220,13 @@ ApplicationWindow {
     // вспомогательные JS-методы: для позиционирования окна
     MethodsDekctopJS {
         id: desktopMethods
+    }
+
+    Connections {
+        target: ccbot
+        function onShowMessage(title, text, alert) {
+            messageDlg.show(title,text,alert);
+        }
     }
 
     onHeightChanged: {
