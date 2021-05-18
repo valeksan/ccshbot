@@ -7,14 +7,14 @@ import QtQuick.Dialogs 1.2
 
 import Qt.labs.settings 1.1
 
+import ccbot.tasks 1.0
+
 import "js"
 import "pages"
 import "dialogs"
 
 ApplicationWindow {
     id: window
-
-    property bool listenClients: false
 
     function setTimeout(func, interval, ...params) {
         return setTimeoutComponent.createObject(window, { func, interval, params} );
@@ -43,10 +43,10 @@ ApplicationWindow {
             }, ms);
     }
 
-    x: settings.x
-    y: settings.y
-    height: settings.height
-    width: settings.width
+    x: settings._x
+    y: settings._y
+    height: settings._height
+    width: settings._width
     minimumWidth: 640
     minimumHeight: 620
 
@@ -77,38 +77,62 @@ ApplicationWindow {
                 }
             }
 
-//        TextField {
-//            width: 150
-//            text: settings.listenHost
-//            validator: RegularExpressionValidator { regularExpression:/^(([0-9]{1,3}.){3}([0-9]{1,3})|localhost):\d+$/ }
-//        }
-//        SpinBox {
-//            from: 1
-//            to: 65535
-//        }
-
             Label {
                 text: stackView.currentItem.title
                 Layout.alignment: Qt.AlignHCenter
                 Layout.fillWidth: true
                 horizontalAlignment: "AlignHCenter"
             }
+            GroupBox {
+                Layout.fillHeight: true
+                Layout.margins: 5
+                RowLayout {
+                    anchors.verticalCenter: parent.verticalCenter
+                    Label {
+                        text: qsTr("Озвучка")
+                        color: "#fff200"
+                        font.bold: true
+                    }
+                    RadioButton {
+                        text: qsTr("Отключена")
+                        checked: true
+                        onToggled: {
+                            properties.flagAnalyseVoiceAllMsgType0 = false;
+                            properties.flagAnalyseVoiceAllMsgType2 = false;
+                        }
+                    }
+                    RadioButton {
+                        text: qsTr("Донаты")
+                        onToggled: {
+                            properties.flagAnalyseVoiceAllMsgType0 = false;
+                            properties.flagAnalyseVoiceAllMsgType2 = true;
+                        }
+                    }
+                    RadioButton {
+                        text: qsTr("Все")
+                        onToggled: {
+                            properties.flagAnalyseVoiceAllMsgType0 = true;
+                            properties.flagAnalyseVoiceAllMsgType2 = true;
+                        }
+                    }
+                }
+            }
 
             ToolButton {
                 id: toolButtonStartServer
-                text: listenClients ? '\u23F9' : '\u23F5'
+                text: properties.listenClients ? '\u23F9' : '\u23F5'
                 font.pixelSize: Qt.application.font.pixelSize * 1.6
                 width: 48
                 Layout.alignment: Qt.AlignRight
-                Material.foreground: listenClients ? "red" : "lightgreen"
+                Material.foreground: properties.listenClients ? "red" : "lightgreen"
                 onClicked: {
-                    if(!window.listenClients) {
+                    if(!properties.listenClients) {
                         window.changeStatus("Запуск сервера ...", 1500, "yellow");
                         properties.flagLoadingChat = true;
                     } else {
                         window.changeStatus("Остановка сервера ...", 1500, "yellow");
                     }
-                    window.listenClients = !window.listenClients;
+                    properties.listenClients = !properties.listenClients;
                 }
             }
 
@@ -136,6 +160,27 @@ ApplicationWindow {
                 width: parent.width
                 onClicked: {
                     messageDlg.show("Соообщение", "Здесь будет сообщение", true);
+                    drawer.close();
+                }
+            }
+            ItemDelegate {
+                text: qsTr("Test get iam-token ...")
+                width: parent.width
+                onClicked: {
+                    ccbot.action(Task.VoiceLoad, ["съешь еще этих мягких булочек"]);
+                    drawer.close();
+                }
+            }
+
+            MenuSeparator {
+                width: parent.width
+            }
+
+            ItemDelegate {
+                text: qsTr("Настройки")
+                width: parent.width
+                onClicked: {
+                    stackView.push("qrc:///qml/pages/Settings.qml");
                     drawer.close();
                 }
             }
@@ -190,11 +235,11 @@ ApplicationWindow {
     // объект для хранения настроек программы, храним размер приложения и его положения на экране
     Settings {
         id: settings
-        property int height: 900
-        property int width: 1000
-        property int x: desktopMethods.getDescktopX()
-        property int y: desktopMethods.getDescktopY()
-        property string listenHost: 'localhost'
+        property int _height: 900
+        property int _width: 1000
+        property int _x: desktopMethods.getDescktopX()
+        property int _y: desktopMethods.getDescktopY()
+        property string listenHost: "127.0.0.1"
         property int listenPort: 3000
         property string chatFont: "Arial"
         property int chatFontPointSize: 12
@@ -230,16 +275,16 @@ ApplicationWindow {
     }
 
     onHeightChanged: {
-        settings.height = height;
+        settings._height = window.height;
     }
     onWidthChanged: {
-        settings.width = width;
+        settings._width = window.width;
     }
     onXChanged: {
-        settings.x = x;
+        settings._x = window.x;
     }
     onYChanged: {
-        settings.y = y;
+        settings._y = window.y;
     }
 
     Component.onDestruction: {

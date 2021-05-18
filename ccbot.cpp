@@ -12,24 +12,21 @@
 
 #include "misc.h"
 
-CCBot::CCBot(Properties *params, QObject *parent) : CCBotEngine(parent), m_params(params)
-{
+CCBot::CCBot(Properties *params, QObject *parent) : CCBotEngine(parent),
+    m_params(params)/*, m_speechkitMgr(new QNetworkAccessManager(this))*/, m_player(new QMediaPlayer)
+{    
     loadSettings();
 
     initConnections();
     initTasks();
     initTimers();
-
-    if(!openDB()) {
-        qDebug() << "DB not open!";
-    }
 }
 
 CCBot::~CCBot()
 {
     saveSettings();
 
-    closeDB();
+    delete m_player;
 }
 
 void CCBot::loadSettings()
@@ -55,6 +52,34 @@ void CCBot::initConnections()
     connect(this, &CCBotEngine::signQuit, [=]() {
         QApplication::quit();
     });
+
+    connect(m_player, &QMediaPlayer::stateChanged, [this](QMediaPlayer::State state) {
+        if (state == QMediaPlayer::StoppedState) {
+            emit completePlayFile();
+        }
+    });
+
+    connect(m_params, &Properties::listenClientsChanged, [this]() {
+        if (m_params->listenClients() == true) {
+            openDB();
+        } else {
+            closeDB();
+        }
+    });
+
+    // соедиение загрузки с сервиса speechkit
+    /*
+    connect(m_speechkitMgr, &QNetworkAccessManager::finished, this, [&](QNetworkReply *reply) {
+        if (reply->error() == QNetworkReply::NoError) {
+            if(reply->request().attribute(QNetworkRequest::User, "").toString() == "getIamToken") {
+                QByteArray response = reply->readAll();
+                qDebug() << "getIamToken complete";
+            }
+        } else {
+            //
+        }
+    });
+    */
 }
 
 void CCBot::initTasks()
@@ -63,8 +88,7 @@ void CCBot::initTasks()
         TaskResult result;
         QString errInfo = "";
         int state = 0;
-        //m_mutex.lock();
-        //QMetaObject::invokeMethod(this, "openDB", Qt::QueuedConnection, Q_RETURN_ARG(bool, isOpen));
+
         QMetaObject::invokeMethod(this, "insertNewMessagesInTable", Qt::BlockingQueuedConnection,
                                   Q_RETURN_ARG(int, state),
                                   Q_ARG(QString, streamId),
@@ -73,11 +97,180 @@ void CCBot::initTasks()
                                   Q_ARG(QString*, &errInfo)
                                   );
 
-        //m_mutex.unlock();
         if(state != CCBotErrEnums::Ok) {
             return TaskResult(state, errInfo);
         }
         return TaskResult();
+    });
+
+    m_pCore->registerTask(CCBotTaskEnums::VoiceLoad, [this](QString text) -> TaskResult {
+        TaskResult result;
+        QNetworkAccessManager *manager = new QNetworkAccessManager();
+        // 1. Проверка что токен истек
+        bool tokenExpiry = QDateTime::currentDateTime() >= m_params->speechkitIamTokenExpiryDate();
+        if (tokenExpiry) {
+            // 1.1 Если токен уже не действителен -> получаем новый и обновляем дату
+            // - формируем запрос
+            QNetworkRequest requestGetIamToken;
+            requestGetIamToken.setUrl(QUrl(m_params->speechkitGetIamTokenHost()));
+            //requestGetIamToken.setRawHeader("Authorization", QString("Bearer %1").arg(m_params->speechkitOAuthToken()).toUtf8());
+            //requestGetIamToken.setRawHeader("Content-Type", "application/x-www-form-urlencoded");
+            requestGetIamToken.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+            //requestGetIamToken.setRawHeader("User-Agent", "Mozilla/5.0 (X11; Fedora; Linux x86_64; rv:88.0) Gecko/20100101 Firefox/88.0");
+            //requestGetIamToken.setAttribute(QNetworkRequest::User, "getIamToken" );
+            QJsonObject obj;
+            obj["yandexPassportOauthToken"] = m_params->speechkitOAuthToken();
+            QJsonDocument doc(obj);
+            QByteArray data = doc.toJson();
+            // - делаем запрос
+            manager->setTransferTimeout(constTimeoutGetIamToken);
+            QNetworkReply *reply = manager->post(requestGetIamToken, data);
+            QNetworkReply::NetworkError errType = QNetworkReply::NoError;
+            QList<QSslError> errorsSsl;
+            connect(reply, &QNetworkReply::finished, this, [&]() {
+                QByteArray response = reply->readAll();
+                QJsonObject responseObj = QJsonDocument::fromJson(response).object();
+                m_params->setSpeechkitIamToken(responseObj.value("iamToken").toString());
+                m_params->setSpeechkitIamTokenExpiryDate(QDateTime::fromString(responseObj.value("expiresAt").toString(), Qt::ISODateWithMs));
+                qDebug() << "IamToken: " << m_params->speechkitIamToken();
+                qDebug() << "expiresAt: " << m_params->speechkitIamTokenExpiryDate().toString();
+                emit completeRequestGetIamToken();
+            });
+            connect(reply, &QNetworkReply::errorOccurred, this, [&](QNetworkReply::NetworkError error) {
+                errType = error;
+                qDebug() << "err" << error;
+                emit completeRequestGetIamToken();
+            });
+            connect(reply, &QNetworkReply::sslErrors, this, [&](const QList<QSslError> &errors) {
+                errorsSsl = errors;
+                qDebug() << "TEST_2";
+                emit completeRequestGetIamToken();
+            });
+            bool timeout = !waitSignal(this, &CCBot::completeRequestGetIamToken, constTimeoutGetIamToken + 500);
+            reply->disconnect();
+
+            if(timeout) {
+                result = TaskResult(CCBotErrEnums::NetworkRequest, "Timeout request, not get iam-token!");
+                delete manager;
+                return result;
+            }
+            if(errType != QNetworkReply::NoError || !errorsSsl.isEmpty()) {
+                QString mainInfo = QString("Error request (") + QString::number(static_cast<int>(errType)) + "), ";
+                QString secondInfo = errorsSsl.isEmpty() ? QString("no ssl errors") : QString("%1 ssl errors").arg(errorsSsl.size());
+                result = TaskResult(CCBotErrEnums::NetworkRequest, mainInfo + secondInfo);
+                delete manager;
+                return result;
+            }
+        }
+        // 2. Запрос звукового файла с сервера на текст
+        // повторная проверка даты токена
+        tokenExpiry = QDateTime::currentDateTime() >= m_params->speechkitIamTokenExpiryDate();
+        if (!tokenExpiry) {
+            QNetworkRequest requestGetAudio;
+            QUrl url(m_params->speechkitHost());
+            QUrlQuery urlQuery;
+            QStringList requestDataList;
+            // add --data-urlencode
+            urlQuery.addQueryItem("text", text);
+            url.setQuery(urlQuery.query());
+            // add header
+            requestGetAudio.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
+            requestGetAudio.setRawHeader("Authorization", QString("Bearer %1").arg(m_params->speechkitIamToken()).toUtf8());
+            // add data
+            requestDataList.append(QString("folderId=%1").arg(m_params->speechkitFolderId()));
+            if(!m_params->speechkitLang().isEmpty()) {
+                requestDataList.append(QString("lang=%1").arg(m_params->speechkitLang()));
+            }
+            if(!m_params->speechkitVoice().isEmpty()) {
+                requestDataList.append(QString("voice=%1").arg(m_params->speechkitVoice()));
+            }
+            if(!m_params->speechkitEmotion().isEmpty()) {
+                requestDataList.append(QString("emotion=%1").arg(m_params->speechkitEmotion()));
+            }
+            if(!m_params->speechkitSpeed().isEmpty()) {
+                requestDataList.append(QString("speed=%1").arg(m_params->speechkitSpeed()));
+            }
+            if(!m_params->speechkitFormat().isEmpty()) {
+                requestDataList.append(QString("format=%1").arg(m_params->speechkitFormat()));
+            }
+            if(!m_params->speechkitSampleRateHertz().isEmpty()) {
+                requestDataList.append(QString("sampleRateHertz=%1").arg(m_params->speechkitSampleRateHertz()));
+            }
+            QByteArray requestData = requestDataList.join("&").toUtf8();
+            // - запрос
+            // - делаем запрос
+            manager->setTransferTimeout(constTimeoutGetAudio);
+            requestGetAudio.setUrl(url);
+            QNetworkReply *reply = manager->post(requestGetAudio, requestData);
+            QNetworkReply::NetworkError errType = QNetworkReply::NoError;
+            QList<QSslError> errorsSsl;
+            connect(reply, &QNetworkReply::finished, this, [&reply,this]() {
+                QByteArray response = reply->readAll();
+                if(QJsonDocument::fromJson(response).isObject()) {
+                    qDebug() << "no_audio: " << response;
+                } else {
+                    qDebug() << "with audio";
+                    // сохраняем файл на диске и передаем новой задачи имя файла
+                    QTemporaryFile tmpfile;
+                    if (tmpfile.open()) {
+                        tmpfile.setAutoRemove(false);
+                        QDataStream ostream(&tmpfile);
+                        ostream.writeRawData(response, response.size());
+                        tmpfile.close();
+                        m_pCore->addTask(CCBotTaskEnums::VoiceSpeech, tmpfile.fileName());
+                    }
+                }
+                emit completeRequestGetAudio();
+            });
+            connect(reply, &QNetworkReply::errorOccurred, this, [&](QNetworkReply::NetworkError error) {
+                errType = error;
+                qDebug() << "err" << error;
+                emit completeRequestGetAudio();
+            });
+            connect(reply, &QNetworkReply::sslErrors, this, [&](const QList<QSslError> &errors) {
+                errorsSsl = errors;
+                qDebug() << "TEST_2";
+                emit completeRequestGetAudio();
+            });
+            bool timeout = !waitSignal(this, &CCBot::completeRequestGetAudio, constTimeoutGetAudio + 500);
+            reply->disconnect();
+
+            if(timeout) {
+                result = TaskResult(CCBotErrEnums::NetworkRequest, "Timeout request, not get audio!");
+                delete manager;
+                return result;
+            }
+            if(errType != QNetworkReply::NoError || !errorsSsl.isEmpty()) {
+                QString mainInfo = QString("Error request (") + QString::number(static_cast<int>(errType)) + "), ";
+                QString secondInfo = errorsSsl.isEmpty() ? QString("no ssl errors") : QString("%1 ssl errors").arg(errorsSsl.size());
+                result = TaskResult(CCBotErrEnums::NetworkRequest, mainInfo + secondInfo);
+                delete manager;
+                return result;
+            }
+        }
+        // 3. Завершение
+        delete manager;
+        return result;
+    }, 1);
+
+    m_pCore->registerTask(CCBotTaskEnums::VoiceSpeech, [this](QString filename) -> TaskResult {
+        TaskResult result;
+        qDebug() << "speek_filename: " << filename;
+        QMetaObject::invokeMethod(this, "speechFile", Qt::BlockingQueuedConnection,
+                                  Q_ARG(QString, filename)
+                                  );
+        // очистка
+        QFile::remove(filename);
+        return TaskResult();
+    }, 2);
+}
+
+void CCBot::speechFile(QString filename)
+{
+    waitSignalAfterFunction(this, &CCBot::completePlayFile, [&filename, this]() {
+        m_player->setMedia(QUrl::fromLocalFile(filename));
+        m_player->setVolume(100);
+        m_player->play();
     });
 }
 
@@ -89,6 +282,7 @@ QString CCBot::generateErrMsg(int type, int errCode, QString info)
     if(errCode == CCBotErrEnums::NoInit) return QString("Задача не выполнялась, результат не инициализирован.");
     if(errCode == CCBotErrEnums::ParseJson) return QString("Фатальная ошибка, не удалось распарсить JSON-данные.");
     if(errCode == CCBotErrEnums::Sql) return QString("Ошибка SQL: %1").arg(info);
+    if(errCode == CCBotErrEnums::NetworkRequest) return QString("%1").arg(info);
 
     return QString("Неизвестная ошибка, нет описания.");
 }
@@ -127,7 +321,7 @@ bool CCBot::readMessagesFromJsonStr(QByteArray jsonData, QList<MessageData> &msg
 
 bool CCBot::openDB()
 {
-    auto path = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+    QString path = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
 
 //    qDebug() << path;
 
@@ -138,8 +332,8 @@ bool CCBot::openDB()
 
     QDir d{path};
 
-    if(!d.exists()) {
-        if(!d.mkpath(d.absolutePath())) {
+    if (!d.exists()) {
+        if (!d.mkpath(d.absolutePath())) {
             qDebug() << QString("Cannot create path: %1").arg(d.absolutePath());
             return false;
         }
@@ -147,23 +341,26 @@ bool CCBot::openDB()
 
     QString file_path = path + QDir::separator() + constNameBaseStr;
 
-    if(QSqlDatabase::contains(QSqlDatabase::defaultConnection)) {
+    if (QSqlDatabase::contains(QSqlDatabase::defaultConnection)) {
         m_db = QSqlDatabase::database();
-    }
-    else {
+    } else {
         m_db = QSqlDatabase::addDatabase("QSQLITE");
     }
     m_db.setDatabaseName(file_path);
-    if(!m_db.open()) {
+    if (!m_db.open()) {
         qDebug() << "Error, missing database or opened from another program!";
         return false;
     }
+
+    emit baseOpenned(true);
+
     return true;
 }
 
 void CCBot::closeDB()
 {
     m_db.close();
+    emit baseOpenned(false);
 }
 
 bool CCBot::createTableDB(QString streamId)
@@ -214,7 +411,7 @@ bool CCBot::selectMsgsFromTableDB(QString streamId, QList<MessageData> &msgList,
     return state;
 }
 
-bool CCBot::appendMsgIntoTableDB(QString streamId, QList<MessageData> msgList)
+bool CCBot::appendMsgIntoTableDB(QString streamId, QList<MessageData> &msgList)
 {
     if (msgList.isEmpty()) {
         return true;
@@ -225,6 +422,7 @@ bool CCBot::appendMsgIntoTableDB(QString streamId, QList<MessageData> msgList)
     for (int i = 0; i < msgList.size(); i++) {
         QSqlQuery qry;
         MessageData msg = msgList.at(i);
+        msgList[i].timestamp = timestamp;
         QString sql = QString("INSERT INTO t_%1 (type, sender, nik_color, msg, pay, timestamp) VALUES (:type, :sender, :nik_color, :msg, :pay, :timestamp);").arg(streamId);
         qry.prepare(sql);
         qry.bindValue(":type", msg.type);
@@ -239,18 +437,6 @@ bool CCBot::appendMsgIntoTableDB(QString streamId, QList<MessageData> msgList)
     return false;
 }
 
-bool CCBot::getFullChat(QString streamId, bool withTime, QString timeFormat)
-{
-    QList<MessageData> msgsl;
-    bool state = selectMsgsFromTableDB(streamId, msgsl);
-    if (!state) {
-        qWarning() << "Can't get messages from DB";
-        return false;
-    }
-    updateChat(msgsl, withTime, timeFormat);
-    return true;
-}
-
 int CCBot::insertNewMessagesInTable(QString streamId, QByteArray jsonData, bool merge, QString *errInfo)
 {
     QList<MessageData> rowsFromDB;
@@ -259,8 +445,6 @@ int CCBot::insertNewMessagesInTable(QString streamId, QByteArray jsonData, bool 
 
     bool tableNotExist = false;
     bool state = false;
-
-    qDebug() << "merge:" << merge;
 
     // 0. Упаковка данных с CrazyCash
     state = readMessagesFromJsonStr(jsonData, rowsFromServer, errInfo);
@@ -315,8 +499,13 @@ int CCBot::insertNewMessagesInTable(QString streamId, QByteArray jsonData, bool 
 //        return CCBotErrEnums::Sql;
 //    }
 
-    // 5. update
+    // 5. Обновление чата
     updateChat(merge ? rowsForInsert : rowsFromDB + rowsForInsert);
+
+    // 6. Анализ сообщений на комманды -> выполнение комманд (добавление задач)
+    if(merge) {
+        analyseNewMessages(rowsForInsert);
+    }
 
     return CCBotErrEnums::Ok;
 }
@@ -390,26 +579,23 @@ void CCBot::mergeMessages(QList<MessageData> oldMsgList, QList<MessageData> newM
     }
 
     // Выбор интервала
-    QPair<int,int> maxInterval = QPair(-1, 0);
+    QPair<int,int> maxInterval = QPair<int,int>(-1, 0);
     for (const auto &interval : intervals) {
         if (interval.second > maxInterval.second) {
             maxInterval = interval;
         }
     }
 
-    //qDebug() << "intervals:" << intervals;
-
     // Спам-пакет из пачки сообщений т.к. не найдено совпадений вообще! (если такое возможно) -> передаем его сразу в запись
     if (maxInterval.first == -1) {
         mergedMsgList = newMsgList;
-        qDebug() << "spam!";
-        //updateChat(mergedMsgList);
+        //qDebug() << "spam!";
         return;
     }
 
     // Отсутствуют новые сообщения!
     if (maxInterval.first == 0) {
-        qDebug() << "empty new";
+        //qDebug() << "empty new";
         return;
     }
 
@@ -442,7 +628,8 @@ void CCBot::updateChat(const QList<MessageData> &msgsl, bool withTime, QString t
         QString fmtFragment1 = msg.nik_color.isEmpty() ? fragment1 : _clr_(fragment1, msg.nik_color);
         QString fragment2 = msg.msg;
         QString fmtFragment2 = fragment2.isEmpty() ?
-                    "" :
+                    (msg.type == 2 ? _bclr_((QString("($") + QString::number(msg.pay, 'f', 2) + ")"), "#fff200") : "")
+                    :
                     (msg.type == 2 ?
                          _bclr_((fragment2 + " ($" + QString::number(msg.pay, 'f', 2) + ")"), "#fff200") :
                          fragment2);
@@ -450,6 +637,53 @@ void CCBot::updateChat(const QList<MessageData> &msgsl, bool withTime, QString t
 
         emit showChatMessage(msgStr);
     }
+}
+
+void CCBot::analyseNewMessages(const QList<MessageData> &msgsl)
+{
+    for (int i = 0; i < msgsl.size(); i++) {
+        MessageData msg = msgsl.at(i);
+        QString text = "";
+        if (checkAutoVoiceMessage(msg, text)) {
+            m_pCore->addTask(CCBotTaskEnums::VoiceLoad, text);
+        }
+    }
+}
+
+bool CCBot::checkAutoVoiceMessage(const MessageData &msg, QString &text)
+{
+    if (msg.msg.isEmpty()) {
+        return false;
+    }
+    if ((m_params->flagAnalyseVoiceAllMsgType2() && msg.type == 2)
+            || (m_params->flagAnalyseVoiceAllMsgType0() && msg.type == 0)
+            ) {
+        QString analyseText = msg.msg;
+        // проверка на комманду
+        if (analyseText.at(0) == QChar('!')) {
+            return false;
+        }
+        // проверка на пустое сообщение
+        bool emptyMsg = true;
+        for (int i = 0; i < analyseText.length(); i++) {
+            if(analyseText.at(i).isLetter()) {
+                emptyMsg = false;
+                text = analyseText;
+                break;
+            }
+        }
+        return !emptyMsg;
+    }
+    return false;
+}
+
+bool CCBot::checkCmdMessage(const MessageData &msg, QString &cmd, QStringList &args)
+{
+    Q_UNUSED(msg)
+    Q_UNUSED(cmd)
+    Q_UNUSED(args)
+    //
+    return false;
 }
 
 void CCBot::action(int type, QVariantList args)
@@ -461,6 +695,14 @@ void CCBot::action(int type, QVariantList args)
             QString messagesJsonStr = args.value(1,"").toString();
             bool loading = args.value(2, false).toBool();
             m_pCore->addTask(type, streamId, messagesJsonStr, loading);
+        }
+        break;
+    case CCBotTaskEnums::VoiceLoad:
+        {
+            QString text = args.value(0,"").toString();
+            if(!text.isEmpty()) {
+                m_pCore->addTask(type, text);
+            }
         }
         break;
     case CCBotTaskEnums::OpenBase:
@@ -475,26 +717,6 @@ void CCBot::action(int type, QVariantList args)
             emit baseOpenned(false);
         }
         break;
-//    case CCBotTaskEnums::LoadChat:
-//        {
-//            QString streamId = args.value(0,"").toString();
-//            QString messagesJsonStr = args.value(1,"").toString();
-//            QString errInfo = "";
-//            int err = CCBotErrEnums::NoInit;
-//            //qDebug() << "streamId:" << streamId;
-//            if(existsTableDB(streamId)) {
-//                getFullChat(streamId);
-//                err = CCBotErrEnums::Ok;
-//            } else {
-//                createTableDB(streamId);
-//                err = insertNewMessagesInTable(streamId, messagesJsonStr.toUtf8(), false, &errInfo);
-//                if(err > CCBotErrEnums::Ok) {
-//                    emit showMessage("Ошибка1", generateErrMsg(CCBotTaskEnums::LoadChat, err, errInfo), true);
-//                }
-//            }
-//            //emit chatLoadCompleted(err);
-//        }
-//        break;
     default:
         break;
     }

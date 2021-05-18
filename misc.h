@@ -3,6 +3,8 @@
 
 #include <QEventLoop>
 #include <QTimer>
+#include <QFile>
+#include <QFileInfo>
 
 // Форматирование для текста в фрмате RichText
 inline const QString _clr_(const QString &str, const QString &color) {
@@ -66,6 +68,41 @@ T fromByteArray(QByteArray ba, bool *ok = nullptr)
     memcpy(&obj, ba.constData(), std::min(static_cast<size_t>(ba.size()), sizeof(T)));
     if(ok) *ok = true;
     return obj;
+}
+
+inline QString addUniqueSuffix(const QString &fileName)
+{
+    // If the file doesn't exist return the same name.
+    if (!QFile::exists(fileName)) {
+        return fileName;
+    }
+
+    QFileInfo fileInfo(fileName);
+    QString ret;
+
+    // Split the file into 2 parts - dot+extension, and everything else. For
+    // example, "path/file.tar.gz" becomes "path/file"+".tar.gz", while
+    // "path/file" (note lack of extension) becomes "path/file"+"".
+    QString secondPart = fileInfo.completeSuffix();
+    QString firstPart;
+    if (!secondPart.isEmpty()) {
+        secondPart = "." + secondPart;
+        firstPart = fileName.left(fileName.size() - secondPart.size());
+    } else {
+        firstPart = fileName;
+    }
+
+    // Try with an ever-increasing number suffix, until we've reached a file
+    // that does not yet exist.
+    for (int ii = 1; ; ii++) {
+        // Construct the new file name by adding the unique number between the
+        // first and second part.
+        ret = QString("%1 (%2)%3").arg(firstPart).arg(ii).arg(secondPart);
+        // If no file exists with the new name, return it.
+        if (!QFile::exists(ret)) {
+            return ret;
+        }
+    }
 }
 
 

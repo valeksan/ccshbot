@@ -3,23 +3,14 @@
 
 #include <QObject>
 
-namespace PageTypeEnums {
-    Q_NAMESPACE
-    enum PageTypeEnum {
-        NoPage = -1,
-        ChatPage,
-    };
-    Q_ENUMS(PageTypeEnum)
-}
-
 namespace CCBotTaskEnums {
     Q_NAMESPACE
     enum CCBotTaskEnum {
         MergeChat = 1,
-        Voice,
+        VoiceLoad,
+        VoiceSpeech,
         OpenBase,
-        CloseBase,
-        LoadChat
+        CloseBase
     };
     Q_ENUMS(CCBotTaskEnum)
 }
@@ -31,7 +22,8 @@ namespace CCBotErrEnums {
         NoInit = -1,
         Ok = 0,
         ParseJson,
-        Sql
+        Sql,
+        NetworkRequest
     };
     Q_ENUMS(CCBotErrEnum)
 }

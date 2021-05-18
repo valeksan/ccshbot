@@ -1,0 +1,114 @@
+  /* The switch - the box around the slider */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 34px;
+    margin: 10px;
+}
+  
+/* Hide default HTML checkbox */
+.switch input {
+    display: none;
+}
+  
+  /* The slider */
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgb(192, 11, 11);
+    -webkit-transition: .4s;
+    transition: .4s;
+}
+  
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 26px;
+    width: 26px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    -webkit-transition: .4s;
+    transition: .4s;
+}
+  
+input:checked + .slider {
+    background-color: #0fc725;
+}
+  
+input:focus + .slider {
+    box-shadow: 0 0 1px #0fc725;
+}
+  
+input:checked + .slider:before {
+    -webkit-transform: translateX(26px);
+    -ms-transform: translateX(26px);
+    transform: translateX(26px);
+}
+  
+/* Rounded sliders */
+.slider.round {
+    border-radius: 34px;
+    box-shadow: 0 0 0 2px white;
+}
+.slider.round:hover {
+    box-shadow: 0 0 0 2px #fdef00;
+    
+}
+  
+.slider.round:before {
+    border-radius: 50%;
+    background-color: white;
+}
+.slider.round:hover::before {
+    background-color: #fdef00;
+}
+
+#popup {
+    display: none;
+    width: 130px;
+    background-color: #1f1f2a;
+    box-shadow: 0 0 0 2px gray;
+}
+
+/* Buttons */
+a {
+    height: 34px;
+    width: 34px;
+    outline: none;
+    border: none;
+    border-radius: 2px;
+    background-color: #000000;
+    color: #FFFF;
+    box-shadow: 0 0 0 2px white;
+}
+  
+a:hover {
+    box-shadow: 0 0 0 2px #fdef00;
+    color: #fdef00;
+}
+
+/* Group elements */
+.bblock1 {
+	display: table-cell; 
+    font-size: 20px;
+    text-align: center;
+    vertical-align: middle;
+}
+.bblock2 {
+	display: table-cell; 
+    font-size: 20px;
+  	width: 34px;
+    text-align: center;
+    vertical-align: middle;
+}
+.wrap {
+    display: table;  
+    border-spacing: 10px 10px; 
+}
+

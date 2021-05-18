@@ -8,5 +8,7 @@
         <file>qml/pages/Chat.qml</file>
         <file>qml/dialogs/About.qml</file>
         <file>qml/dialogs/Message.qml</file>
+        <file>qml/pages/Settings.qml</file>
+        <file>qml/pages/SettingsForm.ui.qml</file>
     </qresource>
 </RCC>

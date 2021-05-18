@@ -5,6 +5,7 @@
 #include <QMutex>
 
 #include "core.h"
+
 #include "enums.h"
 
 class TaskResult {

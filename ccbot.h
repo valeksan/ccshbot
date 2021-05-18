@@ -3,6 +3,9 @@
 
 #include <QObject>
 #include <QtSql>
+#include <QNetworkAccessManager>
+#include <QNetworkReply>
+#include <QtMultimedia/QMediaPlayer>
 
 #include "ccbotengine.h"
 #include "properties.h"
@@ -11,6 +14,8 @@
 #include "messagedata.h"
 
 const QString constNameBaseStr = "ccbot_storage.db";
+const int constTimeoutGetIamToken = 5000;
+const int constTimeoutGetAudio = 25000;
 
 class CCBot : public CCBotEngine
 {
@@ -23,6 +28,8 @@ public:
 private:
     Properties *m_params;
     QSqlDatabase m_db;
+    QMediaPlayer *m_player;
+    //QNetworkAccessManager *m_speechkitMgr;
 
     // сохр.\загр. настроек
     void loadSettings();
@@ -45,25 +52,34 @@ private:
     bool createTableDB(QString streamId);
     bool existsTableDB(QString streamId);
     bool selectMsgsFromTableDB(QString streamId, QList<MessageData> &msgList, int limit = -1);
-    bool appendMsgIntoTableDB(QString streamId, QList<MessageData> msgList);
-    Q_INVOKABLE int insertNewMessagesInTable(QString streamId, QByteArray jsonData, bool merge = true, QString *errInfo = nullptr);
+    bool appendMsgIntoTableDB(QString streamId, QList<MessageData> &msgList);
 
     // вспомогательные методы
     void mergeMessages(QList<MessageData> oldMsgList, QList<MessageData> newMsgList, QList<MessageData> &mergedMsgList);
     bool equalMessages(const MessageData& msg1, const MessageData& msg2);
 
     // CCBotEngine interface
-    void updateChat(const QList<MessageData> &msgsl, bool withTime = false, QString timeFormat = "hh:mm");
-    bool getFullChat(QString streamId, bool withTime = false, QString timeFormat = "hh:mm");
+    void updateChat(const QList<MessageData> &msgsl, bool withTime = true, QString timeFormat = "hh:mm");
+    void analyseNewMessages(const QList<MessageData> &msgsl);
+
+    bool checkAutoVoiceMessage(const MessageData &msg, QString &text);
+    bool checkCmdMessage(const MessageData &msg, QString &cmd, QStringList &args);
+
+private slots:
+    int insertNewMessagesInTable(QString streamId, QByteArray jsonData, bool merge = true, QString *errInfo = nullptr);
+    void speechFile(QString filename);
 
 public slots:
-    void action(int type, QVariantList args) override;
+    void action(int type, QVariantList args = QVariantList()) override;
     void slotFinishedTask(long id, int type, QVariantList argsList, QVariant result) override;
 
 signals:
     void showMessage(QString title, QString text, bool alert);
     void baseOpenned(bool state);
     void showChatMessage(QString message);
+    void completeRequestGetIamToken();
+    void completeRequestGetAudio();
+    void completePlayFile();
 };
 
 #endif // CCBOT_H
