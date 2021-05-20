@@ -77,8 +77,8 @@ public:
         m_speechkitGetIamTokenHost(defaultSpeechkitGetIamTokenHost)
     {
         //
-        setSpeechkitOAuthToken("AQAEA7qgv3XNAATuwSkvlrVl9UQApLZ9-QJ31cQ");
-        setSpeechkitFolderId("b1gbekic127evhkiqd2o");
+        //setSpeechkitOAuthToken("AQAEA7qgv3XNAATuwSkvlrVl9UQApLZ9-QJ31cQ");
+        //setSpeechkitFolderId("b1gbekic127evhkiqd2o");
     }
 
     bool flagLoadingChat() const;

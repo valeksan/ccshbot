@@ -241,6 +241,7 @@ ApplicationWindow {
         property int _y: desktopMethods.getDescktopY()
         property string listenHost: "127.0.0.1"
         property int listenPort: 3000
+        property int maxTimestampDiff: 2
         property string chatFont: "Arial"
         property int chatFontPointSize: 12
         property color chatTextColor: "#bfc7d0"
@@ -289,5 +290,9 @@ ApplicationWindow {
 
     Component.onDestruction: {
         //console.log("test_1")
+    }
+
+    onClosing: {
+        ccbot.saveSettings();
     }
 }

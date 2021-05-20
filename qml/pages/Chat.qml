@@ -51,7 +51,7 @@ ChatForm {
         id: server
         listen: connectCount === 0 && properties.listenClients
         port: settings.listenPort
-        host: settings.listenHost === 'localhost' ? "127.0.0.1" : settings.listenHost
+        host: settings.listenHost
         onClientConnected: {
             console.log('Client add!');
 
@@ -120,19 +120,19 @@ ChatForm {
                     properties.flagLoadingChat = true;
                     chatRepeater.clear();
                     console.log("LoadChat")
-//                    ccbot.action(Task.LoadChat, [streamId, messages]);
-//                    return;
                 }
 
-                if(type === "chat_datagram" && diff < 2) {
-
-                    let loading = properties.flagLoadingChat;
-                    if (loading)
-                        console.log("MergeChat")
-                    ccbot.action(Task.MergeChat, [streamId, messages, loading]);
+                if (diff <= settings.maxTimestampDiff) {
+                    switch(type) {
+                    case "chat_datagram":
+                        let loading = properties.flagLoadingChat;
+                        if (loading)
+                            console.log("MergeChat")
+                        ccbot.action(Task.MergeChat, [streamId, messages, loading]);
+                        break;
+                    }
                 } else {
-                    if(diff >= 2)
-                        window.changeStatus("Ошибка обмена: временная метка пакета устарела", 1500, "red");
+                    window.changeStatus("Ошибка обмена: временная метка пакета устарела", 1500, "red");
                 }
             });
             page.idlCheck();

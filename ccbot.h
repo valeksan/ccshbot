@@ -31,10 +31,6 @@ private:
     QMediaPlayer *m_player;
     //QNetworkAccessManager *m_speechkitMgr;
 
-    // сохр.\загр. настроек
-    void loadSettings();
-    void saveSettings();
-
     // методы нач инициализации
     void initTimers();              // инициализация таймеров
     void initConnections();         // инициализация связей
@@ -72,6 +68,10 @@ private slots:
 public slots:
     void action(int type, QVariantList args = QVariantList()) override;
     void slotFinishedTask(long id, int type, QVariantList argsList, QVariant result) override;
+
+    // сохр.\загр. настроек
+    void loadSettings();
+    void saveSettings();
 
 signals:
     void showMessage(QString title, QString text, bool alert);

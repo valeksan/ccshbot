@@ -3,13 +3,19 @@ import QtQuick 2.15
 SettingsForm {
     title: qsTr("Настройки")
 
+    cfgSocketHost.enabled: !properties.listenClients
+    cfgSocketPort.enabled: !properties.listenClients
+    cfgSocketTimestampDiff.enabled: true
+
     cfgSocketHost.validator: RegularExpressionValidator {
         regularExpression: /^((?:[0-1]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])\.){0,3}(?:[0-1]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])$/
     }
+    cfgSocketPort.validator: IntValidator {
+        bottom: 0;
+        top: 65535;
+    }
 
-//    cfgSocketPort.up.indicator.visible: false
-//    cfgSocketPort.down.indicator.visible: false
-    cfgSocketPort.editable: true
+    cfgSocketPort.inputMethodHints: Qt.ImhFormattedNumbersOnly
 
     //...
 
@@ -21,15 +27,32 @@ SettingsForm {
         }
     }
 
-    cfgSocketPort.onValueChanged: {
-        settings.listenPort = cfgSocketPort.value;
+    cfgSocketPort.onTextEdited: {
+        if(cfgSocketPort.acceptableInput) {
+            settings.listenPort = parseInt(cfgSocketPort.text);
+        }
     }
+
+    cfgSocketTimestampDiff.onValueChanged: {
+        settings.maxTimestampDiff = cfgSocketTimestampDiff.value;
+    }
+
+    cfgSpeechkitFolderId.onTextEdited: {
+        properties.speechkitFolderId = cfgSpeechkitFolderId.text;
+    }
+
+    cfgSpeechkitOAuthToken.onTextEdited: {
+        properties.speechkitOAuthToken = cfgSpeechkitOAuthToken.text;
+    }
+
+    cfgSpeechkitFolderId.text: properties.speechkitFolderId
+    cfgSpeechkitOAuthToken.text: properties.speechkitOAuthToken
 
     Component.onCompleted: {
         cfgSocketHost.text = settings.listenHost;
-        cfgSocketPort.value = settings.listenPort;
-
-//        cfgSocketPort.up.indicator.destroy();
-//        cfgSocketPort.down.indicator.destroy();
+        cfgSocketPort.text = settings.listenPort.toString();
+        cfgSocketTimestampDiff.value = settings.maxTimestampDiff;
+//        cfgSpeechkitFolderId.text = properties.speechkitFolderId;
+//        cfgSpeechkitOAuthToken.text = properties.speechkitOAuthToken;
     }
 }

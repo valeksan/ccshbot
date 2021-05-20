@@ -13,8 +13,10 @@
 #include "misc.h"
 
 CCBot::CCBot(Properties *params, QObject *parent) : CCBotEngine(parent),
-    m_params(params)/*, m_speechkitMgr(new QNetworkAccessManager(this))*/, m_player(new QMediaPlayer)
+    /*, m_speechkitMgr(new QNetworkAccessManager(this)),*/ m_player(new QMediaPlayer)
 {    
+    m_params = params;
+
     loadSettings();
 
     initConnections();
@@ -24,20 +26,27 @@ CCBot::CCBot(Properties *params, QObject *parent) : CCBotEngine(parent),
 
 CCBot::~CCBot()
 {
-    saveSettings();
-
     delete m_player;
 }
 
 void CCBot::loadSettings()
 {
     QSettings cfg;
-    //...
+    cfg.beginGroup("SpeechKit");
+    m_params->setSpeechkitFolderId(cfg.value("FolderID", "").toString());
+    m_params->setSpeechkitOAuthToken(cfg.value("OAuthToken", "").toString());
+    cfg.endGroup();
 }
 
 void CCBot::saveSettings()
 {
     QSettings cfg;
+    cfg.beginGroup("SpeechKit");
+    if(!m_params->speechkitFolderId().isEmpty())
+        cfg.setValue("FolderID", m_params->speechkitFolderId());
+    if(!m_params->speechkitOAuthToken().isEmpty())
+        cfg.setValue("OAuthToken", m_params->speechkitOAuthToken());
+    cfg.endGroup();
     //...
 }
 
