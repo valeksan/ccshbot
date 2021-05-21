@@ -130,29 +130,29 @@ Page {
                         }
                     }
                 }
-//                ColumnLayout {
-//                    Layout.fillWidth: true
-//                    spacing: 5
-//                    Label {
-//                        text: qsTr("Язык (по умолчанию)")
-//                    }
-//                    ComboBox {
-//                        id: cfgSpeechkitLang
-//                        width: 150
-//                        Layout.maximumWidth: width
-//                        textRole: "title"
-//                        model: [{
-//                                "title": "Русский",
-//                                "value": "ru-RU"
-//                            }, {
-//                                "title": "English",
-//                                "value": "en-US"
-//                            }, {
-//                                "title": "Türk",
-//                                "value": "tr-TR"
-//                            }]
-//                    }
-//                }
+                //                ColumnLayout {
+                //                    Layout.fillWidth: true
+                //                    spacing: 5
+                //                    Label {
+                //                        text: qsTr("Язык (по умолчанию)")
+                //                    }
+                //                    ComboBox {
+                //                        id: cfgSpeechkitLang
+                //                        width: 150
+                //                        Layout.maximumWidth: width
+                //                        textRole: "title"
+                //                        model: [{
+                //                                "title": "Русский",
+                //                                "value": "ru-RU"
+                //                            }, {
+                //                                "title": "English",
+                //                                "value": "en-US"
+                //                            }, {
+                //                                "title": "Türk",
+                //                                "value": "tr-TR"
+                //                            }]
+                //                    }
+                //                }
                 ColumnLayout {
                     Layout.fillWidth: true
                     spacing: 5
@@ -164,54 +164,51 @@ Page {
                         width: 400
                         Layout.minimumWidth: width
                         textRole: "title"
-                        model: [
-                            {
+                        model: [{
                                 "title": "Оксана (Женский, Русский)",
                                 "lang": "ru-RU",
                                 "voice": "oksana"
-                            },
-                            {
+                            }, {
+                                "title": "Филипп PR (Мужской, Русский)",
+                                "lang": "ru-RU",
+                                "voice": "filipp"
+                            }, {
+                                "title": "Алена PR (Женский, Русский)",
+                                "lang": "ru-RU",
+                                "voice": "alena"
+                            }, {
                                 "title": "Джейн (Женский, Русский)",
                                 "lang": "ru-RU",
                                 "voice": "jane"
-                            },
-                            {
+                            }, {
                                 "title": "Омаж (Женский, Русский)",
                                 "lang": "ru-RU",
                                 "voice": "omazh"
-                            },
-                            {
+                            }, {
                                 "title": "Захар (Мужской, Русский)",
                                 "lang": "ru-RU",
                                 "voice": "zahar"
-                            },
-                            {
+                            }, {
                                 "title": "Ермил (Мужской, Русский)",
                                 "lang": "ru-RU",
                                 "voice": "ermil"
-                            },
-                            {
+                            }, {
                                 "title": "Silaerkan (Kadın, Türk)",
                                 "lang": "tr-TR",
                                 "voice": "silaerkan"
-                            },
-                            {
+                            }, {
                                 "title": "Erkanyavas (Erkek, Türk)",
                                 "lang": "tr-TR",
                                 "voice": "erkanyavas"
-                            },
-                            {
+                            }, {
                                 "title": "Alyss (Female, English)",
                                 "lang": "en-US",
                                 "voice": "alyss"
-                            },
-                            {
+                            }, {
                                 "title": "Nick (Male, English)",
                                 "lang": "en-US",
                                 "voice": "nick"
-                            }
-
-                        ]
+                            }]
                     }
                 }
             }
