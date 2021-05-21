@@ -10,15 +10,6 @@ class Properties : public QObject
 {
     Q_OBJECT
 
-    const char* defaultSpeechkitHost = "https://tts.api.cloud.yandex.net/speech/v1/tts:synthesize";
-    const char* defaultSpeechkitGetIamTokenHost = "https://iam.api.cloud.yandex.net/iam/v1/tokens";
-    const char* defaultSpeechkitLang = "";          // def "ru-RU" or: "en-US" or "tr-TR"
-    const char* defaultSpeechkitFormat = "";        // def "oggopus" or: "lpcm" (wav)
-    const char* defaultSpeechkitVoice = "filipp";   // def "oksana" or: (https://cloud.yandex.ru/docs/speechkit/tts/voices)
-    const char* defaultSpeechkitEmotion = "";       // def "neutral" or: "good", "evil" (only RU: jane & omazh)
-    const char* defaultSpeechkitSpeed = "";         // def "1.0" ("0.1" .. "3.0")
-    const char* defaultSpeechkitSampleRateHertz = "";   // def "48000" or: "16000", "8000"
-
     Q_PROPERTY(bool flagLoadingChat READ flagLoadingChat WRITE setFlagLoadingChat NOTIFY flagLoadingChatChanged)
     Q_PROPERTY(QString currentStreamId READ currentStreamId WRITE setCurrentStreamId NOTIFY currentStreamIdChanged)
     Q_PROPERTY(bool listenClients READ listenClients WRITE setListenClients NOTIFY listenClientsChanged)
@@ -66,19 +57,14 @@ public:
         m_listenClients(false),
         m_flagAnalyseVoiceAllMsgType2(false),
         m_flagAnalyseVoiceAllMsgType0(false),
-        m_speechkitLang(defaultSpeechkitLang),
-        m_speechkitFormat(defaultSpeechkitFormat),
-        m_speechkitVoice(defaultSpeechkitVoice),
-        m_speechkitHost(defaultSpeechkitHost),
-        m_speechkitEmotion(defaultSpeechkitEmotion),
-        m_speechkitSpeed(defaultSpeechkitSpeed),
-        m_speechkitSampleRateHertz(defaultSpeechkitSampleRateHertz),
-        m_speechkitIamTokenExpiryDate(QDateTime::currentDateTime()),
-        m_speechkitGetIamTokenHost(defaultSpeechkitGetIamTokenHost)
+        m_speechkitLang(/*defaultSpeechkitLang*/),
+        m_speechkitFormat(/*defaultSpeechkitFormat*/),
+        m_speechkitVoice(/*defaultSpeechkitVoice*/),
+        m_speechkitEmotion(/*defaultSpeechkitEmotion*/),
+        m_speechkitSpeed(/*defaultSpeechkitSpeed*/),
+        m_speechkitSampleRateHertz(/*defaultSpeechkitSampleRateHertz*/),
+        m_speechkitIamTokenExpiryDate(QDateTime::currentDateTime())
     {
-        //
-        //setSpeechkitOAuthToken("AQAEA7qgv3XNAATuwSkvlrVl9UQApLZ9-QJ31cQ");
-        //setSpeechkitFolderId("b1gbekic127evhkiqd2o");
     }
 
     bool flagLoadingChat() const;

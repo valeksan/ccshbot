@@ -1,4 +1,4 @@
-import QtQuick 2.12
+import QtQuick 2.15
 import QtWebSockets 1.15
 
 import ccbot.tasks 1.0

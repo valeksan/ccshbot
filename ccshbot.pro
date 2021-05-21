@@ -51,7 +51,17 @@ TRANSLATIONS += \
     ccshbot_en_US.ts
 
 DISTFILES += \
-    README.md
+    LICENSE \
+    README.md \
+    qml/dialogs/About.qml \
+    qml/dialogs/Message.qml \
+    qml/js/MethodsDekctopJS.qml \
+    qml/main.qml \
+    qml/pages/Chat.qml \
+    qml/pages/ChatForm.ui.qml \
+    qml/pages/Settings.qml \
+    qml/pages/SettingsForm.ui.qml \
+    qtquickcontrols2.conf
 
 ## параметры линковщика
 unix:!android: {

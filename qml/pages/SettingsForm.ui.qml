@@ -1,7 +1,7 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Controls.Material 2.15
-import QtQuick.Layouts 1.12
+import QtQuick.Layouts 1.15
 
 Page {
 
@@ -10,20 +10,32 @@ Page {
     property alias cfgSocketTimestampDiff: cfgSocketTimestampDiff
     property alias cfgSpeechkitFolderId: cfgSpeechkitFolderId
     property alias cfgSpeechkitOAuthToken: cfgSpeechkitOAuthToken
+    property alias focusEnder: focusEnder
+    property alias cfgSpeechkitVoice: cfgSpeechkitVoice
 
     Pane {
         anchors.fill: parent
         anchors.margins: 20
-        Material.elevation: 6
         antialiasing: true
+
+        Material.elevation: 6
 
         Flickable {
             id: flickSettings
+
             clip: true
-            anchors.fill: parent
-            anchors.margins: 15
             contentWidth: contentSettings.width
             contentHeight: contentSettings.height
+
+            anchors.fill: parent
+            anchors.margins: 15
+
+            MouseArea {
+                id: focusEnder
+                anchors.fill: parent
+                propagateComposedEvents: true
+            }
+
             ColumnLayout {
                 id: contentSettings
                 width: flickSettings.width
@@ -81,6 +93,7 @@ Page {
                 Label {
                     text: qsTr("Настройка TTS: Yandex.Cloud SpeechKit")
                     Layout.fillWidth: true
+                    Layout.topMargin: 15
                     horizontalAlignment: "AlignLeft"
                     font.bold: true
                     font.pixelSize: 20
@@ -117,13 +130,97 @@ Page {
                         }
                     }
                 }
+//                ColumnLayout {
+//                    Layout.fillWidth: true
+//                    spacing: 5
+//                    Label {
+//                        text: qsTr("Язык (по умолчанию)")
+//                    }
+//                    ComboBox {
+//                        id: cfgSpeechkitLang
+//                        width: 150
+//                        Layout.maximumWidth: width
+//                        textRole: "title"
+//                        model: [{
+//                                "title": "Русский",
+//                                "value": "ru-RU"
+//                            }, {
+//                                "title": "English",
+//                                "value": "en-US"
+//                            }, {
+//                                "title": "Türk",
+//                                "value": "tr-TR"
+//                            }]
+//                    }
+//                }
+                ColumnLayout {
+                    Layout.fillWidth: true
+                    spacing: 5
+                    Label {
+                        text: qsTr("Голос (по умолчанию)")
+                    }
+                    ComboBox {
+                        id: cfgSpeechkitVoice
+                        width: 400
+                        Layout.minimumWidth: width
+                        textRole: "title"
+                        model: [
+                            {
+                                "title": "Оксана (Женский, Русский)",
+                                "lang": "ru-RU",
+                                "voice": "oksana"
+                            },
+                            {
+                                "title": "Джейн (Женский, Русский)",
+                                "lang": "ru-RU",
+                                "voice": "jane"
+                            },
+                            {
+                                "title": "Омаж (Женский, Русский)",
+                                "lang": "ru-RU",
+                                "voice": "omazh"
+                            },
+                            {
+                                "title": "Захар (Мужской, Русский)",
+                                "lang": "ru-RU",
+                                "voice": "zahar"
+                            },
+                            {
+                                "title": "Ермил (Мужской, Русский)",
+                                "lang": "ru-RU",
+                                "voice": "ermil"
+                            },
+                            {
+                                "title": "Silaerkan (Kadın, Türk)",
+                                "lang": "tr-TR",
+                                "voice": "silaerkan"
+                            },
+                            {
+                                "title": "Erkanyavas (Erkek, Türk)",
+                                "lang": "tr-TR",
+                                "voice": "erkanyavas"
+                            },
+                            {
+                                "title": "Alyss (Female, English)",
+                                "lang": "en-US",
+                                "voice": "alyss"
+                            },
+                            {
+                                "title": "Nick (Male, English)",
+                                "lang": "en-US",
+                                "voice": "nick"
+                            }
+
+                        ]
+                    }
+                }
             }
         }
     }
 }
 /*##^##
 Designer {
-    D{i:0;autoSize:true;height:480;width:640}
+    D{i:0;autoSize:true;height:600;width:800}
 }
 ##^##*/
 

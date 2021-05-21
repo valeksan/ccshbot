@@ -1,7 +1,7 @@
-import QtQuick 2.12
-import QtQuick.Controls 2.12
-import QtQuick.Controls.Material 2.12
-import QtQuick.Layouts 1.12
+import QtQuick 2.15
+import QtQuick.Controls 2.15
+import QtQuick.Controls.Material 2.15
+import QtQuick.Layouts 1.15
 
 Page {
     property alias chatRepeater: chatRepeater
@@ -34,7 +34,6 @@ Page {
 
             ScrollBar.vertical: ScrollBar {
                 anchors.right: flickChat.right
-                //contentItem.opacity: 1
                 height: flickChat.height
                 width: 30
             }

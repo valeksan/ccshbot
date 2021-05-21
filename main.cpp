@@ -26,7 +26,7 @@ int main(int argc, char *argv[])
     app.setApplicationVersion(VERSION_STRING);
 
     // установка шрифта по умолчанию для всего приложения
-    int id = QFontDatabase::addApplicationFont(":/fonts/NotoSans-Regular.ttf");
+    int id = QFontDatabase::addApplicationFont("qrc:/fonts/NotoSans-Regular.ttf");
     QString family = QFontDatabase::applicationFontFamilies(id).value(0, "");
     if(!family.isEmpty()) {
         app.setFont(QFont(family));

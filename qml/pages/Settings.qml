@@ -1,6 +1,8 @@
 import QtQuick 2.15
 
 SettingsForm {
+    id: page
+
     title: qsTr("Настройки")
 
     cfgSocketHost.enabled: !properties.listenClients
@@ -17,6 +19,8 @@ SettingsForm {
 
     cfgSocketPort.inputMethodHints: Qt.ImhFormattedNumbersOnly
 
+    cfgSpeechkitFolderId.text: properties.speechkitFolderId
+    cfgSpeechkitOAuthToken.text: properties.speechkitOAuthToken
     //...
 
     cfgSocketHost.onTextEdited: {
@@ -45,14 +49,16 @@ SettingsForm {
         properties.speechkitOAuthToken = cfgSpeechkitOAuthToken.text;
     }
 
-    cfgSpeechkitFolderId.text: properties.speechkitFolderId
-    cfgSpeechkitOAuthToken.text: properties.speechkitOAuthToken
+    focusEnder.onClicked: focusEnder.parent.forceActiveFocus()
+
+    cfgSpeechkitVoice.onActivated: {
+        properties.speechkitLang = cfgSpeechkitVoice.model[index].lang;
+        properties.speechkitVoice = cfgSpeechkitVoice.model[index].voice;
+    }
 
     Component.onCompleted: {
         cfgSocketHost.text = settings.listenHost;
         cfgSocketPort.text = settings.listenPort.toString();
         cfgSocketTimestampDiff.value = settings.maxTimestampDiff;
-//        cfgSpeechkitFolderId.text = properties.speechkitFolderId;
-//        cfgSpeechkitOAuthToken.text = properties.speechkitOAuthToken;
     }
 }
