@@ -3,6 +3,8 @@ import QtQuick.Controls 2.15
 import QtQuick.Controls.Material 2.15
 import QtQuick.Layouts 1.15
 
+import "../controls"
+
 Page {
 
     property alias cfgSocketHost: cfgSocketHost
@@ -12,6 +14,14 @@ Page {
     property alias cfgSpeechkitOAuthToken: cfgSpeechkitOAuthToken
     property alias focusEnder: focusEnder
     property alias cfgSpeechkitVoice: cfgSpeechkitVoice
+    property alias panelSpeechkitEmotion: panelSpeechkitEmotion
+    property alias cfgSpeechkitEmotion: cfgSpeechkitEmotion
+    property alias btShowOAuthToken: btShowOAuthToken
+    property alias cfgSpeechkitFormat: cfgSpeechkitFormat
+    property alias cfgSpeechkitSampleRateHertz: cfgSpeechkitSampleRateHertz
+    property alias panelSpeechkitSampleRateHertz: panelSpeechkitSampleRateHertz
+    property alias cfgSpeechkitSpeed: cfgSpeechkitSpeed
+    property alias btTestVoice: btTestVoice
 
     Pane {
         anchors.fill: parent
@@ -113,6 +123,10 @@ Page {
                                 id: cfgSpeechkitOAuthToken
                                 width: 400
                                 Layout.minimumWidth: width
+                                echoMode: TextInput.Password
+                            }
+                            Button {
+                                id: btShowOAuthToken
                             }
                         }
                         RowLayout {
@@ -130,85 +144,79 @@ Page {
                         }
                     }
                 }
-                //                ColumnLayout {
-                //                    Layout.fillWidth: true
-                //                    spacing: 5
-                //                    Label {
-                //                        text: qsTr("Язык (по умолчанию)")
-                //                    }
-                //                    ComboBox {
-                //                        id: cfgSpeechkitLang
-                //                        width: 150
-                //                        Layout.maximumWidth: width
-                //                        textRole: "title"
-                //                        model: [{
-                //                                "title": "Русский",
-                //                                "value": "ru-RU"
-                //                            }, {
-                //                                "title": "English",
-                //                                "value": "en-US"
-                //                            }, {
-                //                                "title": "Türk",
-                //                                "value": "tr-TR"
-                //                            }]
-                //                    }
-                //                }
-                ColumnLayout {
-                    Layout.fillWidth: true
-                    spacing: 5
-                    Label {
-                        text: qsTr("Голос (по умолчанию)")
+                RowLayout {
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        spacing: 5
+                        Label {
+                            text: qsTr("Голос (по умолчанию)")
+                        }
+                        ComboBox {
+                            id: cfgSpeechkitVoice
+                            width: 400
+                            Layout.minimumWidth: width
+                        }
                     }
-                    ComboBox {
-                        id: cfgSpeechkitVoice
-                        width: 400
-                        Layout.minimumWidth: width
-                        textRole: "title"
-                        model: [{
-                                "title": "Оксана (Женский, Русский)",
-                                "lang": "ru-RU",
-                                "voice": "oksana"
-                            }, {
-                                "title": "Филипп PR (Мужской, Русский)",
-                                "lang": "ru-RU",
-                                "voice": "filipp"
-                            }, {
-                                "title": "Алена PR (Женский, Русский)",
-                                "lang": "ru-RU",
-                                "voice": "alena"
-                            }, {
-                                "title": "Джейн (Женский, Русский)",
-                                "lang": "ru-RU",
-                                "voice": "jane"
-                            }, {
-                                "title": "Омаж (Женский, Русский)",
-                                "lang": "ru-RU",
-                                "voice": "omazh"
-                            }, {
-                                "title": "Захар (Мужской, Русский)",
-                                "lang": "ru-RU",
-                                "voice": "zahar"
-                            }, {
-                                "title": "Ермил (Мужской, Русский)",
-                                "lang": "ru-RU",
-                                "voice": "ermil"
-                            }, {
-                                "title": "Silaerkan (Kadın, Türk)",
-                                "lang": "tr-TR",
-                                "voice": "silaerkan"
-                            }, {
-                                "title": "Erkanyavas (Erkek, Türk)",
-                                "lang": "tr-TR",
-                                "voice": "erkanyavas"
-                            }, {
-                                "title": "Alyss (Female, English)",
-                                "lang": "en-US",
-                                "voice": "alyss"
-                            }, {
-                                "title": "Nick (Male, English)",
-                                "lang": "en-US",
-                                "voice": "nick"
-                            }]
+                    ColumnLayout {
+                        id: panelSpeechkitEmotion
+                        Layout.fillWidth: true
+                        spacing: 5
+                        visible: false
+                        Label {
+                            text: qsTr("Эмоция (по умолчанию)")
+                        }
+                        ComboBox {
+                            id: cfgSpeechkitEmotion
+                            width: 400
+                            Layout.minimumWidth: width
+                        }
+                    }
+                    Button {
+                        id: btTestVoice
+                        text: qsTr("Тест")
+                        Layout.alignment: Qt.AlignBottom
+                    }
+                }
+                RowLayout {
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        spacing: 5
+                        Label {
+                            text: qsTr("Формат синтезируемого аудио")
+                        }
+                        ComboBox {
+                            id: cfgSpeechkitFormat
+                            width: 400
+                            Layout.minimumWidth: width
+                        }
+                    }
+                    ColumnLayout {
+                        id: panelSpeechkitSampleRateHertz
+                        Layout.fillWidth: true
+                        spacing: 5
+                        Label {
+                            text: qsTr("Частота дискретизации")
+                        }
+                        ComboBox {
+                            id: cfgSpeechkitSampleRateHertz
+                            width: 400
+                            Layout.minimumWidth: width
+                        }
+                    }
+                }
+                RowLayout {
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        spacing: 5
+                        Label {
+                            text: qsTr("Темп")
+                        }
+                        NumBox {
+                            id: cfgSpeechkitSpeed
+                            width: 150
+                            Layout.minimumWidth: width
+                            Layout.minimumHeight: height
+                        }
                     }
                 }
             }

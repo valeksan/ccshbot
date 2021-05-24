@@ -1,6 +1,6 @@
 "use strict";
 
-const DEF_TIMEOUT_REPEAT = 3000;
+const DEF_TIMEOUT_REPEAT = 1500;
 const DEF_HOST = 'localhost';
 const DEF_PORT = 3000;
 

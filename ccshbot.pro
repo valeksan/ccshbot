@@ -53,14 +53,16 @@ TRANSLATIONS += \
 DISTFILES += \
     LICENSE \
     README.md \
+    qml/controls/NumBox.qml \
+    qml/controls/NumBoxForm.ui.qml \
     qml/dialogs/About.qml \
     qml/dialogs/Message.qml \
     qml/js/MethodsDekctopJS.qml \
     qml/main.qml \
     qml/pages/Chat.qml \
     qml/pages/ChatForm.ui.qml \
-    qml/pages/Settings.qml \
-    qml/pages/SettingsForm.ui.qml \
+    qml/pages/SettingsPage.qml \
+    qml/pages/SettingsPageForm.ui.qml \
     qtquickcontrols2.conf
 
 ## параметры линковщика

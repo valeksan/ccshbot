@@ -32,6 +32,27 @@ CCBot::~CCBot()
 void CCBot::loadSettings()
 {
     QSettings cfg;
+
+    cfg.beginGroup("Window");
+    m_params->setWindowX(cfg.value("X", 0).toInt());
+    m_params->setWindowY(cfg.value("Y", 0).toInt());
+    m_params->setWindowHeight(cfg.value("HEIGHT", 900).toInt());
+    m_params->setWindowWidth(cfg.value("WIDTH", 1000).toInt());
+    cfg.endGroup();
+
+    cfg.beginGroup("View");
+    m_params->setFontNameForChat(cfg.value("FontNameForChat", "").toString());
+    m_params->setFontPointSizeForChat(
+                cfg.value("FontPointSizeForChat", 12U).toUInt());
+    m_params->setTextColorForChat(cfg.value("TextColorForChat", QColor("#bfc7d0")).value<QColor>());
+    cfg.endGroup();
+
+    cfg.beginGroup("Server");
+    m_params->setMaxTimestampDiff(cfg.value("MaxTDiff", 5).toInt());
+    m_params->setListenHost(cfg.value("Host", "127.0.0.1").toString());
+    m_params->setListenPort(cfg.value("Port", 3000U).toUInt());
+    cfg.endGroup();
+
     cfg.beginGroup("SpeechKit");
     m_params->setSpeechkitFolderId(cfg.value("FolderID", "").toString());
     m_params->setSpeechkitOAuthToken(cfg.value("OAuthToken", "").toString());
@@ -59,27 +80,37 @@ void CCBot::loadSettings()
 void CCBot::saveSettings()
 {
     QSettings cfg;
+
+    cfg.beginGroup("Window");
+    cfg.setValue("X", m_params->windowX());
+    cfg.setValue("Y", m_params->windowY());
+    cfg.setValue("HEIGHT", m_params->windowHeight());
+    cfg.setValue("WIDTH", m_params->windowWidth());
+    cfg.endGroup();
+
+    cfg.beginGroup("View");
+    cfg.setValue("FontNameForChat", m_params->fontNameForChat());
+    cfg.setValue("FontPointSizeForChat", m_params->fontPointSizeForChat());
+    cfg.setValue("TextColorForChat", m_params->textColorForChat());
+    cfg.endGroup();
+
+    cfg.beginGroup("Server");
+    cfg.setValue("MaxTDiff", m_params->maxTimestampDiff());
+    cfg.setValue("Host", m_params->listenHost());
+    cfg.setValue("Port", m_params->listenPort());
+    cfg.endGroup();
+
     cfg.beginGroup("SpeechKit");
-    if(!m_params->speechkitFolderId().isEmpty())
-        cfg.setValue("FolderID", m_params->speechkitFolderId());
-    if(!m_params->speechkitOAuthToken().isEmpty())
-        cfg.setValue("OAuthToken", m_params->speechkitOAuthToken());
-    if(!m_params->speechkitHost().isEmpty())
-        cfg.setValue("Host", m_params->speechkitHost());
-    if(!m_params->speechkitGetIamTokenHost().isEmpty())
-        cfg.setValue("IamTokenHost", m_params->speechkitGetIamTokenHost());
-    if(!m_params->speechkitLang().isEmpty())
-        cfg.setValue("Lang", m_params->speechkitLang());
-    if(!m_params->speechkitFormat().isEmpty())
-        cfg.setValue("Format", m_params->speechkitFormat());
-    if(!m_params->speechkitVoice().isEmpty())
-        cfg.setValue("Voice", m_params->speechkitVoice());
-    if(!m_params->speechkitEmotion().isEmpty())
-        cfg.setValue("Emotion", m_params->speechkitEmotion());
-    if(!m_params->speechkitSpeed().isEmpty())
-        cfg.setValue("Speed", m_params->speechkitSpeed());
-    if(!m_params->speechkitSampleRateHertz().isEmpty())
-        cfg.setValue("SampleRateHertz", m_params->speechkitSampleRateHertz());
+    cfg.setValue("FolderID", m_params->speechkitFolderId());
+    cfg.setValue("OAuthToken", m_params->speechkitOAuthToken());
+    cfg.setValue("Host", m_params->speechkitHost());
+    cfg.setValue("IamTokenHost", m_params->speechkitGetIamTokenHost());
+    cfg.setValue("Lang", m_params->speechkitLang());
+    cfg.setValue("Format", m_params->speechkitFormat());
+    cfg.setValue("Voice", m_params->speechkitVoice());
+    cfg.setValue("Emotion", m_params->speechkitEmotion());
+    cfg.setValue("Speed", m_params->speechkitSpeed());
+    cfg.setValue("SampleRateHertz", m_params->speechkitSampleRateHertz());
     cfg.endGroup();
     //...
 }
@@ -368,7 +399,7 @@ void CCBot::initTasks()
                           [this](QString filename) -> TaskResult
     {
         TaskResult result;
-        qDebug() << "speek_filename: " << filename;
+        //qDebug() << "speek_filename: " << filename;
         QMetaObject::invokeMethod(this,
                                   "speechFile",
                                   Qt::BlockingQueuedConnection,

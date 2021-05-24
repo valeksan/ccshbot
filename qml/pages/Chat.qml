@@ -15,12 +15,10 @@ ChatForm {
     property int idleCount: 0
     property int connectCount: 0
 
-
-    chatRepeater.font.family: settings.chatFont
-    chatRepeater.font.pointSize: settings.chatFontPointSize
-    chatRepeater.color: settings.chatTextColor
+    chatRepeater.font.family: properties.fontNameForChat
+    chatRepeater.font.pointSize: properties.fontPointSizeForChat
+    chatRepeater.color: properties.textColorForChat
     chatRepeater.text: ""
-    //chatRepeater.font.family: chatFont.name
 
     function chatAddText(msg) {
         var moveToBottom = flickChat.atYEnd;
@@ -50,8 +48,8 @@ ChatForm {
     WebSocketServer {
         id: server
         listen: connectCount === 0 && properties.listenClients
-        port: settings.listenPort
-        host: settings.listenHost
+        port: properties.listenPort
+        host: properties.listenHost
         onClientConnected: {
             console.log('Client add!');
 
@@ -122,7 +120,7 @@ ChatForm {
                     console.log("LoadChat")
                 }
 
-                if (diff <= settings.maxTimestampDiff) {
+                if (diff <= properties.maxTimestampDiff) {
                     switch(type) {
                     case "chat_datagram":
                         let loading = properties.flagLoadingChat;

@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QDateTime>
+#include <QColor>
 
 #include "enums.h"
 
@@ -10,13 +11,30 @@ class Properties : public QObject
 {
     Q_OBJECT
 
+    // Window
+    Q_PROPERTY(int windowX READ windowX WRITE setWindowX NOTIFY windowXChanged)
+    Q_PROPERTY(int windowY READ windowY WRITE setWindowY NOTIFY windowYChanged)
+    Q_PROPERTY(int windowHeight READ windowHeight WRITE setWindowHeight NOTIFY windowHeightChanged)
+    Q_PROPERTY(int windowWidth READ windowWidth WRITE setWindowWidth NOTIFY windowWidthChanged)
+
+    // View
+    Q_PROPERTY(QString fontNameForChat READ fontNameForChat WRITE setFontNameForChat NOTIFY fontNameForChatChanged)
+    Q_PROPERTY(quint32 fontPointSizeForChat READ fontPointSizeForChat WRITE setFontPointSizeForChat NOTIFY fontPointSizeForChatChanged)
+    Q_PROPERTY(QColor textColorForChat READ textColorForChat WRITE setTextColorForChat NOTIFY textColorForChatChanged)
+
+    // Server
     Q_PROPERTY(bool flagLoadingChat READ flagLoadingChat WRITE setFlagLoadingChat NOTIFY flagLoadingChatChanged)
     Q_PROPERTY(QString currentStreamId READ currentStreamId WRITE setCurrentStreamId NOTIFY currentStreamIdChanged)
     Q_PROPERTY(bool listenClients READ listenClients WRITE setListenClients NOTIFY listenClientsChanged)
+    Q_PROPERTY(quint32 maxTimestampDiff READ maxTimestampDiff WRITE setMaxTimestampDiff NOTIFY maxTimestampDiffChanged)
+    Q_PROPERTY(QString listenHost READ listenHost WRITE setListenHost NOTIFY listenHostChanged)
+    Q_PROPERTY(quint32 listenPort READ listenPort WRITE setListenPort NOTIFY listenPortChanged)
 
+    // Options
     Q_PROPERTY(bool flagAnalyseVoiceAllMsgType2 READ flagAnalyseVoiceAllMsgType2 WRITE setFlagAnalyseVoiceAllMsgType2 NOTIFY flagAnalyseVoiceAllMsgType2Changed)
     Q_PROPERTY(bool flagAnalyseVoiceAllMsgType0 READ flagAnalyseVoiceAllMsgType0 WRITE setFlagAnalyseVoiceAllMsgType0 NOTIFY flagAnalyseVoiceAllMsgType0Changed)
 
+    // Speechkit
     Q_PROPERTY(QString speechkitLang READ speechkitLang WRITE setSpeechkitLang NOTIFY speechkitLangChanged)
     Q_PROPERTY(QString speechkitFormat READ speechkitFormat WRITE setSpeechkitFormat NOTIFY speechkitFormatChanged)
     Q_PROPERTY(QString speechkitVoice READ speechkitVoice WRITE setSpeechkitVoice NOTIFY speechkitVoiceChanged)
@@ -30,12 +48,11 @@ class Properties : public QObject
     Q_PROPERTY(QString speechkitGetIamTokenHost READ speechkitGetIamTokenHost WRITE setSpeechkitGetIamTokenHost NOTIFY speechkitGetIamTokenHostChanged)
     Q_PROPERTY(QDateTime speechkitIamTokenExpiryDate READ speechkitIamTokenExpiryDate WRITE setSpeechkitIamTokenExpiryDate NOTIFY speechkitIamTokenExpiryDateChanged)
 
-    bool m_flagLoadingChat;
+    bool m_flagLoadingChat = true;
     QString m_currentStreamId;
-    bool m_listenClients;
-    bool m_flagAnalyseVoiceAllMsgType2;
-    bool m_flagAnalyseVoiceAllMsgType0;
-
+    bool m_listenClients = false;
+    bool m_flagAnalyseVoiceAllMsgType2 = false;
+    bool m_flagAnalyseVoiceAllMsgType0 = false;
     QString m_speechkitLang;
     QString m_speechkitFormat;
     QString m_speechkitVoice;
@@ -49,20 +66,22 @@ class Properties : public QObject
     QString m_speechkitIamToken;
     QDateTime m_speechkitIamTokenExpiryDate;
     QString m_speechkitGetIamTokenHost;
+    int m_windowX;
+    int m_windowY;
+    int m_windowWidth;
+    int m_windowHeight;
+    quint32 m_maxTimestampDiff = 5;
+    QString m_listenHost;
+    quint32 m_listenPort;
+
+    QString m_fontNameForChat;
+
+    quint32 m_fontPointSizeForChat;
+
+    QColor m_textColorForChat;
 
 public:
     explicit Properties(QObject *parent = nullptr) : QObject(parent),
-        m_flagLoadingChat(true),
-        m_currentStreamId(""),
-        m_listenClients(false),
-        m_flagAnalyseVoiceAllMsgType2(false),
-        m_flagAnalyseVoiceAllMsgType0(false),
-        m_speechkitLang(/*defaultSpeechkitLang*/),
-        m_speechkitFormat(/*defaultSpeechkitFormat*/),
-        m_speechkitVoice(/*defaultSpeechkitVoice*/),
-        m_speechkitEmotion(/*defaultSpeechkitEmotion*/),
-        m_speechkitSpeed(/*defaultSpeechkitSpeed*/),
-        m_speechkitSampleRateHertz(/*defaultSpeechkitSampleRateHertz*/),
         m_speechkitIamTokenExpiryDate(QDateTime::currentDateTime())
     {
     }
@@ -118,6 +137,36 @@ public:
     const QString &speechkitGetIamTokenHost() const;
     void setSpeechkitGetIamTokenHost(const QString &newSpeechkitGetIamTokenHost);
 
+    int windowX() const;
+    void setWindowX(int newWindowX);
+
+    int windowY() const;
+    void setWindowY(int newWindowY);
+
+    int windowWidth() const;
+    void setWindowWidth(int newWindowWidth);
+
+    int windowHeight() const;
+    void setWindowHeight(int newWindowHeight);
+
+    quint32 maxTimestampDiff() const;
+    void setMaxTimestampDiff(quint32 newMaxTimestampDiff);
+
+    const QString &listenHost() const;
+    void setListenHost(const QString &newListenHost);
+
+    quint32 listenPort() const;
+    void setListenPort(quint32 newListenPort);
+
+    const QString &fontNameForChat() const;
+    void setFontNameForChat(const QString &newFontNameForChat);
+
+    quint32 fontPointSizeForChat() const;
+    void setFontPointSizeForChat(quint32 newFontPointSizeForChat);
+
+    const QColor &textColorForChat() const;
+    void setTextColorForChat(const QColor &newTextColorForChat);
+
 public slots:
 
 signals:
@@ -139,7 +188,147 @@ signals:
     void speechkitIamTokenChanged();
     void speechkitIamTokenExpiryDateChanged();
     void speechkitGetIamTokenHostChanged();
+    void windowXChanged();
+    void windowYChanged();
+    void windowWidthChanged();
+    void windowHeightChanged();
+    void maxTimestampDiffChanged();
+    void listenHostChanged();
+    void listenPortChanged();
+    void fontNameForChatChanged();
+    void fontPointSizeForChatChanged();
+    void textColorForChatChanged();
 };
+
+inline const QColor &Properties::textColorForChat() const
+{
+    return m_textColorForChat;
+}
+
+inline void Properties::setTextColorForChat(const QColor &newTextColorForChat)
+{
+    if (m_textColorForChat == newTextColorForChat)
+        return;
+    m_textColorForChat = newTextColorForChat;
+    emit textColorForChatChanged();
+}
+
+inline quint32 Properties::fontPointSizeForChat() const
+{
+    return m_fontPointSizeForChat;
+}
+
+inline void Properties::setFontPointSizeForChat(quint32 newFontPointSizeForChat)
+{
+    if (m_fontPointSizeForChat == newFontPointSizeForChat)
+        return;
+    m_fontPointSizeForChat = newFontPointSizeForChat;
+    emit fontPointSizeForChatChanged();
+}
+
+inline const QString &Properties::fontNameForChat() const
+{
+    return m_fontNameForChat;
+}
+
+inline void Properties::setFontNameForChat(const QString &newFontNameForChat)
+{
+    if (m_fontNameForChat == newFontNameForChat)
+        return;
+    m_fontNameForChat = newFontNameForChat;
+    emit fontNameForChatChanged();
+}
+
+inline quint32 Properties::listenPort() const
+{
+    return m_listenPort;
+}
+
+inline void Properties::setListenPort(quint32 newListenPort)
+{
+    if (m_listenPort == newListenPort)
+        return;
+    m_listenPort = newListenPort;
+    emit listenPortChanged();
+}
+
+inline const QString &Properties::listenHost() const
+{
+    return m_listenHost;
+}
+
+inline void Properties::setListenHost(const QString &newListenHost)
+{
+    if (m_listenHost == newListenHost)
+        return;
+    m_listenHost = newListenHost;
+    emit listenHostChanged();
+}
+
+inline quint32 Properties::maxTimestampDiff() const
+{
+    return m_maxTimestampDiff;
+}
+
+inline void Properties::setMaxTimestampDiff(quint32 newMaxTimestampDiff)
+{
+    if (m_maxTimestampDiff == newMaxTimestampDiff)
+        return;
+    m_maxTimestampDiff = newMaxTimestampDiff;
+    emit maxTimestampDiffChanged();
+}
+
+inline int Properties::windowHeight() const
+{
+    return m_windowHeight;
+}
+
+inline void Properties::setWindowHeight(int newWindowHeight)
+{
+    if (m_windowHeight == newWindowHeight)
+        return;
+    m_windowHeight = newWindowHeight;
+    emit windowHeightChanged();
+}
+
+inline int Properties::windowWidth() const
+{
+    return m_windowWidth;
+}
+
+inline void Properties::setWindowWidth(int newWindowWidth)
+{
+    if (m_windowWidth == newWindowWidth)
+        return;
+    m_windowWidth = newWindowWidth;
+    emit windowWidthChanged();
+}
+
+inline int Properties::windowY() const
+{
+    return m_windowY;
+}
+
+inline void Properties::setWindowY(int newWindowY)
+{
+    if (m_windowY == newWindowY)
+        return;
+    m_windowY = newWindowY;
+    emit windowYChanged();
+}
+
+inline int Properties::windowX() const
+{
+    return m_windowX;
+}
+
+inline void Properties::setWindowX(int newWindowX)
+{
+    if (m_windowX == newWindowX)
+        return;
+    m_windowX = newWindowX;
+    emit windowXChanged();
+}
 
 inline const QString &Properties::speechkitGetIamTokenHost() const
 {

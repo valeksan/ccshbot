@@ -22,7 +22,7 @@ int main(int argc, char *argv[])
 
     app.setOrganizationName(ORGANIZATION_STRING);
     app.setOrganizationDomain(DOMAIN_STRING);
-    app.setApplicationName(QFileInfo(app.applicationFilePath()).baseName());
+    app.setApplicationName(APP_NAME);
     app.setApplicationVersion(VERSION_STRING);
 
     // установка шрифта по умолчанию для всего приложения

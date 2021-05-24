@@ -5,8 +5,6 @@ import QtQuick.Layouts 1.15
 import QtQuick.Controls.Material 2.15
 import QtQuick.Dialogs 1.2
 
-import Qt.labs.settings 1.1
-
 import ccbot.tasks 1.0
 
 import "js"
@@ -43,10 +41,10 @@ ApplicationWindow {
             }, ms);
     }
 
-    x: settings._x
-    y: settings._y
-    height: settings._height
-    width: settings._width
+    x: properties.windowX
+    y: properties.windowY
+    height: properties.windowHeight
+    width: properties.windowWidth
     minimumWidth: 640
     minimumHeight: 620
 
@@ -147,40 +145,28 @@ ApplicationWindow {
         Column {
             anchors.fill: parent
 
-            ItemDelegate {
-                text: qsTr("Test message dialog (normal) ...")
-                width: parent.width
-                onClicked: {
-                    messageDlg.show("Соообщение", "Здесь будет сообщение");
-                    drawer.close();
-                }
-            }
-            ItemDelegate {
-                text: qsTr("Test message dialog (critical) ...")
-                width: parent.width
-                onClicked: {
-                    messageDlg.show("Соообщение", "Здесь будет сообщение", true);
-                    drawer.close();
-                }
-            }
-            ItemDelegate {
-                text: qsTr("Test get iam-token ...")
-                width: parent.width
-                onClicked: {
-                    ccbot.action(Task.VoiceLoad, ["съешь еще этих мягких булочек"]);
-                    drawer.close();
-                }
-            }
-
-            MenuSeparator {
-                width: parent.width
-            }
+//            ItemDelegate {
+//                text: qsTr("Test message dialog (normal) ...")
+//                width: parent.width
+//                onClicked: {
+//                    messageDlg.show("Соообщение", "Здесь будет сообщение");
+//                    drawer.close();
+//                }
+//            }
+//            ItemDelegate {
+//                text: qsTr("Test message dialog (critical) ...")
+//                width: parent.width
+//                onClicked: {
+//                    messageDlg.show("Соообщение", "Здесь будет сообщение", true);
+//                    drawer.close();
+//                }
+//            }
 
             ItemDelegate {
                 text: qsTr("Настройки")
                 width: parent.width
                 onClicked: {
-                    stackView.push("qrc:///qml/pages/Settings.qml");
+                    stackView.push("qrc:///qml/pages/SettingsPage.qml");
                     drawer.close();
                 }
             }
@@ -232,21 +218,6 @@ ApplicationWindow {
         }
     }
 
-    // объект для хранения настроек программы, храним размер приложения и его положения на экране
-    Settings {
-        id: settings
-        property int _height: 900
-        property int _width: 1000
-        property int _x: desktopMethods.getDescktopX()
-        property int _y: desktopMethods.getDescktopY()
-        property string listenHost: "127.0.0.1"
-        property int listenPort: 3000
-        property int maxTimestampDiff: 2
-        property string chatFont: "Arial"
-        property int chatFontPointSize: 12
-        property color chatTextColor: "#bfc7d0"
-    }
-
     StackView {
         id: stackView
         initialItem: "qrc:///qml/pages/Chat.qml"
@@ -276,20 +247,16 @@ ApplicationWindow {
     }
 
     onHeightChanged: {
-        settings._height = window.height;
+        properties.windowHeight = window.height;
     }
     onWidthChanged: {
-        settings._width = window.width;
+        properties.windowWidth = window.width;
     }
     onXChanged: {
-        settings._x = window.x;
+        properties.windowX = window.x;
     }
     onYChanged: {
-        settings._y = window.y;
-    }
-
-    Component.onDestruction: {
-        //console.log("test_1")
+        properties.windowY = window.y;
     }
 
     onClosing: {
