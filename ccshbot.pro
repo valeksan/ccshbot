@@ -53,6 +53,7 @@ TRANSLATIONS += \
 DISTFILES += \
     LICENSE \
     README.md \
+    app.ico \
     qml/controls/NumBox.qml \
     qml/controls/NumBoxForm.ui.qml \
     qml/dialogs/About.qml \
@@ -65,15 +66,13 @@ DISTFILES += \
     qml/pages/SettingsPageForm.ui.qml \
     qtquickcontrols2.conf
 
+win32: RC_ICONS += app.ico
+
 ## параметры линковщика
 unix:!android: {
     QMAKE_LFLAGS += -no-pie
     QMAKE_CXXFLAGS += "-fno-sized-deallocation"
     QMAKE_CXXFLAGS += -std=c++17
-#    static {
-#        QMAKE_LFLAGS += -static -static-libgcc -static-libstdc++
-#        QMAKE_LFLAGS += -Wl,--disable-new-dtags
-#    }
 }
 
 # Default rules for deployment.

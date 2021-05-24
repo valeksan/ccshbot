@@ -12,5 +12,6 @@
         <file>qml/pages/SettingsPageForm.ui.qml</file>
         <file>qml/controls/NumBox.qml</file>
         <file>qml/controls/NumBoxForm.ui.qml</file>
+        <file>app.png</file>
     </qresource>
 </RCC>
