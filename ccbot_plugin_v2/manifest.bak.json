@@ -1,20 +1,32 @@
 {
     "manifest_version": 2,
     "name": "CCBot",
-    "version": "0.21",
+    "version": "0.2",
     "description": "Расширение для озвучки особых сообщений чата(или всех сообщений), а также обработки особых команд в чате.",
     "icons": {
         "48": "icon48.png"
     },
     "permissions": [
-        "storage",
+        "storage", 
+        "tabs",
+        "activeTab",
         "<all_urls>"
     ],
+    "background": {
+        "scripts": ["js/background.js"],
+        "persistent": false
+    },
     "content_scripts": [
         {
             "matches": ["*://*.crazycash.tv/*"],
             "js": ["js/content.js"],
             "run_at": "document_end"
         }
-    ]
+    ],
+    "options_page": "configs.html",
+    "browser_action": {
+        "default_icon": { "48": "icon48i.png" },
+        "default_title": "CrazyCash Chat Broadcaster plugin",
+        "default_popup": "popup.html"
+    }
 }
