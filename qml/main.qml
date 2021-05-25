@@ -10,9 +10,12 @@ import ccbot.tasks 1.0
 import "js"
 import "pages"
 import "dialogs"
+import "panels"
 
 ApplicationWindow {
     id: window
+
+    property alias appState: appStatusBar.appState
 
     function setTimeout(func, interval, ...params) {
         return setTimeoutComponent.createObject(window, { func, interval, params} );
@@ -48,180 +51,38 @@ ApplicationWindow {
     minimumWidth: 640
     minimumHeight: 620
 
-    color: "#1f1f2a"
+    color: "#1F1F2A"
 
     visibility: "Windowed"
 
     visible: true
 
-    header: ToolBar {
-        contentHeight: toolButtonMenu.implicitHeight
+    header: AppToolBar {
+        id: appToolBar
+
         background: Rectangle {
             color: "#121217"
         }
-
-        RowLayout {
-            anchors.fill: parent
-            ToolButton {
-                id: toolButtonMenu
-                text: stackView.depth > 1 ? "\u25C0" : "\u2630"
-                font.pixelSize: Qt.application.font.pixelSize * 1.6
-                onClicked: {
-                    if (stackView.depth > 1) {
-                        stackView.pop()
-                    } else {
-                        drawer.open()
-                    }
-                }
-            }
-
-            Label {
-                text: stackView.currentItem.title
-                Layout.alignment: Qt.AlignHCenter
-                Layout.fillWidth: true
-                horizontalAlignment: "AlignHCenter"
-            }
-            GroupBox {
-                Layout.fillHeight: true
-                Layout.margins: 5
-                RowLayout {
-                    anchors.verticalCenter: parent.verticalCenter
-                    Label {
-                        text: qsTr("Озвучка")
-                        color: "#fff200"
-                        font.bold: true
-                    }
-                    RadioButton {
-                        text: qsTr("Отключена")
-                        checked: true
-                        onToggled: {
-                            properties.flagAnalyseVoiceAllMsgType0 = false;
-                            properties.flagAnalyseVoiceAllMsgType2 = false;
-                        }
-                    }
-                    RadioButton {
-                        text: qsTr("Донаты")
-                        onToggled: {
-                            properties.flagAnalyseVoiceAllMsgType0 = false;
-                            properties.flagAnalyseVoiceAllMsgType2 = true;
-                        }
-                    }
-                    RadioButton {
-                        text: qsTr("Все")
-                        onToggled: {
-                            properties.flagAnalyseVoiceAllMsgType0 = true;
-                            properties.flagAnalyseVoiceAllMsgType2 = true;
-                        }
-                    }
-                }
-            }
-
-            ToolButton {
-                id: toolButtonStartServer
-                text: properties.listenClients ? '\u23F9' : '\u23F5'
-                font.pixelSize: Qt.application.font.pixelSize * 1.6
-                width: 48
-                Layout.alignment: Qt.AlignRight
-                Material.foreground: properties.listenClients ? "red" : "lightgreen"
-                onClicked: {
-                    if(!properties.listenClients) {
-                        window.changeStatus("Запуск сервера ...", 1500, "yellow");
-                        properties.flagLoadingChat = true;
-                    } else {
-                        window.changeStatus("Остановка сервера ...", 1500, "yellow");
-                    }
-                    properties.listenClients = !properties.listenClients;
-                }
-            }
-
-        }
     }
 
-    Drawer {
+    AppLeftMenu {
         id: drawer
         width: window.minimumWidth / 2
         height: window.height
-
-        Column {
-            anchors.fill: parent
-
-//            ItemDelegate {
-//                text: qsTr("Test message dialog (normal) ...")
-//                width: parent.width
-//                onClicked: {
-//                    messageDlg.show("Соообщение", "Здесь будет сообщение");
-//                    drawer.close();
-//                }
-//            }
-//            ItemDelegate {
-//                text: qsTr("Test message dialog (critical) ...")
-//                width: parent.width
-//                onClicked: {
-//                    messageDlg.show("Соообщение", "Здесь будет сообщение", true);
-//                    drawer.close();
-//                }
-//            }
-
-            ItemDelegate {
-                text: qsTr("Настройки")
-                width: parent.width
-                onClicked: {
-                    stackView.push("qrc:///qml/pages/SettingsPage.qml");
-                    drawer.close();
-                }
-            }
-
-            MenuSeparator {
-                width: parent.width
-            }
-
-            ItemDelegate {
-                text: qsTr("О программе")
-                width: parent.width
-                onClicked: {
-                    drawer.close();
-                    aboutDlg.open();
-                }
-            }
-
-            MenuSeparator {
-                width: parent.width
-            }
-
-            ItemDelegate {
-                text: qsTr("Выход")
-                width: parent.width
-                onClicked: {
-                    drawer.close();
-                    Qt.quit();
-                }
-            }
-        }
-    }
-
-    footer: ToolBar {
-        height: 60
-        background: Rectangle {
-            color: "#121217"
-        }
-        RowLayout {
-            anchors.fill: parent
-
-            Label {
-                id: appState
-                text: ""
-                verticalAlignment: "AlignVCenter"
-                horizontalAlignment: "AlignHCenter"
-                Layout.fillWidth: true
-                Layout.margins: 10
-            }
-        }
     }
 
     StackView {
         id: stackView
-        initialItem: "qrc:///qml/pages/Chat.qml"
+        initialItem: "qrc:///qml/pages/ViewChat.qml"
         anchors.fill: parent
+    }
+
+    footer: AppStatusBar {
+        id: appStatusBar
+        height: 60
+        background: Rectangle {
+            color: "#121217"
+        }
     }
 
     // диалоговые окна

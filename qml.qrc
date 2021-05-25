@@ -4,8 +4,6 @@
         <file>qtquickcontrols2.conf</file>
         <file>fonts/NotoSans-Regular.ttf</file>
         <file>qml/js/MethodsDekctopJS.qml</file>
-        <file>qml/pages/ChatForm.ui.qml</file>
-        <file>qml/pages/Chat.qml</file>
         <file>qml/dialogs/About.qml</file>
         <file>qml/dialogs/Message.qml</file>
         <file>qml/pages/SettingsPage.qml</file>
@@ -13,5 +11,10 @@
         <file>qml/controls/NumBox.qml</file>
         <file>qml/controls/NumBoxForm.ui.qml</file>
         <file>app.png</file>
+        <file>qml/panels/AppToolBar.qml</file>
+        <file>qml/panels/AppLeftMenu.qml</file>
+        <file>qml/panels/AppStatusBar.qml</file>
+        <file>qml/pages/ViewChat.qml</file>
+        <file>qml/pages/ViewChatForm.ui.qml</file>
     </qresource>
 </RCC>

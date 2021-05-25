@@ -3,7 +3,7 @@ import QtWebSockets 1.15
 
 import ccbot.tasks 1.0
 
-ChatForm {
+ViewChatForm {
     id: page
 
     title: qsTr("Чат") + " " + properties.currentStreamId

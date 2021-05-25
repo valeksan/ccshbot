@@ -60,10 +60,13 @@ DISTFILES += \
     qml/dialogs/Message.qml \
     qml/js/MethodsDekctopJS.qml \
     qml/main.qml \
-    qml/pages/Chat.qml \
-    qml/pages/ChatForm.ui.qml \
     qml/pages/SettingsPage.qml \
     qml/pages/SettingsPageForm.ui.qml \
+    qml/pages/ViewChat.qml \
+    qml/pages/ViewChatForm.ui.qml \
+    qml/panels/AppLeftMenu.qml \
+    qml/panels/AppStatusBar.qml \
+    qml/panels/AppToolBar.qml \
     qtquickcontrols2.conf
 
 win32: RC_ICONS += app.ico
