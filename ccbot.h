@@ -39,7 +39,6 @@ private:
     Properties *m_params;
     QSqlDatabase m_db;
     QMediaPlayer *m_player;
-    //QNetworkAccessManager *m_speechkitMgr;
 
     // методы нач инициализации
     void initTimers();              // инициализация таймеров
@@ -48,6 +47,7 @@ private:
 
     // вспомогательные методы
     QString generateErrMsg(int type, int errCode, QString info = "");
+    QString modifyMsg(const QString &text);
 
     // методы распаковки данных
     bool readMessagesFromJsonStr(QByteArray jsonData, QList<MessageData> &msgList, QString *errInfo = nullptr);

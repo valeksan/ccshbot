@@ -18,7 +18,7 @@ ViewChatForm {
     chatRepeater.font.family: properties.fontNameForChat
     chatRepeater.font.pointSize: properties.fontPointSizeForChat
     chatRepeater.color: properties.textColorForChat
-    chatRepeater.text: ""
+    chatRepeater.text: "" //properties.testStr
 
     function chatAddText(msg) {
         var moveToBottom = flickChat.atYEnd;
@@ -167,6 +167,10 @@ ViewChatForm {
                 }
             }
         }
+    }
+
+    Component.onCompleted: {
+        //chatRepeater.text = properties.testStr;
     }
 
 //    Component.onDestruction: {

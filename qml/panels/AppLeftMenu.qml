@@ -9,6 +9,15 @@ Drawer {
         anchors.fill: parent
 
         ItemDelegate {
+            text: qsTr("Вид")
+            width: parent.width
+            onClicked: {
+                stackView.push("qrc:///qml/pages/SettingsViewPage.qml");
+                drawer.close();
+            }
+        }
+
+        ItemDelegate {
             text: qsTr("Настройки")
             width: parent.width
             onClicked: {

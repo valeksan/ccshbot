@@ -11,6 +11,9 @@ class Properties : public QObject
 {
     Q_OBJECT
 
+    // test
+    Q_PROPERTY(QString testStr READ testStr WRITE setTestStr NOTIFY testStrChanged)
+
     // Window
     Q_PROPERTY(int windowX READ windowX WRITE setWindowX NOTIFY windowXChanged)
     Q_PROPERTY(int windowY READ windowY WRITE setWindowY NOTIFY windowYChanged)
@@ -19,7 +22,7 @@ class Properties : public QObject
 
     // View
     Q_PROPERTY(QString fontNameForChat READ fontNameForChat WRITE setFontNameForChat NOTIFY fontNameForChatChanged)
-    Q_PROPERTY(quint32 fontPointSizeForChat READ fontPointSizeForChat WRITE setFontPointSizeForChat NOTIFY fontPointSizeForChatChanged)
+    Q_PROPERTY(float fontPointSizeForChat READ fontPointSizeForChat WRITE setFontPointSizeForChat NOTIFY fontPointSizeForChatChanged)
     Q_PROPERTY(QColor textColorForChat READ textColorForChat WRITE setTextColorForChat NOTIFY textColorForChatChanged)
 
     // Server
@@ -76,9 +79,11 @@ class Properties : public QObject
 
     QString m_fontNameForChat;
 
-    quint32 m_fontPointSizeForChat;
+    float m_fontPointSizeForChat;
 
     QColor m_textColorForChat;
+
+    QString m_testStr;
 
 public:
     explicit Properties(QObject *parent = nullptr) : QObject(parent),
@@ -161,11 +166,14 @@ public:
     const QString &fontNameForChat() const;
     void setFontNameForChat(const QString &newFontNameForChat);
 
-    quint32 fontPointSizeForChat() const;
-    void setFontPointSizeForChat(quint32 newFontPointSizeForChat);
+    float fontPointSizeForChat() const;
+    void setFontPointSizeForChat(float newFontPointSizeForChat);
 
     const QColor &textColorForChat() const;
     void setTextColorForChat(const QColor &newTextColorForChat);
+
+    const QString &testStr() const;
+    void setTestStr(const QString &newTestStr);
 
 public slots:
 
@@ -198,7 +206,21 @@ signals:
     void fontNameForChatChanged();
     void fontPointSizeForChatChanged();
     void textColorForChatChanged();
+    void testStrChanged();
 };
+
+inline const QString &Properties::testStr() const
+{
+    return m_testStr;
+}
+
+inline void Properties::setTestStr(const QString &newTestStr)
+{
+    if (m_testStr == newTestStr)
+        return;
+    m_testStr = newTestStr;
+    emit testStrChanged();
+}
 
 inline const QColor &Properties::textColorForChat() const
 {
@@ -213,12 +235,12 @@ inline void Properties::setTextColorForChat(const QColor &newTextColorForChat)
     emit textColorForChatChanged();
 }
 
-inline quint32 Properties::fontPointSizeForChat() const
+inline float Properties::fontPointSizeForChat() const
 {
     return m_fontPointSizeForChat;
 }
 
-inline void Properties::setFontPointSizeForChat(quint32 newFontPointSizeForChat)
+inline void Properties::setFontPointSizeForChat(float newFontPointSizeForChat)
 {
     if (m_fontPointSizeForChat == newFontPointSizeForChat)
         return;

@@ -3,7 +3,7 @@
 #-------------------------------------------------
 TEMPLATE = app
 TARGET  = ccshbot
-VERSION = 0.5.0-0
+VERSION = 0.5.1-0
 
 QT += core gui
 QT += qml
@@ -62,6 +62,8 @@ DISTFILES += \
     qml/main.qml \
     qml/pages/SettingsPage.qml \
     qml/pages/SettingsPageForm.ui.qml \
+    qml/pages/SettingsViewPage.qml \
+    qml/pages/SettingsViewPageForm.ui.qml \
     qml/pages/ViewChat.qml \
     qml/pages/ViewChatForm.ui.qml \
     qml/panels/AppLeftMenu.qml \

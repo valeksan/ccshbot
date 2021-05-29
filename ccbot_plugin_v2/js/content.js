@@ -279,3 +279,7 @@ function getChatContentCC() {
     }
     return { type: "empty" };
 }
+
+if (chatVoiceEnable) {
+    doRepeatGetDataCC();
+}

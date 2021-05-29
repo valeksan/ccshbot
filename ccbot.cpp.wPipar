@@ -23,6 +23,17 @@ CCBot::CCBot(Properties *params, QObject *parent) : CCBotEngine(parent),
     initTasks();
     initTimers();
 
+    QString test = QString("test тест ") + QString::fromUtf8("\xF0\x9F\x98\x81");
+
+    std::wstring wtest = test.toStdWString();
+    for (size_t i = 0; i < wtest.length(); i++) {
+
+        if(wtest.at(i) == 0x1F601)
+            qDebug() << i << ":" << wtest.at(i) << ":" << QString::number(wtest.at(i), 16);
+    }
+
+    //m_params->setTestStr(test);
+    //emit showChatMessage(test);
 }
 
 CCBot::~CCBot()
@@ -521,7 +532,7 @@ QString CCBot::modifyMsg(const QString &text)
             likingPower += 2;
             break;
         case 0x1F61C: // 😜 - face with stuck-out tongue and winking eye
-            likingPower += 2;
+            likingPower += 1;
             break;
         default:
             break;
@@ -937,11 +948,10 @@ bool CCBot::checkAutoVoiceMessage(const MessageData &msg, QString &text)
             || (m_params->flagAnalyseVoiceAllMsgType0() && msg.type == 0)
             ) {
         QString analyseText = msg.msg;
-        analyseText = analyseText.remove(QRegularExpression("[\\x{1F600}-\\x{1F7FF}]+"));
         // проверка на комманду
-//        if (analyseText.at(0) == QChar('!')) {
-//            return false;
-//        }
+        if (analyseText.at(0) == QChar('!')) {
+            return false;
+        }
         // проверка на пустое сообщение
         bool emptyMsg = true;
         for (int i = 0; i < analyseText.length(); i++) {
