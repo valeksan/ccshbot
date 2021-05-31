@@ -226,6 +226,12 @@ SettingsPageForm {
                                          "" : number.toFixed(1));
     }
 
+    testMsgTTS.text: "Напишите тут любое сообщение%"
+    btTestTextMsgTTS.enabled: testMsgTTS.text.length > 0
+    btTestTextMsgTTS.onClicked: {
+        ccbot.action(Task.VoiceLoad, [testMsgTTS.text]);
+    }
+
     //...
 
     focusEnder.onClicked: focusEnder.parent.forceActiveFocus()

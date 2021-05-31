@@ -60,5 +60,7 @@ int main(int argc, char *argv[])
     // Подгрузка интерфейса
     engine.load(QUrl(QStringLiteral("qrc:/qml/main.qml")));
 
+    ccbot->start();
+
     return app.exec();
 }

@@ -34,6 +34,7 @@ class CCBot : public CCBotEngine
 public:
     explicit CCBot(Properties *params, QObject *parent = nullptr);
     ~CCBot() override;
+    void start();
 
 private:
     Properties *m_params;
@@ -41,6 +42,7 @@ private:
     QMediaPlayer *m_player;
 
     // методы нач инициализации
+    void initDB();                  // инициализация БД
     void initTimers();              // инициализация таймеров
     void initConnections();         // инициализация связей
     void initTasks();               // инициализация задач
@@ -53,8 +55,6 @@ private:
     bool readMessagesFromJsonStr(QByteArray jsonData, QList<MessageData> &msgList, QString *errInfo = nullptr);
 
     // методы для работы с БД
-    bool openDB();
-    void closeDB();
     bool createTableDB(QString streamId);
     bool existsTableDB(QString streamId);
     bool selectMsgsFromTableDB(QString streamId, QList<MessageData> &msgList, int limit = -1);
@@ -76,6 +76,9 @@ private slots:
     void speechFile(QString filename);
 
 public slots:
+    bool openDB(QString name = "");
+    bool isOpenedDB();
+    void closeDB();
     void action(int type, QVariantList args = QVariantList()) override;
     void slotFinishedTask(long id, int type, QVariantList argsList, QVariant result) override;
 
@@ -85,7 +88,6 @@ public slots:
 
 signals:
     void showMessage(QString title, QString text, bool alert);
-    void baseOpenned(bool state);
     void showChatMessage(QString message);
     void completeRequestGetIamToken();
     void completeRequestGetAudio();

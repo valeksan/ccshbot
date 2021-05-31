@@ -28,6 +28,7 @@ class Properties : public QObject
     // Server
     Q_PROPERTY(bool flagLoadingChat READ flagLoadingChat WRITE setFlagLoadingChat NOTIFY flagLoadingChatChanged)
     Q_PROPERTY(QString currentStreamId READ currentStreamId WRITE setCurrentStreamId NOTIFY currentStreamIdChanged)
+    Q_PROPERTY(QString currentStreamerNikname READ currentStreamerNikname WRITE setCurrentStreamerNikname NOTIFY currentStreamerNiknameChanged)
     Q_PROPERTY(bool listenClients READ listenClients WRITE setListenClients NOTIFY listenClientsChanged)
     Q_PROPERTY(quint32 maxTimestampDiff READ maxTimestampDiff WRITE setMaxTimestampDiff NOTIFY maxTimestampDiffChanged)
     Q_PROPERTY(QString listenHost READ listenHost WRITE setListenHost NOTIFY listenHostChanged)
@@ -84,6 +85,8 @@ class Properties : public QObject
     QColor m_textColorForChat;
 
     QString m_testStr;
+
+    QString m_currentStreamerNikname;
 
 public:
     explicit Properties(QObject *parent = nullptr) : QObject(parent),
@@ -175,6 +178,9 @@ public:
     const QString &testStr() const;
     void setTestStr(const QString &newTestStr);
 
+    const QString &currentStreamerNikname() const;
+    void setCurrentStreamerNikname(const QString &newCurrentStreamerNikname);
+
 public slots:
 
 signals:
@@ -207,7 +213,21 @@ signals:
     void fontPointSizeForChatChanged();
     void textColorForChatChanged();
     void testStrChanged();
+    void currentStreamerNiknameChanged();
 };
+
+inline const QString &Properties::currentStreamerNikname() const
+{
+    return m_currentStreamerNikname;
+}
+
+inline void Properties::setCurrentStreamerNikname(const QString &newCurrentStreamerNikname)
+{
+    if (m_currentStreamerNikname == newCurrentStreamerNikname)
+        return;
+    m_currentStreamerNikname = newCurrentStreamerNikname;
+    emit currentStreamerNiknameChanged();
+}
 
 inline const QString &Properties::testStr() const
 {

@@ -6,9 +6,9 @@ import ccbot.tasks 1.0
 ViewChatForm {
     id: page
 
-    title: qsTr("Чат") + " " + properties.currentStreamId
+    title: qsTr("Чат") + getExtTitle()
 
-    property bool baseOpenned: false
+    property bool baseOpenned: ccbot.isOpenedDB()
 
     property WebSocket client: null
 
@@ -19,6 +19,13 @@ ViewChatForm {
     chatRepeater.font.pointSize: properties.fontPointSizeForChat
     chatRepeater.color: properties.textColorForChat
     chatRepeater.text: "" //properties.testStr
+
+    function getExtTitle() {
+        if (properties.currentStreamId.length > 0)
+            return ` ${properties.currentStreamId} <span style="color:yellow">${properties.currentStreamerNikname}</span>`;
+
+        return "";
+    }
 
     function chatAddText(msg) {
         var moveToBottom = flickChat.atYEnd;
@@ -88,23 +95,20 @@ ViewChatForm {
 
                 page.idleCount = 0;
 
-                if(!baseOpenned) {
-                    console.warn("Base no oppened!");
-                    return;
-                }
-
                 let datagram;
                 let type;
                 let timestamp1;
                 let streamId;
+                let streamerName;
                 let messages;
                 try {
                     datagram = JSON.parse(message);
                     type = datagram['type'];
                     timestamp1 = datagram['timestamp'];
                     streamId = datagram['streamId'];
+                    streamerName = datagram['streamerName'];
                     messages = JSON.stringify(datagram['messages']);
-                } catch(err) {
+                } catch (err) {
                     console.warn(err);
                     window.changeStatus("Ошибка: " + err, 2000, "red");
                     return;
@@ -113,11 +117,23 @@ ViewChatForm {
                 let timestamp2 = Math.floor(Date.now() / 1000);
                 let diff = Math.abs(timestamp2 - timestamp1);
 
+                if (!streamId) {
+                    window.changeStatus("Ошибка, номер стрима не определен!", 2000, "red");
+                    return;
+                }
+
                 if (properties.currentStreamId !== streamId) {
                     properties.currentStreamId = streamId;
+                    properties.currentStreamerNikname = streamerName;
                     properties.flagLoadingChat = true;
                     chatRepeater.clear();
                     console.log("LoadChat")
+                    ccbot.closeDB();
+                    ccbot.openDB(`${streamerName}.db`);
+                }
+
+                if (!baseOpenned) {
+                    ccbot.openDB(`${streamerName}.db`);
                 }
 
                 if (diff <= properties.maxTimestampDiff) {
@@ -147,17 +163,17 @@ ViewChatForm {
             page.chatAddText(message);
             //console.log("_1")
         }
-        function onBaseOpenned(state) {
-            page.baseOpenned = state;
-        }
+//        function onBaseOpenned(state) {
+//            page.baseOpenned = state;
+//        }
     }
 
     Connections {
         target: properties
         function onListenClientsChanged() {
-            if(properties.listenClients === false) {
+            if (properties.listenClients === false) {
                 page.idleCount = 0;
-                if(page.client) {
+                if (page.client) {
                     try {
                         page.client.active = false;
                         --connectCount;
@@ -165,6 +181,7 @@ ViewChatForm {
 
                     }
                 }
+                ccbot.closeDB();
             }
         }
     }

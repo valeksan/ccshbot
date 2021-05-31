@@ -159,7 +159,9 @@ function getChatContentCC() {
     if (flagIsCorrectPage) {
         const chatDomArray = document.querySelectorAll('div.msg') || [];
 
-        //console.log('__CHAT_DOM_ARR:', chatDomArray)
+        const streamerNameDomElement = document.querySelector("div.stream__header__info__user__nickname");
+
+        //console.log('__streamerNameDomElement:', streamerNameDomElement.innerText)
         
         if (chatDomArray.length > 0) {
             //... Parse ...
@@ -258,15 +260,17 @@ function getChatContentCC() {
                     "pay": pay
                 }
             });
-            console.log('__CHAT_OBJ_ARR:', chatObjArray);
+            //console.log('__CHAT_OBJ_ARR:', chatObjArray);
 
             // Pack to Set
             let lastTimestamp = Math.floor(Date.now() / 1000);
+            let streamerNameValue = streamerNameDomElement.innerText;
 
             let sendData = {
                 type: "chat_datagram",
                 streamId: streamId,
                 timestamp: lastTimestamp,
+                streamerName: streamerNameValue,
                 messages: chatObjArray
             };
 

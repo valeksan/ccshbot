@@ -29,6 +29,7 @@ ToolBar {
             Layout.alignment: Qt.AlignHCenter
             Layout.fillWidth: true
             horizontalAlignment: "AlignHCenter"
+            textFormat: Text.RichText
         }
 
         GroupBox {

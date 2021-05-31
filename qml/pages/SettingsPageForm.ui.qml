@@ -22,6 +22,8 @@ Page {
     property alias panelSpeechkitSampleRateHertz: panelSpeechkitSampleRateHertz
     property alias cfgSpeechkitSpeed: cfgSpeechkitSpeed
     property alias btTestVoice: btTestVoice
+    property alias testMsgTTS: testMsgTTS
+    property alias btTestTextMsgTTS: btTestTextMsgTTS
 
     Pane {
         anchors.fill: parent
@@ -217,6 +219,26 @@ Page {
                             Layout.minimumWidth: width
                             Layout.minimumHeight: height
                         }
+                    }
+                }
+                RowLayout {
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        spacing: 5
+                        Label {
+                            text: qsTr("Тестирование озвучки")
+                        }
+                        TextField {
+                            id: testMsgTTS
+                            width: 500
+                            Layout.minimumWidth: width
+                            Layout.minimumHeight: height
+                        }
+                    }
+                    Button {
+                        id: btTestTextMsgTTS
+                        text: qsTr("Озвучить")
+                        Layout.alignment: Qt.AlignBottom
                     }
                 }
             }

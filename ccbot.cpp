@@ -16,18 +16,30 @@ CCBot::CCBot(Properties *params, QObject *parent) : CCBotEngine(parent),
     m_player(new QMediaPlayer)
 {    
     m_params = params;
-
     loadSettings();
-
-    initConnections();
-    initTasks();
-    initTimers();
-
 }
 
 CCBot::~CCBot()
 {
     delete m_player;
+}
+
+void CCBot::start()
+{
+    initConnections();
+    initTasks();
+    initTimers();
+
+    if (!QSqlDatabase::drivers().contains("QSQLITE")) {
+        emit showMessage("Ошибка", "Unable to load database.\nNeeds the SQLITE driver!", true);
+    } else {
+        initDB();
+    }
+}
+
+void CCBot::initDB()
+{
+    m_db = QSqlDatabase::addDatabase("QSQLITE");
 }
 
 void CCBot::loadSettings()
@@ -137,13 +149,13 @@ void CCBot::initConnections()
         }
     });
 
-    connect(m_params, &Properties::listenClientsChanged, [this]() {
-        if (m_params->listenClients() == true) {
-            openDB();
-        } else {
-            closeDB();
-        }
-    });
+//    connect(m_params, &Properties::listenClientsChanged, [this]() {
+//        if (m_params->listenClients() == true) {
+//            //openDB();
+//        } else {
+//            closeDB();
+//        }
+//    });
 }
 
 void CCBot::initTasks()
@@ -275,7 +287,7 @@ void CCBot::initTasks()
         if (!tokenExpiry) {
             QNetworkRequest requestGetAudio;
             QUrl url(m_params->speechkitHost());
-            QStringList requestDataList;
+            QUrlQuery postDataEncoded;
 
             // * add header
             requestGetAudio.setHeader(QNetworkRequest::ContentTypeHeader,
@@ -285,42 +297,35 @@ void CCBot::initTasks()
                                          .arg(m_params->speechkitIamToken())
                                          .toUtf8());
             // * add data
-            requestDataList.append(QString("text=%1")
-                                   .arg(text));
-            requestDataList.append(QString("folderId=%1")
-                                   .arg(m_params->speechkitFolderId()));
+            postDataEncoded.addQueryItem("text", text);
+
+            postDataEncoded.addQueryItem("folderId", m_params->speechkitFolderId());
+
             if (!m_params->speechkitLang().isEmpty()) {
-                requestDataList.append(QString("lang=%1")
-                                       .arg(m_params->speechkitLang()));
+                postDataEncoded.addQueryItem("lang", m_params->speechkitLang());
             }
             if (!m_params->speechkitVoice().isEmpty()) {
-                requestDataList.append(QString("voice=%1")
-                                       .arg(m_params->speechkitVoice()));
+                postDataEncoded.addQueryItem("voice", m_params->speechkitVoice());
             }
             if (!m_params->speechkitEmotion().isEmpty()) {
-                requestDataList.append(QString("emotion=%1")
-                                       .arg(m_params->speechkitEmotion()));
+                postDataEncoded.addQueryItem("emotion", m_params->speechkitEmotion());
             }
             if (!m_params->speechkitSpeed().isEmpty()) {
-                requestDataList.append(QString("speed=%1")
-                                       .arg(m_params->speechkitSpeed()));
+                postDataEncoded.addQueryItem("speed", m_params->speechkitSpeed());
             }
             if (!m_params->speechkitFormat().isEmpty()) {
-                requestDataList.append(QString("format=%1")
-                                       .arg(m_params->speechkitFormat()));
+                postDataEncoded.addQueryItem("format", m_params->speechkitFormat());
             }
             if (!m_params->speechkitSampleRateHertz().isEmpty()) {
-                requestDataList.append(
-                            QString("sampleRateHertz=%1")
-                            .arg(m_params->speechkitSampleRateHertz()));
+                postDataEncoded.addQueryItem("sampleRateHertz",
+                                      m_params->speechkitSampleRateHertz());
             }
-            QByteArray requestData = requestDataList.join("&").toUtf8();
 
             // * запрос
             // * делаем запрос
             manager->setTransferTimeout(constTimeoutGetAudio);
             requestGetAudio.setUrl(url);
-            QNetworkReply *reply = manager->post(requestGetAudio, requestData);
+            QNetworkReply *reply = manager->post(requestGetAudio, postDataEncoded.toString(QUrl::FullyEncoded).toUtf8());
             QNetworkReply::NetworkError errType = QNetworkReply::NoError;
             QList<QSslError> errorsSsl;
             connect(reply, &QNetworkReply::finished, this, [&reply,this]() {
@@ -443,29 +448,35 @@ QString CCBot::generateErrMsg(int type, int errCode, QString info)
 QString CCBot::modifyMsg(const QString &text)
 {
     // init emotion power counters
-    qint8 funnyPower = 0;       // (-) грусть .. радость (+)
-    qint8 godnessPower = 0;     // (-) злоба .. доброта (+)
-    qint8 likingPower = 0;      // (-) отвращение .. симпатия (+)
-    qint8 sicklinessPower = 0;  // болезненный (+)
-    qint8 nicelyPower = 0;      // (-) неприятно .. приятно (+)
-    qint8 sleepyPower = 0;      // сонный (+)
-    qint8 fearPower = 0;        // страх (+)
-    qint8 amazePower = 0;       // удивление (+)
-    qint8 laughPower = 0;       // ржач (+)
+    qint32 funnyPower = 0;       // (-) грусть .. радость (+)
+    qint32 godnessPower = 0;     // (-) злоба .. доброта (+)
+    qint32 likingPower = 0;      // (-) отвращение .. симпатия (+)
+    qint32 sicklinessPower = 0;  // болезненный (+)
+    qint32 nicelyPower = 0;      // (-) неприятно .. приятно (+)
+    qint32 sleepyPower = 0;      // сонный (+)
+    qint32 fearPower = 0;        // страх (+)
+    qint32 amazePower = 0;       // удивление (+)
+    qint32 laughPower = 0;       // ржач (+)
+    qint32 pokePower = 0;        // прикалываться, наезд, задираться (+)
 
     // set counters
     std::wstring studiedText = text.toStdWString();
     for (size_t i = 0; i < studiedText.length(); i++) {
         wchar_t symbol = studiedText.at(i);
         switch (symbol) {
+        case 0x1F62C: // 😬 - grimacing face
+            godnessPower -= 1;
+        case 0x1F638: // 😸 - grinning cat face with smiling eyes
         case 0x1F601: // 😁 - grinning face with smiling eyes
+        case 0x1F600: // 😀 - grinning face
             funnyPower += 1;
-            amazePower += 1;
             laughPower += 1;
             break;
+        case 0x1F639: // 😹 - cat face with tears of joy
         case 0x1F602: // 😂 - face with tears of joy
             laughPower += 2;
             break;
+        case 0x1F63A: // 😺 - smiling cat face with open mouth
         case 0x1F603: // 😃 - smiling face with open mouth
             funnyPower += 1;
             break;
@@ -493,13 +504,16 @@ QString CCBot::modifyMsg(const QString &text)
             nicelyPower += 1;
             break;
         case 0x1F60C: // 😌 - relieved face
-            fearPower = fearPower > 0 ? --fearPower : 0;
+            fearPower = 0;
             break;
+        case 0x1F63B: // 😻 - smiling cat face with heart-shaped eyes
         case 0x1F60D: // 😍 - smiling face with heart-shaped eyes
             likingPower += 4;
             break;
+        case 0x1F63C: // 😼 - cat face with wry smile
         case 0x1F60F: // 😏 - smirking face
-            likingPower += 1;
+            funnyPower += 1;
+            godnessPower -= 1;
             break;
         case 0x1F612: // 😒 - unamused face
             funnyPower -= 1;
@@ -509,7 +523,16 @@ QString CCBot::modifyMsg(const QString &text)
             fearPower += 1;
             break;
         case 0x1F614: // 😔 - pensive face
+        case 0x1F61F: // 😟 - worried face
             funnyPower -= 1;
+            break;
+        case 0x1F626: // 😦 - frowning face with open mouth
+            funnyPower -= 1;
+            amazePower += 1;
+            break;
+        case 0x1F627: // 😧 - anguished face
+            funnyPower -= 2;
+            amazePower += 2;
             break;
         case 0x1F616: // 😖 - confounded face
             funnyPower -= 2;
@@ -517,11 +540,187 @@ QString CCBot::modifyMsg(const QString &text)
         case 0x1F618: // 😘 - face throwing a kiss
             likingPower += 3;
             break;
+        case 0x1F63D: // 😽 - kissing cat face with closed eyes
         case 0x1F61A: // 😚 - kissing face with closed eyes
+        case 0x1F617: // 😗 - kissing face
+        case 0x1F619: // 😙 - kissing face with smiling eyes
             likingPower += 2;
             break;
         case 0x1F61C: // 😜 - face with stuck-out tongue and winking eye
+        case 0x1F61B: // 😛 - face with stuck-out tongue
+            likingPower += 1;
+            pokePower += 2;
+            break;
+        case 0x1F61D: // 😝 - face with stuck-out tongue and tightly-closed eyes
+            likingPower += 1;
+            pokePower += 3;
+            break;
+        case 0x1F61E: // 😞 - disappointed face
+            funnyPower -= 3;
+            break;
+        case 0x1F620: // 😠 - angry face
+            godnessPower -= 2;
+            funnyPower -= 2;
+            break;
+        case 0x1F63E: // 😾 - pouting cat face
+        case 0x1F621: // 😡 - pouting face
+            funnyPower -= 2;
+            nicelyPower -= 2;
+            break;
+        case 0x1F63F: // 😿 - crying cat face
+        case 0x1F622: // 😢 - crying face
+            funnyPower -= 2;
+            nicelyPower -= 2;
+            break;
+        case 0x1F623: // 😣 - persevering face
+            funnyPower -= 1;
+            nicelyPower -= 1;
+            break;
+        case 0x1F624: // 😤 - face with look of triumph
+            funnyPower += 1;
+            pokePower += 1;
+            godnessPower -= 1;
+            break;
+        case 0x1F625: // 😥 - disappointed but relieved face
+            funnyPower -= 1;
+            nicelyPower -= 2;
+            break;
+        case 0x1F628: // 😨 - fearful face
+            fearPower += 2;
+            break;
+        case 0x1F640: // 🙀 - weary cat face
+        case 0x1F629: // 😩 - weary face
+        case 0x1F62B: // 😪 - tired face
+            funnyPower -= 1;
+            sleepyPower += 1;
+            break;
+        case 0x1F611: // 😑 - expressionless face
+            sleepyPower += 1;
+            break;
+        case 0x1F62A: // 😪 - sleepy face
+        case 0x1F4A4: // 💤 - sleeping symbol
+        case 0x1F634: // 😴 - sleeping face
+            sleepyPower += 2;
+            break;
+        case 0x1F62D: // 😭 - loudly crying face
+            funnyPower -= 4;
+            laughPower -= 4;
+            break;
+        case 0x1F630: // 😰 - face with open mouth and cold sweat
+            fearPower += 3;
+            break;
+        case 0x1F631: // 😰 - face screaming in fear
+            fearPower += 4;
+            break;
+        case 0x1F632: // 😲 - astonished face
+            amazePower += 2;
+            break;
+        case 0x1F633: // 😳 - flushed face
+            amazePower += 2;
+            nicelyPower += 2;
+            break;
+        case 0x1F635: // 😵 - dizzy face
+            amazePower += 4;
+            sicklinessPower += 1;
+            break;
+        case 0x1F637: // 😷 - face with medical mask
+            sicklinessPower += 2;
+            break;
+        case 0x1F912: // 🤒 - face with thermometer
+            sicklinessPower += 3;
+            break;
+        case 0x1F915: // 🤕 - face with head-bandage
+            sicklinessPower += 4;
+            break;
+        case 0x1F647: // 🙇 - person bowing deeply
+            pokePower -= 2;
+            likingPower += 4;
+            break;
+        case 0x1F64F: // 🙏 - person with folded hands
+            godnessPower += 2;
+            break;
+        case 0x263A: // ☺ - white smiling face
+            funnyPower += 1;
+            nicelyPower += 2;
+            break;
+        case 0x1F479: // 👹 - japanese ogre
+            godnessPower -= 4;
+            funnyPower += 1;
+            break;
+        case 0x1F47A: // 👺 - japanese goblin
+            godnessPower -= 3;
+            funnyPower += 2;
+            break;
+        case 0x1F47B: // 👻 - ghost
+            godnessPower -= 1;
+            funnyPower += 1;
+            pokePower += 1;
+            break;
+        case 0x1F47C: // 👼 - baby angel
+            godnessPower += 2;
+            funnyPower += 1;
+            break;
+        case 0x1F47F: // 👿 - imp
+            godnessPower -= 2;
+            funnyPower -= 2;
+            break;
+        case 0x1F480: // 💀 - skull
+        case 0x2620:
+            sicklinessPower += 100;
+            break;
+        case 0x1F48B: // 💋 - kiss mark
+        case 0x1F48F: // 💏 - kiss
+            likingPower += 5;
+            break;
+        case 0x1F48C: // 💌 - love letter
+        case 0x1F491: // 💑 - couple with heart
+        case 0x1F493: // 💓 - beating heart
+        case 0x1F495: // 💕 - two hearts
+        case 0x1F496: // 💖 - sparkling heart
+        case 0x1F497: // 💗 - growing heart
+        case 0x1F498: // 💘 - heart with arrow
+        case 0x1F49D: // 💝 - heart with ribbon
+        case 0x1F49E: // 💞 - revolving hearts
+            likingPower += 10;
+            break;
+        case 0x1F490: // 💐 - bouquet
             likingPower += 2;
+            break;
+        case 0x1F494: // 💔 - broken heart
+            likingPower -= 10;
+            funnyPower -= 50;
+            break;
+        case 0x1F4A2: // 💢 - anger symbol
+            godnessPower -= 2;
+            nicelyPower -= 2;
+            break;
+        case 0x1F607: // 😇 - smiling face with halo
+            godnessPower += 2;
+            break;
+        case 0x1F608: // 😈 - smiling face with horns
+            godnessPower -= 2;
+            laughPower += 2;
+            break;
+        case 0x1F615: // 😕 - confused face
+            nicelyPower -= 1;
+            funnyPower -= 1;
+            break;
+        case 0x1F62E: // 😮 - face with open mouth
+        case 0x1F62F: // 😯 - hushed face
+        case 0x1F636: // 😶 - face without mouth
+            amazePower += 1;
+            break;
+        case 0x1F922: // 🤢 - nauseated face
+            likingPower -= 3;
+            break;
+        case 0x1F92E: // 🤮 - face vomiting
+            likingPower -= 4;
+            break;
+        case 0x1F973: // 🥳	- partying face
+            funnyPower += 4;
+            break;
+        case 0x1F4A9: // 💩 - pile of poo
+            pokePower += 10;
             break;
         default:
             break;
@@ -530,19 +729,6 @@ QString CCBot::modifyMsg(const QString &text)
 
     return "";
 }
-
-//QString CCBot::clearUselessSymbols(const QString &text)
-//{
-//    QString result = text;
-
-//    for (auto ch : result) {
-//        if (ch == L'😂') {
-//            qDebug() << "ch:" << ch;
-//        }
-//    }
-
-//    return result;
-//}
 
 bool CCBot::readMessagesFromJsonStr(QByteArray jsonData,
                                     QList<MessageData> &msgList,
@@ -581,7 +767,7 @@ bool CCBot::readMessagesFromJsonStr(QByteArray jsonData,
     return true;
 }
 
-bool CCBot::openDB()
+bool CCBot::openDB(QString name)
 {
     QString path =
             QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
@@ -602,28 +788,26 @@ bool CCBot::openDB()
         }
     }
 
-    QString file_path = path + QDir::separator() + constNameBaseStr;
+    QString file_path = path + QDir::separator() + (name.isEmpty() ? constNameBaseStr : name);
 
-    if (QSqlDatabase::contains(QSqlDatabase::defaultConnection)) {
-        m_db = QSqlDatabase::database();
-    } else {
-        m_db = QSqlDatabase::addDatabase("QSQLITE");
-    }
     m_db.setDatabaseName(file_path);
     if (!m_db.open()) {
-        qDebug() << "Error, missing database or opened from another program!";
+        emit showMessage("Ошибка", QString("Не удалось открыть базу.\n") + m_db.lastError().text(), true);
+        //qDebug() << "Error, missing database or opened from another program!";
         return false;
     }
 
-    emit baseOpenned(true);
-
     return true;
+}
+
+bool CCBot::isOpenedDB()
+{
+    return m_db.isOpen();
 }
 
 void CCBot::closeDB()
 {
     m_db.close();
-    emit baseOpenned(false);
 }
 
 bool CCBot::createTableDB(QString streamId)
@@ -938,6 +1122,7 @@ bool CCBot::checkAutoVoiceMessage(const MessageData &msg, QString &text)
             ) {
         QString analyseText = msg.msg;
         analyseText = analyseText.remove(QRegularExpression("[\\x{1F600}-\\x{1F7FF}]+"));
+        analyseText.replace("Zhivana", "Джиганна");
         // проверка на комманду
 //        if (analyseText.at(0) == QChar('!')) {
 //            return false;
@@ -986,14 +1171,12 @@ void CCBot::action(int type, QVariantList args)
         break;
     case CCBotTaskEnums::OpenBase:
         {
-            bool state = openDB();
-            emit baseOpenned(state);
+            openDB();
         }
         break;
     case CCBotTaskEnums::CloseBase:
         {
             closeDB();
-            emit baseOpenned(false);
         }
         break;
     default:
