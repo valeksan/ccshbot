@@ -13,6 +13,7 @@ QT += network
 QT += websockets
 QT += sql
 QT += multimedia
+QT += svg
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -54,6 +55,7 @@ DISTFILES += \
     LICENSE \
     README.md \
     app.ico \
+    app.svg \
     qml/controls/NumBox.qml \
     qml/controls/NumBoxForm.ui.qml \
     qml/dialogs/About.qml \

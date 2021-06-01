@@ -1,11 +1,9 @@
 {
     "manifest_version": 2,
     "name": "CCBot",
-    "version": "0.21",
+    "version": "0.22",
     "description": "Расширение для озвучки особых сообщений чата(или всех сообщений), а также обработки особых команд в чате.",
-    "icons": {
-        "48": "icon48.png"
-    },
+    "icons": {"48":"icon.png"},
     "permissions": [
         "storage",
         "<all_urls>"

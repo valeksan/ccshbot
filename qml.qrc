@@ -10,7 +10,6 @@
         <file>qml/pages/SettingsPageForm.ui.qml</file>
         <file>qml/controls/NumBox.qml</file>
         <file>qml/controls/NumBoxForm.ui.qml</file>
-        <file>app.png</file>
         <file>qml/panels/AppToolBar.qml</file>
         <file>qml/panels/AppLeftMenu.qml</file>
         <file>qml/panels/AppStatusBar.qml</file>
@@ -18,5 +17,6 @@
         <file>qml/pages/ViewChatForm.ui.qml</file>
         <file>qml/pages/SettingsViewPage.qml</file>
         <file>qml/pages/SettingsViewPageForm.ui.qml</file>
+        <file>app.svg</file>
     </qresource>
 </RCC>

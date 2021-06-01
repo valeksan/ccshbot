@@ -24,7 +24,7 @@ int main(int argc, char *argv[])
     app.setOrganizationDomain(DOMAIN_STRING);
     app.setApplicationName(APP_NAME);
     app.setApplicationVersion(VERSION_STRING);
-    app.setWindowIcon(QIcon(":/app.png"));
+    app.setWindowIcon(QIcon(":/app.svg"));
 
     // установка шрифта по умолчанию для всего приложения
     int id = QFontDatabase::addApplicationFont("qrc:/fonts/NotoSans-Regular.ttf");
