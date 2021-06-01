@@ -7,11 +7,7 @@
 #include <QNetworkReply>
 #include <QtMultimedia/QMediaPlayer>
 
-#include "ccbotengine.h"
-#include "properties.h"
-#include "enums.h"
-#include "misc.h"
-#include "messagedata.h"
+#include "ccbot_private.h"
 
 #define constNameBaseStr                "ccbot_storage.db"
 #define constTimeoutGetIamToken         5000
@@ -27,7 +23,7 @@
 #define defaultSpeechkitSpeed           ""          // def "1.0" ("0.1" .. "3.0")
 #define defaultSpeechkitSampleRateHertz ""          // def "48000" or: "16000", "8000"
 
-class CCBot : public CCBotEngine
+class CCBot : public CCBotPrivate
 {
     Q_OBJECT
 
@@ -37,39 +33,11 @@ public:
     void start();
 
 private:
-    Properties *m_params;
-    QSqlDatabase m_db;
-    QMediaPlayer *m_player;
-
     // методы нач инициализации
     void initDB();                  // инициализация БД
     void initTimers();              // инициализация таймеров
     void initConnections();         // инициализация связей
     void initTasks();               // инициализация задач
-
-    // вспомогательные методы
-    QString generateErrMsg(int type, int errCode, QString info = "");
-    QString modifyMsg(const QString &text);
-
-    // методы распаковки данных
-    bool readMessagesFromJsonStr(QByteArray jsonData, QList<MessageData> &msgList, QString *errInfo = nullptr);
-
-    // методы для работы с БД
-    bool createTableDB(QString streamId);
-    bool existsTableDB(QString streamId);
-    bool selectMsgsFromTableDB(QString streamId, QList<MessageData> &msgList, int limit = -1);
-    bool appendMsgIntoTableDB(QString streamId, QList<MessageData> &msgList);
-
-    // вспомогательные методы
-    void mergeMessages(QList<MessageData> oldMsgList, QList<MessageData> newMsgList, QList<MessageData> &mergedMsgList);
-    bool equalMessages(const MessageData& msg1, const MessageData& msg2);
-
-    // CCBotEngine interface
-    void updateChat(const QList<MessageData> &msgsl, bool withTime = true, QString timeFormat = "hh:mm");
-    void analyseNewMessages(const QList<MessageData> &msgsl);
-
-    bool checkAutoVoiceMessage(const MessageData &msg, QString &text);
-    bool checkCmdMessage(const MessageData &msg, QString &cmd, QStringList &args);
 
 private slots:
     int insertNewMessagesInTable(QString streamId, QByteArray jsonData, bool merge = true, QString *errInfo = nullptr);
@@ -88,7 +56,6 @@ public slots:
 
 signals:
     void showMessage(QString title, QString text, bool alert);
-    void showChatMessage(QString message);
     void completeRequestGetIamToken();
     void completeRequestGetAudio();
     void completePlayFile();

@@ -7,7 +7,6 @@
 #include <QDateTime>
 
 #include "metadata.h"
-#include "desktop.h"
 #include "properties.h"
 #include "ccbot.h"
 
@@ -51,7 +50,6 @@ int main(int argc, char *argv[])
     // Проброс функциональных объектов в движок QML
     // - Объявление QML-классов
     qmlRegisterUncreatableMetaObject(CCBotTaskEnums::staticMetaObject, "ccbot.tasks", 1, 0, "Task", "Access to enums - Tasks");
-    qmlRegisterSingletonType<Desktop>("Vip.Desktop", 1, 0, "Desktop", Desktop::desktopSingletonProvider);
 
     engine.rootContext()->setContextProperty("releaseDate", releaseDate);
     engine.rootContext()->setContextProperty("ccbot", ccbot);

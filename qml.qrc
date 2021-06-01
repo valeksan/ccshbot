@@ -3,7 +3,6 @@
         <file>qml/main.qml</file>
         <file>qtquickcontrols2.conf</file>
         <file>fonts/NotoSans-Regular.ttf</file>
-        <file>qml/js/MethodsDekctopJS.qml</file>
         <file>qml/dialogs/About.qml</file>
         <file>qml/dialogs/Message.qml</file>
         <file>qml/pages/SettingsPage.qml</file>

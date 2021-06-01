@@ -7,7 +7,6 @@ import QtQuick.Dialogs 1.2
 
 import ccbot.tasks 1.0
 
-import "js"
 import "pages"
 import "dialogs"
 import "panels"
@@ -93,11 +92,6 @@ ApplicationWindow {
     About {
         id: aboutDlg
         anchors.centerIn: parent
-    }
-
-    // вспомогательные JS-методы: для позиционирования окна
-    MethodsDekctopJS {
-        id: desktopMethods
     }
 
     Connections {

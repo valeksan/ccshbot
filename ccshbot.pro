@@ -32,13 +32,13 @@ DEFINES += 'VERSION_STRING=\\\"$$VERSION\\\"'
 
 SOURCES += \
         ccbot.cpp \
+        ccbot_private.cpp \
         main.cpp
 
 HEADERS += \
     ccbot.h \
-    ccbotengine.h \
+    ccbot_private.h \
     core.h \
-    desktop.h \
     enums.h \
     messagedata.h \
     metadata.h \
@@ -60,7 +60,6 @@ DISTFILES += \
     qml/controls/NumBoxForm.ui.qml \
     qml/dialogs/About.qml \
     qml/dialogs/Message.qml \
-    qml/js/MethodsDekctopJS.qml \
     qml/main.qml \
     qml/pages/SettingsPage.qml \
     qml/pages/SettingsPageForm.ui.qml \
