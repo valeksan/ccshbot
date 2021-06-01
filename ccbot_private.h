@@ -55,16 +55,16 @@ protected:
     bool checkAutoVoiceMessage(const MessageData &msg, QString &text);
     bool checkCmdMessage(const MessageData &msg, QString &cmd, QStringList &args);
 
-    // вспомогательные методы
+    // helper methods
     void mergeMessages(QList<MessageData> oldMsgList, QList<MessageData> newMsgList, QList<MessageData> &mergedMsgList);
     bool equalMessages(const MessageData& msg1, const MessageData& msg2);
     QString generateErrMsg(int type, int errCode, QString info = "");
     void generateEmotionText(QString &text);
 
-    // методы распаковки данных
+    // data unpacking methods
     bool readMessagesFromJsonStr(QByteArray jsonData, QList<MessageData> &msgList, QString *errInfo = nullptr);
 
-    // методы для работы с БД
+    // methods for working with the database
     bool createTableDB(QString streamId);
     bool existsTableDB(QString streamId);
     bool selectMsgsFromTableDB(QString streamId, QList<MessageData> &msgList, int limit = -1);

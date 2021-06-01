@@ -30,14 +30,14 @@ class CCBot : public CCBotPrivate
 public:
     explicit CCBot(Properties *params, QObject *parent = nullptr);
     ~CCBot() override;
-    void start();
+    void start();                   // Beginning of work
 
 private:
-    // методы нач инициализации
-    void initDB();                  // инициализация БД
-    void initTimers();              // инициализация таймеров
-    void initConnections();         // инициализация связей
-    void initTasks();               // инициализация задач
+    // initialization methods
+    void initDB();                  // database initialization
+    void initTimers();              // initializing timers
+    void initConnections();         // initialization of connections
+    void initTasks();               // initialization of tasks
 
 private slots:
     int insertNewMessagesInTable(QString streamId, QByteArray jsonData, bool merge = true, QString *errInfo = nullptr);
@@ -50,7 +50,7 @@ public slots:
     void action(int type, QVariantList args = QVariantList()) override;
     void slotFinishedTask(long id, int type, QVariantList argsList, QVariant result) override;
 
-    // сохр.\загр. настроек
+    // save \ load settings
     void loadSettings();
     void saveSettings();
 
