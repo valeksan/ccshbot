@@ -40,7 +40,7 @@ private:
     void initTasks();               // initialization of tasks
 
 private slots:
-    int insertNewMessagesInTable(QString streamId, QByteArray jsonData, bool merge = true, QString *errInfo = nullptr);
+    int insertNewMessagesInTable(QString streamId, QByteArray jsonData, bool mergeOnly = true, QString *errInfo = nullptr);
     void speechFile(QString filename);
 
 public slots:

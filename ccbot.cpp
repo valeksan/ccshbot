@@ -418,8 +418,8 @@ void CCBot::speechFile(QString filename)
 
 bool CCBot::openDB(QString name)
 {
-    QString path =
-            QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+    QString path = QStandardPaths::writableLocation(
+                QStandardPaths::AppDataLocation);
 
 //    qDebug() << path;
 
@@ -432,14 +432,14 @@ bool CCBot::openDB(QString name)
 
     if (!d.exists()) {
         if (!d.mkpath(d.absolutePath())) {
-            //qDebug() << QString("Cannot create path: %1").arg(d.absolutePath());
+            qDebug() << QString("Can't to create path: %1").arg(d.absolutePath());
             return false;
         }
     }
 
-    QString file_path = path + QDir::separator() + (name.isEmpty() ? constNameBaseStr : name);
+    QString filePath = path + QDir::separator() + (name.isEmpty() ? constNameBaseStr : name);
 
-    m_db.setDatabaseName(file_path);
+    m_db.setDatabaseName(filePath);
     if (!m_db.open()) {
         emit showMessage("Ошибка", QString("Не удалось открыть базу.\n") + m_db.lastError().text(), true);
         //qDebug() << "Error, missing database or opened from another program!";
@@ -459,7 +459,7 @@ void CCBot::closeDB()
     m_db.close();
 }
 
-int CCBot::insertNewMessagesInTable(QString streamId, QByteArray jsonData, bool merge, QString *errInfo)
+int CCBot::insertNewMessagesInTable(QString streamId, QByteArray jsonData, bool mergeOnly, QString *errInfo)
 {
     QList<MessageData> rowsFromDB;
     QList<MessageData> rowsFromServer;
@@ -499,7 +499,7 @@ int CCBot::insertNewMessagesInTable(QString streamId, QByteArray jsonData, bool 
 
     // 2. Запрос сообщений с таблицы (100, либо все)
     if(!tableNotExist) {
-        if (merge) {
+        if (mergeOnly) {
             state = selectMsgsFromTableDB(streamId, rowsFromDB, 100);
         } else {
             state = selectMsgsFromTableDB(streamId, rowsFromDB, -1);
@@ -513,7 +513,7 @@ int CCBot::insertNewMessagesInTable(QString streamId, QByteArray jsonData, bool 
     }
 
     // 2.1. Fix. remove senders checks in listType3Senders
-    if (merge) {
+    if (!listType3Senders.isEmpty()) {
         for (int i = 0; i < rowsFromDB.size(); i++) {
             if (listType3Senders.contains(rowsFromDB.at(i).sender)) {
                 rowsFromDB.removeAt(i--);
@@ -525,14 +525,10 @@ int CCBot::insertNewMessagesInTable(QString streamId, QByteArray jsonData, bool 
     if (tableNotExist) {
         rowsForInsert.append(rowsFromServer);
     } else {
-        if (merge) {
-//            mergeMessages(listRight<MessageData>(rowsFromDB, 100),
-//                          rowsFromServer, rowsForInsert);
+        if (mergeOnly) {
             mergeMessages(rowsFromDB,
                           rowsFromServer, rowsForInsert);
         } else {
-//            mergeMessages(rowsFromDB,
-//                          rowsFromServer, rowsForInsert);
             mergeMessages(listRight<MessageData>(rowsFromDB, 100),
                           rowsFromServer, rowsForInsert);
         }
@@ -548,14 +544,14 @@ int CCBot::insertNewMessagesInTable(QString streamId, QByteArray jsonData, bool 
 //    }
 
     // 5. Обновление чата
-    if (merge) {
+    if (mergeOnly) {
         updateChat(rowsForInsert);
     } else {
         updateChat(rowsFromDB + rowsForInsert);
     }
 
     // 6. Анализ сообщений на комманды -> выполнение комманд (добавление задач)
-    if (merge) {
+    if (mergeOnly) {
         analyseNewMessages(rowsForInsert);
     }
 

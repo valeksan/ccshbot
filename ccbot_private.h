@@ -11,14 +11,14 @@
 #include "enums.h"
 #include "misc.h"
 #include "messagedata.h"
+#include "logmaker.h"
 
 class TaskResult {
 public:
     TaskResult() { }
     TaskResult(int errCode, QString errInfo = "", QVariant data = QVariant()) :
         m_errCode(errCode), m_errInfo(errInfo), m_data(data)
-    {
-    }
+    {}
 
     int errCode() const
     {
@@ -46,6 +46,7 @@ protected:
     Properties *m_params;
     QSqlDatabase m_db;
     QMediaPlayer *m_player;
+    LogMaker m_log;
 
     mutable QMutex m_mutex;
 

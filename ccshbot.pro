@@ -33,6 +33,7 @@ DEFINES += 'VERSION_STRING=\\\"$$VERSION\\\"'
 SOURCES += \
         ccbot.cpp \
         ccbot_private.cpp \
+        logmaker.cpp \
         main.cpp
 
 HEADERS += \
@@ -40,6 +41,7 @@ HEADERS += \
     ccbot_private.h \
     core.h \
     enums.h \
+    logmaker.h \
     messagedata.h \
     metadata.h \
     misc.h \
