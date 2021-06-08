@@ -485,18 +485,25 @@ int CCBot::insertNewMessagesInTable(QString streamId, QByteArray jsonData, bool 
         }
     }
 
-    // Fix remove type 4
+    // Fix. remove type 4 and check on have type 3
     int removeCount = 0;
+    QStringList listType3Senders;
     for (int i = 0; i < rowsFromServer.size(); i++) {
         if (rowsFromServer.at(i).type == 4) {
             rowsFromServer.removeAt(i--);
             ++removeCount;
+        } else if (rowsFromServer.at(i).type == 3) {
+            listType3Senders.append(rowsFromServer.at(i).sender);
         }
     }
 
-    // 2. Запрос 100 сообщений с таблицы
+    // 2. Запрос сообщений с таблицы (100, либо все)
     if(!tableNotExist) {
-        state = selectMsgsFromTableDB(streamId, rowsFromDB, merge ? 100 : -1);
+        if (merge) {
+            state = selectMsgsFromTableDB(streamId, rowsFromDB, 100);
+        } else {
+            state = selectMsgsFromTableDB(streamId, rowsFromDB, -1);
+        }
 //    if (!state) {
 //        if (errInfo) {
 //            *errInfo = m_db.lastError().text();
@@ -505,11 +512,30 @@ int CCBot::insertNewMessagesInTable(QString streamId, QByteArray jsonData, bool 
 //    }
     }
 
+    // 2.1. Fix. remove senders checks in listType3Senders
+    if (merge) {
+        for (int i = 0; i < rowsFromDB.size(); i++) {
+            if (listType3Senders.contains(rowsFromDB.at(i).sender)) {
+                rowsFromDB.removeAt(i--);
+            }
+        }
+    }
+
     // 3. Слияние
-    if(!tableNotExist) {
-        mergeMessages(!merge ? rowsFromDB : listRight<MessageData>(rowsFromDB, 100), rowsFromServer, rowsForInsert);
-    } else {
+    if (tableNotExist) {
         rowsForInsert.append(rowsFromServer);
+    } else {
+        if (merge) {
+//            mergeMessages(listRight<MessageData>(rowsFromDB, 100),
+//                          rowsFromServer, rowsForInsert);
+            mergeMessages(rowsFromDB,
+                          rowsFromServer, rowsForInsert);
+        } else {
+//            mergeMessages(rowsFromDB,
+//                          rowsFromServer, rowsForInsert);
+            mergeMessages(listRight<MessageData>(rowsFromDB, 100),
+                          rowsFromServer, rowsForInsert);
+        }
     }
 
     // 4. Вставка новых сообщений в БД
@@ -522,10 +548,14 @@ int CCBot::insertNewMessagesInTable(QString streamId, QByteArray jsonData, bool 
 //    }
 
     // 5. Обновление чата
-    updateChat(merge ? rowsForInsert : rowsFromDB + rowsForInsert);
+    if (merge) {
+        updateChat(rowsForInsert);
+    } else {
+        updateChat(rowsFromDB + rowsForInsert);
+    }
 
     // 6. Анализ сообщений на комманды -> выполнение комманд (добавление задач)
-    if(merge) {
+    if (merge) {
         analyseNewMessages(rowsForInsert);
     }
 

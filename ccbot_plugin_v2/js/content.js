@@ -129,9 +129,7 @@ async function doRepeatGetDataCC() {
         console.log('__new_timeout_start:')
         if (flagConnection) {
             const chatData = getChatContentCC();
-            //if(chatData.type === "chat_datagram") {
             server.send(JSON.stringify(chatData));
-            //}
         } else {
             await connect(cfgHost, cfgPort)
             .then(result => {
