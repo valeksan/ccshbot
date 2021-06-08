@@ -21,6 +21,8 @@ public:
 public slots:
     QString lastLogName();
 
+    void endLogSession();
+
     bool lastLogNameExists();
 
     bool makeLogFromHtml(QString text);
