@@ -590,7 +590,7 @@ bool CCBotPrivate::checkAutoVoiceMessage(const MessageData &msg, QString &text)
             ) {
         QString analyseText = msg.msg;
         analyseText = analyseText.remove(QRegularExpression("[\\x{1F600}-\\x{1F7FF}]+"));
-        analyseText.replace("Zhivana", "Джиганна");
+        analyseText.replace("Zhivana", "Джеванна");
         // проверка на комманду
 //        if (analyseText.at(0) == QChar('!')) {
 //            return false;
