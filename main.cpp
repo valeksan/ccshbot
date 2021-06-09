@@ -5,6 +5,7 @@
 #include <QFileInfo>
 #include <QQmlContext>
 #include <QDateTime>
+#include <QMetaObject>
 
 #include "metadata.h"
 #include "properties.h"
@@ -40,18 +41,32 @@ int main(int argc, char *argv[])
     CCBot *ccbot = new CCBot(properties);
 
     // Reading the date and time of the current compilation
-    QString build = QString("%1%2").arg(QLocale(QLocale::C).toDate(QString(__DATE__).simplified(), QLatin1String("MMM d yyyy")).toString("yyyyMMdd"))
-    .arg( QString("%1%2%3%4%5%6").arg(__TIME__[0]).arg(__TIME__[1]).arg(__TIME__[3]).arg(__TIME__[4]).arg(__TIME__[6]).arg(__TIME__[7]) );
+    const QString cstrDateBuild = QLocale(QLocale::C)
+            .toDate(QString(__DATE__).simplified(), QLatin1String("MMM d yyyy"))
+            .toString("yyyyMMdd");
+    const QString cstrTimeBuild = QString("%1%2%3%4%5%6")
+            .arg(__TIME__[0])
+            .arg(__TIME__[1])
+            .arg(__TIME__[3])
+            .arg(__TIME__[4])
+            .arg(__TIME__[6])
+            .arg(__TIME__[7]);
+    QString build = cstrDateBuild + cstrTimeBuild;
+
     QDateTime datetime = QDateTime::fromString(build, "yyyyMMddhhmmss");
     const QString releaseDate = datetime.toString("dd.MM.yyyy hh:mm:ss");
-
-    // Passing functional objects to the QML engine
-    // - Declaring QML Classes
-    qmlRegisterUncreatableMetaObject(CCBotTaskEnums::staticMetaObject, "ccbot.tasks", 1, 0, "Task", "Access to enums - Tasks");
 
     engine.rootContext()->setContextProperty("releaseDate", releaseDate);
     engine.rootContext()->setContextProperty("ccbot", ccbot);
     engine.rootContext()->setContextProperty("properties", properties);
+
+    // Passing functional objects to the QML engine
+    // - Declaring QML Classes
+    qmlRegisterUncreatableMetaObject(CCBotTaskEnums::staticMetaObject,
+                                     "ccbot.tasks",
+                                     1, 0,
+                                     "Task",
+                                     "Access to enums & flags only");
 
     // Loading the interface
     engine.load(QUrl(QStringLiteral("qrc:/qml/main.qml")));

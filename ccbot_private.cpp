@@ -4,8 +4,10 @@
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QSqlQuery>
+#include <QSqlError>
 
-CCBotPrivate::CCBotPrivate(QObject *parent) : QObject(parent), m_pCore(new Core())
+CCBotPrivate::CCBotPrivate(QObject *parent)
+    : QObject(parent), m_pCore(new Core())
 {
     connect(m_pCore, &Core::finishedTask, this, &CCBotPrivate::slotFinishedTask);
 }
@@ -326,9 +328,22 @@ bool CCBotPrivate::readMessagesFromJsonStr(QByteArray jsonData,
         QString info = QString("Parse error at %1:%2")
                 .arg(parseError.offset)
                 .arg(parseError.errorString());
-        //qDebug() << info;
         if (errInfo) {
             *errInfo = info;
+        }
+        if (m_params->flagLogging()) {
+            addToLog(info);
+        }
+        return false;
+    }
+
+    if (!jsonDoc.isArray()) {
+        QString info = "Parse structure error. This is not Array!";
+        if (errInfo) {
+            *errInfo = info;
+        }
+        if (m_params->flagLogging()) {
+            addToLog(info);
         }
         return false;
     }
@@ -367,6 +382,13 @@ bool CCBotPrivate::createTableDB(QString streamId)
 
     bool state = qry.exec(sql);
 
+    if (m_params->flagLogging() && !state) {
+        QString info = QString("Sql query-create error(%1): ")
+                .arg(qry.lastError().type()) + qry.lastError().text()
+                + QString("\nQuery: %1").arg(qry.lastQuery());
+        addToLog(info);
+    }
+
     return state;
 }
 
@@ -396,8 +418,8 @@ bool CCBotPrivate::selectMsgsFromTableDB(QString streamId,
 
     bool state = qry.exec(sql);
 
-    if(state) {
-        while(qry.next()) {
+    if (state) {
+        while (qry.next()) {
             MessageData msg;
             msg.id = qry.value("id").toULongLong();
             msg.type = qry.value("type").toInt();
@@ -408,12 +430,20 @@ bool CCBotPrivate::selectMsgsFromTableDB(QString streamId,
             msg.timestamp = qry.value("timestamp").toDateTime();
             msgList.append(msg);
         }
+    } else {
+        if (m_params->flagLogging()) {
+            QString info = QString("Sql query-select error(%1): ")
+                    .arg(qry.lastError().type()) + qry.lastError().text()
+                    + QString("\nQuery: %1").arg(qry.lastQuery());
+            addToLog(info);
+        }
     }
 
     return state;
 }
 
-bool CCBotPrivate::appendMsgIntoTableDB(QString streamId, QList<MessageData> &msgList)
+bool CCBotPrivate::appendMsgIntoTableDB(QString streamId,
+                                        QList<MessageData> &msgList)
 {
     if (msgList.isEmpty()) {
         return true;
@@ -425,7 +455,10 @@ bool CCBotPrivate::appendMsgIntoTableDB(QString streamId, QList<MessageData> &ms
         QSqlQuery qry;
         MessageData msg = msgList.at(i);
         msgList[i].timestamp = timestamp;
-        QString sql = QString("INSERT INTO t_%1 (type, sender, nik_color, msg, pay, timestamp) VALUES (:type, :sender, :nik_color, :msg, :pay, :timestamp);").arg(streamId);
+        QString sql = QString("INSERT INTO t_%1 "
+                "(type, sender, nik_color, msg, pay, timestamp) "
+                "VALUES (:type, :sender, :nik_color, :msg, :pay, :timestamp);")
+                .arg(streamId);
         qry.prepare(sql);
         qry.bindValue(":type", msg.type);
         qry.bindValue(":sender", msg.sender);
@@ -433,43 +466,56 @@ bool CCBotPrivate::appendMsgIntoTableDB(QString streamId, QList<MessageData> &ms
         qry.bindValue(":msg", msg.msg);
         qry.bindValue(":pay", msg.pay);
         qry.bindValue(":timestamp", timestamp.toString("yyyy-MM-dd hh:mm:ss"));
-        qry.exec();
+        bool state = qry.exec();
+        if (m_params->flagLogging() && !state) {
+            QString info = QString("Sql query-insert error(%1): ")
+                    .arg(qry.lastError().type()) + qry.lastError().text()
+                    + QString("\nQuery: %1").arg(qry.lastQuery());
+            addToLog(info);
+        }
     }
 
     return false;
 }
 
-void CCBotPrivate::mergeMessages(QList<MessageData> oldMsgList, QList<MessageData> newMsgList, QList<MessageData> &mergedMsgList)
+void CCBotPrivate::mergeMessages(QList<MessageData> oldMsgList,
+                                 QList<MessageData> newMsgList,
+                                 QList<MessageData> &mergedMsgList)
 {
-    if (oldMsgList.isEmpty()) {
-        mergedMsgList.append(newMsgList);
-        return;
-    }
 
-    QStringList type3NikNames;
+//    if (oldMsgList.isEmpty()) {
+//        mergedMsgList.append(newMsgList);
+//        return;
+//    }
 
-    // Поиск ников помеченных как тип 3 для игнорирования в сравнении списков
-    foreach (const MessageData &msg, newMsgList) {
-        if(msg.type == 3 && !type3NikNames.contains(msg.sender)) {
-            type3NikNames.append(msg.sender);
-        }
-    }
+//    QStringList type3NikNames;
 
-    // Удаление из сравнения сообщений с ником из списка
-    for (const auto &nik : type3NikNames) {
-        for (int i = 0; i < oldMsgList.size(); i++) {
-            if (oldMsgList.at(i).sender == nik) {
-                oldMsgList.removeAt(i--);
-            }
-        }
-        for (int i = 0; i < newMsgList.size(); i++) {
-            if (newMsgList.at(i).sender == nik) {
-                newMsgList.removeAt(i--);
-            }
-        }
-    }
+//    // Поиск ников помеченных как тип 3 для игнорирования в сравнении списков
+//    foreach (const MessageData &msg, newMsgList) {
+//        if (msg.type == 3 && !type3NikNames.contains(msg.sender)) {
+//            type3NikNames.append(msg.sender);
+//            if (m_params->flagLogging()) {
+//                addToLog(QString("Notification. Ban user - %1!").arg(msg.sender));
+//            }
+//        }
+//    }
 
-    // Поиск интервалов похожести для выбора наилучшего слияния списка (выбирается интервал с большим весом - weight)
+//    // Удаление из сравнения сообщений с ником из списка
+//    for (const auto &nik : type3NikNames) {
+//        for (int i = 0; i < oldMsgList.size(); i++) {
+//            if (oldMsgList.at(i).sender == nik) {
+//                oldMsgList.removeAt(i--);
+//            }
+//        }
+//        for (int i = 0; i < newMsgList.size(); i++) {
+//            if (newMsgList.at(i).sender == nik) {
+//                newMsgList.removeAt(i--);
+//            }
+//        }
+//    }
+
+    // Поиск интервалов похожести для выбора наилучшего слияния списка
+    // (выбирается интервал с большим весом - weight)
     QList<MessageData>::const_reverse_iterator iOldMsgs;
     QList<MessageData>::const_reverse_iterator iNewMsgs;
     QList<QPair<int,int> > intervals;
@@ -477,34 +523,53 @@ void CCBotPrivate::mergeMessages(QList<MessageData> oldMsgList, QList<MessageDat
     int weight = 0;
     int spaceMsgCount = 0;
     bool flagEnterInterval = false;
-    for (iNewMsgs = newMsgList.crbegin(), iOldMsgs = oldMsgList.crbegin(); iNewMsgs != newMsgList.crend() && iOldMsgs != oldMsgList.crend(); ) {
-        if (equalMessages(*iNewMsgs, *iOldMsgs)) {
-            if (!flagEnterInterval) {
-                start = iNewMsgs - newMsgList.crbegin();
-                weight = 1;
-                flagEnterInterval = true;
+
+    if (!newMsgList.isEmpty() && !oldMsgList.isEmpty()) {
+        for (iNewMsgs = newMsgList.crbegin(), iOldMsgs = oldMsgList.crbegin();
+             iNewMsgs != newMsgList.crend() && iOldMsgs != oldMsgList.crend();)
+        {
+            if (equalMessages(*iNewMsgs, *iOldMsgs)) {
+                if (!flagEnterInterval) {
+                    start = iNewMsgs - newMsgList.crbegin();
+                    weight = 1;
+                    flagEnterInterval = true;
+                } else {
+                    weight += 1;
+                }
+                ++iOldMsgs;
+                ++iNewMsgs;
+                if (iOldMsgs == oldMsgList.crend()) {
+                    intervals.append(QPair<int,int>(start, weight));
+                    break;
+                }
+                if (iNewMsgs == newMsgList.crend()) {
+                    intervals.append(QPair<int,int>(start, weight));
+                    iOldMsgs -= (weight + spaceMsgCount);
+                }
             } else {
-                weight += 1;
+                if (flagEnterInterval) {
+                    intervals.append(QPair<int,int>(start, weight));
+                    flagEnterInterval = false;
+                    iOldMsgs -= (weight + spaceMsgCount);
+                    spaceMsgCount = 0;
+                }
+                ++iNewMsgs;
             }
-            ++iOldMsgs;
-            ++iNewMsgs;
-            if (iOldMsgs == oldMsgList.crend()) {
-                intervals.append(QPair<int,int>(start, weight));
-                break;
-            }
-            if (iNewMsgs == newMsgList.crend()) {
-                intervals.append(QPair<int,int>(start, weight));
-                iOldMsgs -= (weight + spaceMsgCount);
-            }
-        } else {
-            if (flagEnterInterval) {
-                intervals.append(QPair<int,int>(start, weight));
-                flagEnterInterval = false;
-                iOldMsgs -= (weight + spaceMsgCount);
-                spaceMsgCount = 0;
-            }
-            ++iNewMsgs;
         }
+    } else {
+        if (m_params->flagLogging()) {
+            if (newMsgList.isEmpty()) {
+                addToLog(QString("Warrning. New message list is empty!"));
+            }
+            if (oldMsgList.isEmpty()) {
+                addToLog(QString("Notification. "
+                    "Old message list is empty, no merge, load all messages."));
+            }
+        }
+        if (oldMsgList.isEmpty()) {
+            mergedMsgList.append(newMsgList);
+        }
+        return;
     }
 
     // Выбор интервала
@@ -515,26 +580,36 @@ void CCBotPrivate::mergeMessages(QList<MessageData> oldMsgList, QList<MessageDat
         }
     }
 
-    // Спам-пакет из пачки сообщений т.к. не найдено совпадений вообще! (если такое возможно) -> передаем его сразу в запись
+    // Спам-пакет из пачки сообщений т.к. не найдено совпадений вообще!
+    // (если такое возможно) -> передаем его сразу в запись
     if (maxInterval.first == -1) {
         mergedMsgList = newMsgList;
-        //qDebug() << "spam!";
+        if (m_params->flagLogging()) {
+            addToLog(QString("Warrning. New message list is very big(%1 msgs)! "
+                "No matches found in the database.").arg(newMsgList.size()));
+        }
         return;
     }
 
     // Отсутствуют новые сообщения!
     if (maxInterval.first == 0) {
-        //qDebug() << "empty new";
         return;
     }
 
     // Записываем новые сообщения в список слияния
     int startIndex = newMsgList.size() - maxInterval.first;
-    //qDebug() << "start_index: " << startIndex;
     mergedMsgList.append(newMsgList.mid(startIndex));
+    if (maxInterval.first != -1 &&
+            mergedMsgList.size() > 10 &&
+            m_params->flagLogging())
+    {
+        addToLog(QString("Warrning. New message list is big(%1 msgs)!")
+                 .arg(newMsgList.size()));
+    }
 }
 
-bool CCBotPrivate::equalMessages(const MessageData &msg1, const MessageData &msg2)
+bool CCBotPrivate::equalMessages(const MessageData &msg1,
+                                 const MessageData &msg2)
 {
     if (msg1.type == msg2.type
             && msg1.sender == msg2.sender
@@ -546,22 +621,51 @@ bool CCBotPrivate::equalMessages(const MessageData &msg1, const MessageData &msg
     return false;
 }
 
-void CCBotPrivate::updateChat(const QList<MessageData> &msgsl, bool withTime, QString timeFormat)
+void CCBotPrivate::updateChat(const QList<MessageData> &msgsl,
+                              bool withTime,
+                              QString timeFormat)
 {
     for (int i = 0; i < msgsl.size(); i++) {
         MessageData msg = msgsl.value(i);
         QString timeStr = msg.timestamp.toString(timeFormat);
-        QString fragment0 = withTime ? timeStr + ": " : "";
+        QString fragment0 = withTime ?
+                    timeStr + ": "
+                    :
+                    "";
         QString nikStr = msg.sender;
-        QString fragment1 = nikStr.isEmpty() ? "" : msg.sender + ": ";
-        QString fmtFragment1 = msg.nik_color.isEmpty() ? fragment1 : _clr_(fragment1, msg.nik_color);
+        QString fragment1 = nikStr.isEmpty() ?
+                    ""
+                    :
+                    msg.sender + ": ";
+        QString fmtFragment1 = msg.nik_color.isEmpty() ?
+                    fragment1
+                    :
+                    _clr_(fragment1, msg.nik_color);
         QString fragment2 = msg.msg;
         QString fmtFragment2 = fragment2.isEmpty() ?
-                    (msg.type == 2 ? _bclr_((QString("($") + QString::number(msg.pay, 'f', 2) + ")"), "#fff200") : "")
+                    (
+                        msg.type == 2 ?
+                        _bclr_(
+                                QString("($")
+                                + QString::number(static_cast<double>(msg.pay),
+                                                   'f', 2) + ")",
+                                "#fff200"
+                        )
+                        :
+                        ""
+                    )
                     :
-                    (msg.type == 2 ?
-                         _bclr_((fragment2 + " ($" + QString::number(msg.pay, 'f', 2) + ")"), "#fff200") :
-                         fragment2);
+                    (
+                        msg.type == 2 ?
+                        _bclr_(
+                                fragment2
+                                + " ($"
+                                + QString::number(static_cast<double>(msg.pay),
+                                                  'f', 2) + ")",
+                               "#fff200")
+                        :
+                        fragment2
+                    );
         QString msgStr = fragment0 + fmtFragment1 + fmtFragment2;
 
         emit showChatMessage(msgStr);
@@ -573,7 +677,6 @@ void CCBotPrivate::analyseNewMessages(const QList<MessageData> &msgsl)
     for (int i = 0; i < msgsl.size(); i++) {
         MessageData msg = msgsl.at(i);
         QString text = "";
-        //clearUselessSymbols(msg.msg);
         if (checkAutoVoiceMessage(msg, text)) {
             m_pCore->addTask(CCBotTaskEnums::VoiceLoad, text);
         }
@@ -587,18 +690,16 @@ bool CCBotPrivate::checkAutoVoiceMessage(const MessageData &msg, QString &text)
     }
     if ((m_params->flagAnalyseVoiceAllMsgType2() && msg.type == 2)
             || (m_params->flagAnalyseVoiceAllMsgType0() && msg.type == 0)
-            ) {
+            )
+    {
         QString analyseText = msg.msg;
-        analyseText = analyseText.remove(QRegularExpression("[\\x{1F600}-\\x{1F7FF}]+"));
+        analyseText = analyseText.remove(
+                    QRegularExpression("[\\x{1F600}-\\x{1F7FF}]+"));
         analyseText.replace("Zhivana", "Джеванна");
-        // проверка на комманду
-//        if (analyseText.at(0) == QChar('!')) {
-//            return false;
-//        }
-        // проверка на пустое сообщение
+        // check on empty message
         bool emptyMsg = true;
         for (int i = 0; i < analyseText.length(); i++) {
-            if(analyseText.at(i).isLetter()) {
+            if(analyseText.at(i).isLetterOrNumber()) {
                 emptyMsg = false;
                 text = analyseText;
                 break;
@@ -609,11 +710,30 @@ bool CCBotPrivate::checkAutoVoiceMessage(const MessageData &msg, QString &text)
     return false;
 }
 
-bool CCBotPrivate::checkCmdMessage(const MessageData &msg, QString &cmd, QStringList &args)
+bool CCBotPrivate::checkCmdMessage(const MessageData &msg,
+                                   QString &cmd,
+                                   QStringList &args)
 {
     Q_UNUSED(msg)
     Q_UNUSED(cmd)
     Q_UNUSED(args)
     //
     return false;
+}
+
+void CCBotPrivate::addToLog(QString text, bool isTimelined)
+{
+    if (m_log.lastLogName().isEmpty()) {
+        return;
+    }
+    if (isTimelined) {
+        m_log.appendLastLogTimeline(text);
+        return;
+    }
+    m_log.appendLastLog(text);
+}
+
+bool CCBotPrivate::startLog()
+{
+    return m_log.startLogSession();
 }

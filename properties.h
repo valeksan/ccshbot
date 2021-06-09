@@ -37,6 +37,7 @@ class Properties : public QObject
     // Options
     Q_PROPERTY(bool flagAnalyseVoiceAllMsgType2 READ flagAnalyseVoiceAllMsgType2 WRITE setFlagAnalyseVoiceAllMsgType2 NOTIFY flagAnalyseVoiceAllMsgType2Changed)
     Q_PROPERTY(bool flagAnalyseVoiceAllMsgType0 READ flagAnalyseVoiceAllMsgType0 WRITE setFlagAnalyseVoiceAllMsgType0 NOTIFY flagAnalyseVoiceAllMsgType0Changed)
+    Q_PROPERTY(bool flagLogging READ flagLogging WRITE setFlagLogging NOTIFY flagLoggingChanged)
 
     // Speechkit
     Q_PROPERTY(QString speechkitLang READ speechkitLang WRITE setSpeechkitLang NOTIFY speechkitLangChanged)
@@ -77,22 +78,17 @@ class Properties : public QObject
     quint32 m_maxTimestampDiff = 5;
     QString m_listenHost;
     quint32 m_listenPort;
-
     QString m_fontNameForChat;
-
     float m_fontPointSizeForChat;
-
     QColor m_textColorForChat;
-
     QString m_testStr;
-
     QString m_currentStreamerNikname;
+    bool m_flagLogging = false;
 
 public:
     explicit Properties(QObject *parent = nullptr) : QObject(parent),
         m_speechkitIamTokenExpiryDate(QDateTime::currentDateTime())
-    {
-    }
+    {}
 
     bool flagLoadingChat() const;
     void setFlagLoadingChat(bool newFlagLoadingChat);
@@ -181,6 +177,9 @@ public:
     const QString &currentStreamerNikname() const;
     void setCurrentStreamerNikname(const QString &newCurrentStreamerNikname);
 
+    bool flagLogging() const;
+    void setFlagLogging(bool newFlagLogging);
+
 public slots:
 
 signals:
@@ -214,7 +213,21 @@ signals:
     void textColorForChatChanged();
     void testStrChanged();
     void currentStreamerNiknameChanged();
+    void flagLoggingChanged();
 };
+
+inline bool Properties::flagLogging() const
+{
+    return m_flagLogging;
+}
+
+inline void Properties::setFlagLogging(bool newFlagLogging)
+{
+    if (m_flagLogging == newFlagLogging)
+        return;
+    m_flagLogging = newFlagLogging;
+    emit flagLoggingChanged();
+}
 
 inline const QString &Properties::currentStreamerNikname() const
 {

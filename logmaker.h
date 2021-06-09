@@ -22,6 +22,7 @@ public slots:
     QString lastLogName();
 
     void endLogSession();
+    bool startLogSession();
 
     bool lastLogNameExists();
 
@@ -32,6 +33,8 @@ public slots:
     bool makeLog(QString text);
 
     bool appendLastLog(QString text);
+
+    bool appendLastLogTimeline(QString text);
 
     bool openLastLogFile();
 

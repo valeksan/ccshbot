@@ -50,6 +50,7 @@ protected:
 
     mutable QMutex m_mutex;
 
+    bool startLog();
     void updateChat(const QList<MessageData> &msgsl, bool withTime = true, QString timeFormat = "hh:mm");
     void analyseNewMessages(const QList<MessageData> &msgsl);
 
@@ -75,6 +76,8 @@ public:
     explicit CCBotPrivate(QObject *parent = nullptr);
 
 public slots:
+    void addToLog(QString text, bool isTimelined = true);
+
     virtual void action(int id, QVariantList args = QVariantList()) {
         Q_UNUSED(id)
         Q_UNUSED(args)

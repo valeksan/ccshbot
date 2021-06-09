@@ -27,11 +27,23 @@ CCBot::~CCBot()
 
 void CCBot::start()
 {
+    const QStringList args = qApp->arguments();
+    m_params->setFlagLogging(args.contains("--log") || args.contains("-l"));
+
+    if (m_params->flagLogging()) {
+        if (!startLog()) {
+            emit showMessage("Ошибка", "failed to create log file!", true);
+        }
+    }
+
     initConnections();
     initTasks();
     initTimers();
 
     if (!QSqlDatabase::drivers().contains("QSQLITE")) {
+        if (m_params->flagLogging()) {
+            addToLog("ERROR! Unable to load database, needs the SQLITE driver!");
+        }
         emit showMessage("Ошибка", "Unable to load database.\nNeeds the SQLITE driver!", true);
     } else {
         initDB();
@@ -58,11 +70,11 @@ void CCBot::loadSettings()
     m_params->setFontNameForChat(cfg.value("FontNameForChat", "Noto Sans").toString());
     m_params->setFontPointSizeForChat(
                 cfg.value("FontPointSizeForChat", 12.0).toFloat());
-    m_params->setTextColorForChat(cfg.value("TextColorForChat", QColor("#bfc7d0")).value<QColor>());
+    m_params->setTextColorForChat(cfg.value("TextColorForChat", QColor(0xBF,0xC7,0xD0)).value<QColor>());
     cfg.endGroup();
 
     cfg.beginGroup("Server");
-    m_params->setMaxTimestampDiff(cfg.value("MaxTDiff", 5).toInt());
+    m_params->setMaxTimestampDiff(cfg.value("MaxTDiff", 5U).toUInt());
     m_params->setListenHost(cfg.value("Host", "127.0.0.1").toString());
     m_params->setListenPort(cfg.value("Port", 3000U).toUInt());
     cfg.endGroup();
@@ -143,6 +155,16 @@ void CCBot::initConnections()
     {
         if (state == QMediaPlayer::StoppedState) {
             emit completePlayFile();
+        }
+    });
+    connect(m_player,
+            QOverload<QMediaPlayer::Error>::of(&QMediaPlayer::error),
+            [=](QMediaPlayer::Error error) {
+        QString errStr = QString("Media Player error(%1): ").arg(error)
+                + m_player->errorString();
+        qDebug() << errStr;
+        if (m_params->flagLogging()) {
+            addToLog(errStr);
         }
     });
 }
@@ -493,23 +515,22 @@ int CCBot::insertNewMessagesInTable(QString streamId, QByteArray jsonData, bool 
             rowsFromServer.removeAt(i--);
             ++removeCount;
         } else if (rowsFromServer.at(i).type == 3) {
-            listType3Senders.append(rowsFromServer.at(i).sender);
+            const QString bannedUser = rowsFromServer.at(i).sender;
+            listType3Senders.append(bannedUser);
+            if (m_params->flagLogging()) {
+                addToLog(QString("Notification. "
+                    "Ban user - %1!").arg(bannedUser));
+            }
         }
     }
 
     // 2. Запрос сообщений с таблицы (100, либо все)
     if(!tableNotExist) {
         if (mergeOnly) {
-            state = selectMsgsFromTableDB(streamId, rowsFromDB, 100);
+            selectMsgsFromTableDB(streamId, rowsFromDB, 100);
         } else {
-            state = selectMsgsFromTableDB(streamId, rowsFromDB, -1);
+            selectMsgsFromTableDB(streamId, rowsFromDB, -1);
         }
-//    if (!state) {
-//        if (errInfo) {
-//            *errInfo = m_db.lastError().text();
-//        }
-//        return CCBotErrEnums::Sql;
-//    }
     }
 
     // 2.1. Fix. remove senders checks in listType3Senders
@@ -535,20 +556,15 @@ int CCBot::insertNewMessagesInTable(QString streamId, QByteArray jsonData, bool 
     }
 
     // 4. Вставка новых сообщений в БД
-    state = appendMsgIntoTableDB(streamId, rowsForInsert);
-//    if(!state) {
-//        if (errInfo) {
-//            *errInfo = m_db.lastError().text();
-//        }
-//        return CCBotErrEnums::Sql;
-//    }
+    appendMsgIntoTableDB(streamId, rowsForInsert);
 
     // 5. Обновление чата
-    if (mergeOnly) {
-        updateChat(rowsForInsert);
-    } else {
-        updateChat(rowsFromDB + rowsForInsert);
-    }
+    updateChat(rowsForInsert);
+//    if (mergeOnly) {
+//        updateChat(rowsForInsert);
+//    } else {
+//        updateChat(rowsFromDB + rowsForInsert);
+//    }
 
     // 6. Анализ сообщений на комманды -> выполнение комманд (добавление задач)
     if (mergeOnly) {

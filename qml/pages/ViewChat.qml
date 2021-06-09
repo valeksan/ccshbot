@@ -18,7 +18,7 @@ ViewChatForm {
     chatRepeater.font.family: properties.fontNameForChat
     chatRepeater.font.pointSize: properties.fontPointSizeForChat
     chatRepeater.color: properties.textColorForChat
-    chatRepeater.text: "" //properties.testStr
+    chatRepeater.text: ""
 
     function getExtTitle() {
         if (properties.currentStreamId.length > 0)
@@ -161,11 +161,7 @@ ViewChatForm {
         target: ccbot
         function onShowChatMessage(message) {
             page.chatAddText(message);
-            //console.log("_1")
         }
-//        function onBaseOpenned(state) {
-//            page.baseOpenned = state;
-//        }
     }
 
     Connections {
@@ -185,12 +181,4 @@ ViewChatForm {
             }
         }
     }
-
-    Component.onCompleted: {
-        //chatRepeater.text = properties.testStr;
-    }
-
-//    Component.onDestruction: {
-//        server.listen = false;
-//    }
 }

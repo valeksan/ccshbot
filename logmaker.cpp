@@ -14,6 +14,11 @@ void LogMaker::endLogSession()
     m_lastLogName.clear();
 }
 
+bool LogMaker::startLogSession()
+{
+    return makeLog("");
+}
+
 bool LogMaker::lastLogNameExists()
 {
     if (m_lastLogName.isEmpty()) {
@@ -110,7 +115,8 @@ bool LogMaker::makeLog(QString text)
         return false;
     }
     m_lastLogName = logName;
-    log.write(text.toUtf8());
+    if (!text.isEmpty())
+        log.write(text.toUtf8());
     log.close();
 
     return true;
@@ -141,6 +147,13 @@ bool LogMaker::appendLastLog(QString text)
     log.write(text.toUtf8());
     log.close();
     return true;
+}
+
+bool LogMaker::appendLastLogTimeline(QString text)
+{
+    QDateTime dt = QDateTime::currentDateTime();
+    QString timelineMsg = dt.toString(Qt::ISODateWithMs) + ": " + text + "\n";
+    return appendLastLog(timelineMsg);
 }
 
 bool LogMaker::openLastLogFile()
