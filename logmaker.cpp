@@ -1,5 +1,7 @@
 #include "logmaker.h"
 
+#include <QProcess>
+
 LogMaker::LogMaker(QObject *parent) : QObject(parent),
     m_lastLogName("")
 {}
@@ -11,7 +13,10 @@ QString LogMaker::lastLogName()
 
 void LogMaker::endLogSession()
 {
-    m_lastLogName.clear();
+    if (m_empty) {
+        QDir d{getAppLogDirPath()};
+        d.remove(m_lastLogName);
+    }
 }
 
 bool LogMaker::startLogSession()
@@ -96,9 +101,11 @@ bool LogMaker::appendLastLogFromHtml(QString text)
 
 bool LogMaker::makeLog(QString text)
 {
-    if (!logDirExist())
-        if (!makeLogDir())
+    if (!logDirExist()) {
+        if (!makeLogDir()) {
             return false;
+        }
+    }
 
     QDir d{getAppLogDirPath()};
 
@@ -115,8 +122,10 @@ bool LogMaker::makeLog(QString text)
         return false;
     }
     m_lastLogName = logName;
-    if (!text.isEmpty())
+    if (!text.isEmpty()) {
         log.write(text.toUtf8());
+        m_empty = false;
+    }
     log.close();
 
     return true;
@@ -144,7 +153,10 @@ bool LogMaker::appendLastLog(QString text)
     {
         return false;
     }
-    log.write(text.toUtf8());
+    if (!text.isEmpty()) {
+        log.write(text.toUtf8());
+        m_empty = false;
+    }
     log.close();
     return true;
 }
@@ -205,7 +217,7 @@ bool LogMaker::makeLogDir()
 {
     QDir d{getAppLogDirPath()};
 
-    return d.mkdir("logs");
+    return d.mkpath(d.absolutePath());
 }
 
 bool LogMaker::logDirExist()

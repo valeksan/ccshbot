@@ -14,6 +14,7 @@ class LogMaker : public QObject
     Q_OBJECT
 
     QString m_lastLogName;
+    bool m_empty = true;
 
 public:
     explicit LogMaker(QObject *parent = 0);

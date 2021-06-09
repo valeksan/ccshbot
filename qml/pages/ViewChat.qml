@@ -60,6 +60,10 @@ ViewChatForm {
         onClientConnected: {
             console.log('Client add!');
 
+            if (properties.flagLogging) {
+                ccbot.addToLog(`Notification. Client connected!`);
+            }
+
             if(connectCount > 0) {
                 webSocket.active = false;
             }
@@ -85,10 +89,16 @@ ViewChatForm {
                         console.log('Client disconnected!')
                         break;
                     case WebSocket.Error:
+                        if (properties.flagLogging) {
+                            ccbot.addToLog(`Error client socket connection. ${client.errorString()}.`);
+                        }
                         break;
                     }
                 } catch(e) {
                     console.warn("Err connection:", e);
+                    if (properties.flagLogging) {
+                        ccbot.addToLog(`Error socket client connect. ${e}`);
+                    }
                 }
             })
             client.onTextMessageReceived.connect(function(message) {
@@ -111,6 +121,9 @@ ViewChatForm {
                 } catch (err) {
                     console.warn(err);
                     window.changeStatus("Ошибка: " + err, 2000, "red");
+                    if (properties.flagLogging) {
+                        ccbot.addToLog(`Error socket client read message. ${err}`);
+                    }
                     return;
                 }
 
@@ -130,6 +143,9 @@ ViewChatForm {
                     console.log("LoadChat")
                     ccbot.closeDB();
                     ccbot.openDB(`${streamerName}.db`);
+                    if (properties.flagLogging) {
+                        ccbot.addToLog(`Notification. Load chat ${properties.currentStreamId} with streamer ${streamerName}.`);
+                    }
                 }
 
                 if (!baseOpenned) {
@@ -141,12 +157,15 @@ ViewChatForm {
                     case "chat_datagram":
                         let loading = properties.flagLoadingChat;
                         if (loading)
-                            console.log("MergeChat")
+                            console.log("Loading chat ...")
                         ccbot.action(Task.MergeChat, [streamId, messages, loading]);
                         break;
                     }
                 } else {
                     window.changeStatus("Ошибка обмена: временная метка пакета устарела", 1500, "red");
+                    if (properties.flagLogging) {
+                        ccbot.addToLog(`Error. Discrepancy of timestamp diff(${diff})!`);
+                    }
                 }
             });
             page.idlCheck();
@@ -154,6 +173,9 @@ ViewChatForm {
         onErrorStringChanged: {
             console.log('Server error', errorString)
             window.changeStatus("Server error: " + errorString, 2000, "red");
+            if (properties.flagLogging) {
+                ccbot.addToLog(`Error socket server. ${errorString}`);
+            }
         }
     }
 
@@ -173,8 +195,13 @@ ViewChatForm {
                     try {
                         page.client.active = false;
                         --connectCount;
+                        if (properties.flagLogging) {
+                            ccbot.addToLog(`Notification. Client disconnected!`);
+                        }
                     } catch(e) {
-
+                        if (properties.flagLogging) {
+                            ccbot.addToLog(`Error client socket. ${e}`);
+                        }
                     }
                 }
                 ccbot.closeDB();

@@ -31,6 +31,16 @@ Drawer {
         }
 
         ItemDelegate {
+            id: menuItemOpenLogDir
+            visible: Qt.application.arguments.includes('--log') || Qt.application.arguments.includes('-l')
+            text: qsTr("Логи")
+            width: parent.width
+            onClicked: {
+                ccbot.openLogDir();
+            }
+        }
+
+        ItemDelegate {
             text: qsTr("О программе")
             width: parent.width
             onClicked: {

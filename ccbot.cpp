@@ -33,6 +33,7 @@ void CCBot::start()
     if (m_params->flagLogging()) {
         if (!startLog()) {
             emit showMessage("Ошибка", "failed to create log file!", true);
+            m_params->setFlagLogging(false);
         }
     }
 
@@ -139,6 +140,10 @@ void CCBot::saveSettings()
     cfg.setValue("SampleRateHertz", m_params->speechkitSampleRateHertz());
     cfg.endGroup();
     //...
+
+    if (m_params->flagLogging()) {
+        m_log.endLogSession();
+    }
 }
 
 void CCBot::initTimers()
@@ -436,6 +441,11 @@ void CCBot::speechFile(QString filename)
         m_player->setVolume(100);
         m_player->play();
     });
+}
+
+void CCBot::openLogDir()
+{
+    m_log.openLogDir();
 }
 
 bool CCBot::openDB(QString name)

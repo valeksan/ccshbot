@@ -44,6 +44,7 @@ private slots:
     void speechFile(QString filename);
 
 public slots:
+    void openLogDir();
     bool openDB(QString name = "");
     bool isOpenedDB();
     void closeDB();
