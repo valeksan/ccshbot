@@ -165,7 +165,7 @@ void CCBot::initConnections()
     connect(m_player,
             QOverload<QMediaPlayer::Error>::of(&QMediaPlayer::error),
             [=](QMediaPlayer::Error error) {
-        QString errStr = QString("Media Player error(%1): ").arg(error)
+        const QString errStr = QString("Media Player error(%1): ").arg(error)
                 + m_player->errorString();
         qDebug() << errStr;
         if (m_params->flagLogging()) {
@@ -236,7 +236,8 @@ void CCBot::initTasks()
             connect(reply,
                     &QNetworkReply::finished,
                     this,
-                    [&]() {
+                    [&]()
+            {
                 QByteArray response = reply->readAll();
                 QJsonObject responseObj =
                         QJsonDocument::fromJson(response).object();
@@ -255,18 +256,40 @@ void CCBot::initTasks()
             connect(reply,
                     &QNetworkReply::errorOccurred,
                     this,
-                    [&](QNetworkReply::NetworkError error) {
+                    [&](QNetworkReply::NetworkError error)
+            {
                 errType = error;
-                //qDebug() << "err" << error;
+                if (m_params->flagLogging()) {
+                    const QString errStr = QString("Error network reply(%1) - ")
+                            .arg(errType) + reply->errorString()
+                            + "\nUrl_reply: " + reply->url().toString()
+                            + "\nRawHeaders_reply: " + reply->rawHeaderList().join(";")
+                            + "\nUrl_request: " + reply->request().url().toString()
+                            + "\nRawHeaders_request: " + reply->request().rawHeaderList().join(";");
+                    addToLog(errStr);
+                }
                 emit completeRequestGetIamToken();
             });
 
             connect(reply,
                     &QNetworkReply::sslErrors,
                     this,
-                    [&](const QList<QSslError> &errors) {
+                    [&](const QList<QSslError> &errors)
+            {
                 errorsSsl = errors;
-                //qDebug() << "TEST_2";
+                if (m_params->flagLogging()) {
+                    QString errorsText = "";
+                    for (const auto &err: errors) {
+                        errorsText.append(err.errorString()) + "; ";
+                    }
+                    QString errStr = QString("Error network reply ssl.")
+                            + "\nErrors: " + errorsText
+                            + "\nUrl_reply: " + reply->url().toString()
+                            + "\nRawHeaders_reply: " + reply->rawHeaderList().join(";")
+                            + "\nUrl_request: " + reply->request().url().toString()
+                            + "\nRawHeaders_request: " + reply->request().rawHeaderList().join(";");
+                    addToLog(errStr);
+                }
                 emit completeRequestGetIamToken();
             });
 
@@ -275,14 +298,14 @@ void CCBot::initTasks()
                                        constTimeoutGetIamToken + 500);
             reply->disconnect();
 
-            if(timeout) {
+            if (timeout) {
                 result = TaskResult(CCBotErrEnums::NetworkRequest,
                                     "Timeout request, not get iam-token!");
                 delete manager;
                 return result;
             }
 
-            if(errType != QNetworkReply::NoError || !errorsSsl.isEmpty()) {
+            if (errType != QNetworkReply::NoError || !errorsSsl.isEmpty()) {
                 QString mainInfo = QString("Error request (")
                         + QString::number(static_cast<int>(errType))
                         + "), ";
@@ -315,22 +338,28 @@ void CCBot::initTasks()
             // * add data
             postDataEncoded.addQueryItem("text", text);
 
-            postDataEncoded.addQueryItem("folderId", m_params->speechkitFolderId());
+            postDataEncoded.addQueryItem("folderId",
+                                         m_params->speechkitFolderId());
 
             if (!m_params->speechkitLang().isEmpty()) {
-                postDataEncoded.addQueryItem("lang", m_params->speechkitLang());
+                postDataEncoded.addQueryItem("lang",
+                                             m_params->speechkitLang());
             }
             if (!m_params->speechkitVoice().isEmpty()) {
-                postDataEncoded.addQueryItem("voice", m_params->speechkitVoice());
+                postDataEncoded.addQueryItem("voice",
+                                             m_params->speechkitVoice());
             }
             if (!m_params->speechkitEmotion().isEmpty()) {
-                postDataEncoded.addQueryItem("emotion", m_params->speechkitEmotion());
+                postDataEncoded.addQueryItem("emotion",
+                                             m_params->speechkitEmotion());
             }
             if (!m_params->speechkitSpeed().isEmpty()) {
-                postDataEncoded.addQueryItem("speed", m_params->speechkitSpeed());
+                postDataEncoded.addQueryItem("speed",
+                                             m_params->speechkitSpeed());
             }
             if (!m_params->speechkitFormat().isEmpty()) {
-                postDataEncoded.addQueryItem("format", m_params->speechkitFormat());
+                postDataEncoded.addQueryItem("format",
+                                             m_params->speechkitFormat());
             }
             if (!m_params->speechkitSampleRateHertz().isEmpty()) {
                 postDataEncoded.addQueryItem("sampleRateHertz",
@@ -341,13 +370,21 @@ void CCBot::initTasks()
             // * делаем запрос
             manager->setTransferTimeout(constTimeoutGetAudio);
             requestGetAudio.setUrl(url);
-            QNetworkReply *reply = manager->post(requestGetAudio, postDataEncoded.toString(QUrl::FullyEncoded).toUtf8());
+            QNetworkReply *reply = manager->post(requestGetAudio,
+                                                 postDataEncoded
+                                                 .toString(QUrl::FullyEncoded)
+                                                 .toUtf8());
             QNetworkReply::NetworkError errType = QNetworkReply::NoError;
             QList<QSslError> errorsSsl;
             connect(reply, &QNetworkReply::finished, this, [&reply,this]() {
                 QByteArray response = reply->readAll();
                 if (QJsonDocument::fromJson(response).isObject()) {
                     //qDebug() << "no_audio: " << response;
+                    if (m_params->flagLogging()) {
+                        const QString errStr = QString("Error speechkit service.")
+                                + "\nResponse: " + QString::fromUtf8(response);
+                        addToLog(errStr);
+                    }
                 } else {
                     //qDebug() << "with audio";
                     // сохраняем файл на диске
@@ -367,17 +404,39 @@ void CCBot::initTasks()
             connect(reply,
                     &QNetworkReply::errorOccurred,
                     this,
-                    [&](QNetworkReply::NetworkError error) {
+                    [&](QNetworkReply::NetworkError error)
+            {
                 errType = error;
-                //qDebug() << "err" << error;
+                if (m_params->flagLogging()) {
+                    const QString errStr = QString("Error network reply(%1) - ")
+                            .arg(errType) + reply->errorString()
+                            + "\nUrl_reply: " + reply->url().toString()
+                            + "\nRawHeaders_reply: " + reply->rawHeaderList().join(";")
+                            + "\nUrl_request: " + reply->request().url().toString()
+                            + "\nRawHeaders_request: " + reply->request().rawHeaderList().join(";");
+                    addToLog(errStr);
+                }
                 emit completeRequestGetAudio();
             });
             connect(reply,
                     &QNetworkReply::sslErrors,
                     this,
-                    [&](const QList<QSslError> &errors) {
+                    [&](const QList<QSslError> &errors)
+            {
                 errorsSsl = errors;
-                //qDebug() << "TEST_2";
+                if (m_params->flagLogging()) {
+                    QString errorsText = "";
+                    for (const auto &err: errors) {
+                        errorsText.append(err.errorString()) + "; ";
+                    }
+                    QString errStr = QString("Error network reply ssl.")
+                            + "\nErrors: " + errorsText
+                            + "\nUrl_reply: " + reply->url().toString()
+                            + "\nRawHeaders_reply: " + reply->rawHeaderList().join(";")
+                            + "\nUrl_request: " + reply->request().url().toString()
+                            + "\nRawHeaders_request: " + reply->request().rawHeaderList().join(";");
+                    addToLog(errStr);
+                }
                 emit completeRequestGetAudio();
             });
 
@@ -386,14 +445,14 @@ void CCBot::initTasks()
                                        constTimeoutGetAudio + 500);
             reply->disconnect();
 
-            if(timeout) {
+            if (timeout) {
                 result =
                         TaskResult(CCBotErrEnums::NetworkRequest,
                                    "Timeout request, not get audio!");
                 delete manager;
                 return result;
             }
-            if(errType != QNetworkReply::NoError ||
+            if (errType != QNetworkReply::NoError ||
                     !errorsSsl.isEmpty())
             {
                 QString mainInfo =
