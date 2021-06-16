@@ -6,7 +6,6 @@ import QtQuick.Layouts 1.15
 import "../controls"
 
 Page {
-    id: page
     property alias cfgSocketHost: cfgSocketHost
     property alias cfgSocketPort: cfgSocketPort
     property alias cfgSocketTimestampDiff: cfgSocketTimestampDiff

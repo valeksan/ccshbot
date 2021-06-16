@@ -9,6 +9,19 @@ Drawer {
         anchors.fill: parent
 
         ItemDelegate {
+            text: qsTr("История")
+            width: parent.width
+            onClicked: {
+                stackView.push("qrc:///qml/pages/HistoryPage.qml");
+                drawer.close();
+            }
+        }
+
+        MenuSeparator {
+            width: parent.width
+        }
+
+        ItemDelegate {
             text: qsTr("Вид")
             width: parent.width
             onClicked: {

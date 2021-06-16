@@ -63,6 +63,8 @@ DISTFILES += \
     qml/dialogs/About.qml \
     qml/dialogs/Message.qml \
     qml/main.qml \
+    qml/pages/HistoryPage.qml \
+    qml/pages/HistoryPageForm.ui.qml \
     qml/pages/SettingsPage.qml \
     qml/pages/SettingsPageForm.ui.qml \
     qml/pages/SettingsViewPage.qml \

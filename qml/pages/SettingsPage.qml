@@ -2,6 +2,7 @@ import QtQuick 2.15
 
 import ccbot.tasks 1.0
 
+
 SettingsPageForm {
     id: page
 
@@ -227,6 +228,7 @@ SettingsPageForm {
     }
 
     testMsgTTS.text: "Напишите тут любое сообщение%"
+    testMsgTTS.selectByMouse: true
     btTestTextMsgTTS.enabled: testMsgTTS.text.length > 0
     btTestTextMsgTTS.onClicked: {
         ccbot.action(Task.VoiceLoad, [testMsgTTS.text]);

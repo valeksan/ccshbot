@@ -17,5 +17,7 @@
         <file>qml/pages/SettingsViewPage.qml</file>
         <file>qml/pages/SettingsViewPageForm.ui.qml</file>
         <file>app.svg</file>
+        <file>qml/pages/HistoryPage.qml</file>
+        <file>qml/pages/HistoryPageForm.ui.qml</file>
     </qresource>
 </RCC>

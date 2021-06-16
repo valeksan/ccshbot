@@ -179,6 +179,34 @@ ViewChatForm {
         }
     }
 
+    btVoiceOff.onToggled: {
+        properties.flagAnalyseVoiceAllMsgType0 = false;
+        properties.flagAnalyseVoiceAllMsgType2 = false;
+    }
+
+    btVoiceType2.onToggled: {
+        properties.flagAnalyseVoiceAllMsgType0 = false;
+        properties.flagAnalyseVoiceAllMsgType2 = true;
+    }
+
+    btVoiceAll.onToggled: {
+        properties.flagAnalyseVoiceAllMsgType0 = true;
+        properties.flagAnalyseVoiceAllMsgType2 = true;
+    }
+
+    toolButtonStartServer.text: properties.listenClients ? qsTr("Отключиться") : qsTr("Читать чат") //"<b>⏹</b>" : "<b>⏵</b>"
+    toolButtonStartServer.onClicked: {
+        if (!properties.listenClients) {
+            window.changeStatus("Запуск сервера ...",
+                                1500, "yellow")
+            properties.flagLoadingChat = true
+        } else {
+            window.changeStatus("Остановка сервера ...",
+                                1500, "yellow")
+        }
+        properties.listenClients = !properties.listenClients
+    }
+
     Connections {
         target: ccbot
         function onShowChatMessage(message) {

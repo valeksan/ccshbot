@@ -379,14 +379,12 @@ void CCBot::initTasks()
             connect(reply, &QNetworkReply::finished, this, [&reply,this]() {
                 QByteArray response = reply->readAll();
                 if (QJsonDocument::fromJson(response).isObject()) {
-                    //qDebug() << "no_audio: " << response;
                     if (m_params->flagLogging()) {
                         const QString errStr = QString("Error speechkit service.")
                                 + "\nResponse: " + QString::fromUtf8(response);
                         addToLog(errStr);
                     }
                 } else {
-                    //qDebug() << "with audio";
                     // сохраняем файл на диске
                     // и передаем новой задачи имя файла
                     QTemporaryFile tmpfile;
@@ -628,12 +626,12 @@ int CCBot::insertNewMessagesInTable(QString streamId, QByteArray jsonData, bool 
     appendMsgIntoTableDB(streamId, rowsForInsert);
 
     // 5. Обновление чата
-    updateChat(rowsForInsert);
-//    if (mergeOnly) {
-//        updateChat(rowsForInsert);
-//    } else {
-//        updateChat(rowsFromDB + rowsForInsert);
-//    }
+    //updateChat(rowsForInsert);
+    if (mergeOnly) {
+        updateChat(rowsForInsert);
+    } else {
+        updateChat(rowsFromDB + rowsForInsert);
+    }
 
     // 6. Анализ сообщений на комманды -> выполнение комманд (добавление задач)
     if (mergeOnly) {
