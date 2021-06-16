@@ -623,7 +623,7 @@ bool CCBotPrivate::equalMessages(const MessageData &msg1,
 
 void CCBotPrivate::updateChat(const QList<MessageData> &msgsl,
                               bool withTime,
-                              QString timeFormat)
+                              QString timeFormat, bool history)
 {
     for (int i = 0; i < msgsl.size(); i++) {
         MessageData msg = msgsl.value(i);
@@ -668,7 +668,10 @@ void CCBotPrivate::updateChat(const QList<MessageData> &msgsl,
                     );
         QString msgStr = fragment0 + fmtFragment1 + fmtFragment2;
 
-        emit showChatMessage(msgStr);
+        if (!history)
+            emit showChatMessage(msgStr);
+        else
+            emit showHistoryMessage(msgStr);
     }
 }
 
@@ -731,6 +734,17 @@ void CCBotPrivate::addToLog(QString text, bool isTimelined)
         return;
     }
     m_log.appendLastLog(text);
+}
+
+const QString CCBotPrivate::getAppDataDirPath()
+{
+    QString path = QStandardPaths::writableLocation(
+                QStandardPaths::AppDataLocation);
+    if (path.isEmpty()) {
+        qDebug() << "Cannot determine settings storage location";
+        path = QDir::homePath() + QDir::separator() + ".ccbot";
+    }
+    return path;
 }
 
 bool CCBotPrivate::startLog()

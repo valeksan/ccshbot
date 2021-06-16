@@ -51,7 +51,7 @@ protected:
     mutable QMutex m_mutex;
 
     bool startLog();
-    void updateChat(const QList<MessageData> &msgsl, bool withTime = true, QString timeFormat = "hh:mm");
+    void updateChat(const QList<MessageData> &msgsl, bool withTime = true, QString timeFormat = "hh:mm", bool history = false);
     void analyseNewMessages(const QList<MessageData> &msgsl);
 
     bool checkAutoVoiceMessage(const MessageData &msg, QString &text);
@@ -77,6 +77,7 @@ public:
 
 public slots:
     void addToLog(QString text, bool isTimelined = true);
+    const QString getAppDataDirPath();
 
     virtual void action(int id, QVariantList args = QVariantList()) {
         Q_UNUSED(id)
@@ -103,6 +104,7 @@ public slots:
 
 signals:
     void showChatMessage(QString message);
+    void showHistoryMessage(QString message);
 };
 
 Q_DECLARE_METATYPE(TaskResult)

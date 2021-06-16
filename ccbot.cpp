@@ -49,6 +49,9 @@ void CCBot::start()
     } else {
         initDB();
     }
+
+//    qDebug() << getModelAvaibleHistoryNiknames().join(",");
+//    qDebug() << getModelAvaibleHistoryStreamsByNikname("TANIST").join(",");
 }
 
 void CCBot::initDB()
@@ -536,6 +539,98 @@ bool CCBot::openDB(QString name)
     }
 
     return true;
+}
+
+QStringList CCBot::getModelAvaibleHistoryNiknames()
+{
+    QDir dirAppData{getAppDataDirPath()};
+    auto listNiknamesWithSuffix = dirAppData.entryInfoList({"*.db"}, QDir::Files, QDir::Name);
+    QStringList result{""};
+
+    for (const auto &name : listNiknamesWithSuffix) {
+        result.append(name.completeBaseName());
+    }
+
+    return result;
+}
+
+QStringList CCBot::getModelAvaibleHistoryStreamsByNikname(QString nikname)
+{
+    QStringList tmpList;
+    QStringList result{""};
+
+    QString baseName = nikname + ".db";
+    QString prevOpennedBase = isOpenedDB() ? m_db.databaseName() : "";
+
+    m_mutex.lock();
+
+    if (!prevOpennedBase.isEmpty()) {
+        m_db.close();
+    }
+
+    bool state = openDB(baseName);
+
+    if (m_params->flagLogging() && !state) {
+        QString info = QString("Error open history base (%1). Can't open %2 database!")
+                .arg(m_db.lastError().nativeErrorCode())
+                .arg(baseName);
+        addToLog(info);
+    }
+
+    if (state) {
+        tmpList.append(m_db.tables().filter("t_"));
+        m_db.close();
+    }
+
+    if (!prevOpennedBase.isEmpty()) {
+        openDB(prevOpennedBase);
+    }
+
+    m_mutex.unlock();
+
+    for (auto& id : tmpList) {
+        result.append(id.remove("t_"));
+    }
+
+    result.sort();
+
+    return result;
+}
+
+void CCBot::displayChatHistory(QString nikname, QString streamId)
+{
+    QString baseName = nikname + ".db";
+    QString prevOpennedBase = isOpenedDB() ? m_db.databaseName() : "";
+
+    m_mutex.lock();
+
+    if (!prevOpennedBase.isEmpty()) {
+        m_db.close();
+    }
+
+    bool state = openDB(baseName);
+
+    if (m_params->flagLogging() && !state) {
+        QString info = QString("Error open history base (%1). Can't open %2 database!")
+                .arg(m_db.lastError().nativeErrorCode())
+                .arg(baseName);
+        addToLog(info);
+    }
+
+    if (state) {
+        QList<MessageData> messages{};
+        state = selectMsgsFromTableDB(streamId, messages);
+        if (state) {
+            updateChat(messages, true, "hh:mm", true);
+        }
+        m_db.close();
+    }
+
+    if (!prevOpennedBase.isEmpty()) {
+        openDB(prevOpennedBase);
+    }
+
+    m_mutex.unlock();
 }
 
 bool CCBot::isOpenedDB()

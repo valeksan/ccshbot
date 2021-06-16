@@ -46,6 +46,9 @@ private slots:
 public slots:
     void openLogDir();
     bool openDB(QString name = "");
+    QStringList getModelAvaibleHistoryNiknames();
+    QStringList getModelAvaibleHistoryStreamsByNikname(QString nikname);
+    void displayChatHistory(QString nikname, QString streamId);
     bool isOpenedDB();
     void closeDB();
     void action(int type, QVariantList args = QVariantList()) override;
