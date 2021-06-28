@@ -14,6 +14,8 @@ let cfgPort = DEF_PORT;
 
 let server = null;
 
+let debug = true;
+
 //debugSetCfg();
 initCfg();
 
@@ -131,6 +133,8 @@ async function doRepeatGetDataCC() {
             const chatData = getChatContentCC();
             server.send(JSON.stringify(chatData));
         } else {
+            if (debug) 
+                getChatContentCC();
             await connect(cfgHost, cfgPort)
             .then(result => {
                 console.log('__connection_ok', result);
