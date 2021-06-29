@@ -170,6 +170,7 @@ ViewChatForm {
             });
             page.idlCheck();
         }
+
         onErrorStringChanged: {
             console.log('Server error', errorString)
             window.changeStatus("Server error: " + errorString, 2000, "red");
@@ -194,7 +195,7 @@ ViewChatForm {
         properties.flagAnalyseVoiceAllMsgType2 = true;
     }
 
-    toolButtonStartServer.text: properties.listenClients ? qsTr("Отключиться") : qsTr("Читать чат") //"<b>⏹</b>" : "<b>⏵</b>"
+    toolButtonStartServer.text: properties.listenClients ? qsTr("Отключиться") : qsTr("Читать чат")
     toolButtonStartServer.onClicked: {
         if (!properties.listenClients) {
             window.changeStatus("Запуск сервера ...",
@@ -205,6 +206,19 @@ ViewChatForm {
                                 1500, "yellow")
         }
         properties.listenClients = !properties.listenClients
+    }
+
+    btSendMsg.enabled: client !== null
+    btSendMsg.onClicked: {
+        client.sendTextMessage(inputMsg.text);
+        inputMsg.clear();
+    }
+
+    inputMsg.onAccepted: {
+        if(client !== null) {
+            client.sendTextMessage(inputMsg.text);
+            inputMsg.clear();
+        }
     }
 
     Connections {
@@ -231,6 +245,7 @@ ViewChatForm {
                             ccbot.addToLog(`Error client socket. ${e}`);
                         }
                     }
+                    page.client = null;
                 }
                 ccbot.closeDB();
             }

@@ -10,6 +10,8 @@ Page {
     property alias btVoiceType2: btVoiceType2
     property alias btVoiceAll: btVoiceAll
     property alias toolButtonStartServer: toolButtonStartServer
+    property alias inputMsg: inputMsg
+    property alias btSendMsg: btSendMsg
     antialiasing: true
 
     ToolBar {
@@ -75,6 +77,7 @@ Page {
             id: flickChat
             clip: true
             anchors.fill: parent
+            anchors.bottomMargin: 64
             contentWidth: parent.width
             contentHeight: chatRepeater.contentHeight
             boundsBehavior: Flickable.StopAtBounds
@@ -94,6 +97,39 @@ Page {
                 anchors.right: flickChat.right
                 height: flickChat.height
                 width: 30
+            }
+        }
+        TextField {
+            id: inputMsg
+            anchors {
+                left: parent.left
+                right: parent.right
+                top: flickChat.bottom
+                bottom: parent.bottom
+                rightMargin: 120
+                topMargin: 7
+                bottomMargin: 7
+                leftMargin: 10
+            }
+            background: Rectangle {
+                border.color: "gray"
+                radius: 5
+                color: "#121217"
+            }
+            leftInset: -10
+        }
+        Button {
+            id: btSendMsg
+            text: qsTr("Отправить")
+            anchors {
+                left: inputMsg.right
+                right: parent.right
+                top: flickChat.bottom
+                bottom: parent.bottom
+                rightMargin: 10
+                topMargin: 2
+                bottomMargin: 2
+                leftMargin: 10
             }
         }
     }

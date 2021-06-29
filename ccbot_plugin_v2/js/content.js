@@ -55,6 +55,10 @@ async function connect(host, port) {
             ledConnect.style = "color:red";
             ledConnect.innerHTML = "Offline";
         };
+
+        server.onmessage = function(event) {
+            console.log("__send_msg",event.data)
+        }
     });
 }
 
