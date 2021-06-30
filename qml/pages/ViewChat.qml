@@ -208,15 +208,19 @@ ViewChatForm {
         properties.listenClients = !properties.listenClients
     }
 
-    btSendMsg.enabled: client !== null
+    btSendMsg.enabled: client !== null && inputMsg.text.length > 0
     btSendMsg.onClicked: {
-        client.sendTextMessage(inputMsg.text);
+        let sendObj = { "type":"message", "text":inputMsg.text };
+        client.sendTextMessage(JSON.stringify(sendObj));
         inputMsg.clear();
     }
 
     inputMsg.onAccepted: {
-        if(client !== null) {
-            client.sendTextMessage(inputMsg.text);
+        if (inputMsg.text.length === 0)
+            return;
+        if (client !== null) {
+            let sendObj = { "type":"message", "text":inputMsg.text };
+            client.sendTextMessage(JSON.stringify(sendObj));
             inputMsg.clear();
         }
     }

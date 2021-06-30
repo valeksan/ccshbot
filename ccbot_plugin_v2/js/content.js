@@ -33,6 +33,25 @@ function convertNikColorFormat(text) {
     return `#${r_hex}${g_hex}${b_hex}`;
 }
 
+function sendMessageToChat(text) {
+    const inputAreaDom = document.querySelector("#app > div.viewport > div.content > div > div > div > div.stream__layout__left.stream__layout__left--no-padding > div.stream__layout__chat.stream__layout__chat--rtl > div > form > div > div > input");
+    const buttonSendDom = document.querySelector("#app > div.viewport > div.content > div > div > div > div.stream__layout__left.stream__layout__left--no-padding > div.stream__layout__chat.stream__layout__chat--rtl > div > form > button");
+    inputAreaDom.value = text;
+    buttonSendDom.click();
+}
+
+function processingMessagesFromServer(message) {
+    try {
+        switch(message.type) {
+        case "message":
+            sendMessageToChat(message.text);
+            break;
+        }
+    } catch(e) {
+        console.log(e);
+    }
+}
+
 async function connect(host, port) {
     return new Promise(function(resolve, reject) {
 
@@ -57,7 +76,9 @@ async function connect(host, port) {
         };
 
         server.onmessage = function(event) {
-            console.log("__send_msg",event.data)
+            const message = JSON.parse(event.data);
+            console.log("__send_msg", message);
+            processingMessagesFromServer(message);
         }
     });
 }
