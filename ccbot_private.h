@@ -5,6 +5,7 @@
 #include <QMutex>
 #include <QSqlDatabase>
 #include <QMediaPlayer>
+#include <QJsonDocument>
 
 #include "core.h"
 #include "properties.h"
@@ -47,6 +48,7 @@ protected:
     QSqlDatabase m_db;
     QMediaPlayer *m_player;
     LogMaker m_log;
+    QJsonDocument m_dataToReplaceTextForVoice;
 
     mutable QMutex m_mutex;
 
@@ -61,7 +63,6 @@ protected:
     void mergeMessages(QList<MessageData> oldMsgList, QList<MessageData> newMsgList, QList<MessageData> &mergedMsgList);
     bool equalMessages(const MessageData& msg1, const MessageData& msg2);
     QString generateErrMsg(int type, int errCode, QString info = "");
-    void generateEmotionText(QString &text);
 
     // data unpacking methods
     bool readMessagesFromJsonStr(QByteArray jsonData, QList<MessageData> &msgList, QString *errInfo = nullptr);
@@ -77,6 +78,7 @@ public:
 
 public slots:
     void addToLog(QString text, bool isTimelined = true);
+    void addWordPairToReplaceForVoice(QString keyword, QString word);
     const QString getAppDataDirPath();
 
     virtual void action(int id, QVariantList args = QVariantList()) {

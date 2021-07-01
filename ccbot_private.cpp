@@ -30,292 +30,6 @@ QString CCBotPrivate::generateErrMsg(int type, int errCode, QString info)
     return QString("Неизвестная ошибка, нет описания.");
 }
 
-void CCBotPrivate::generateEmotionText(QString &text)
-{
-    // init emotion power counters
-    qint32 funnyPower = 0;       // (-) грусть .. радость (+)
-    qint32 godnessPower = 0;     // (-) злоба .. доброта (+)
-    qint32 likingPower = 0;      // (-) отвращение .. симпатия (+)
-    qint32 sicklinessPower = 0;  // болезненный (+)
-    qint32 nicelyPower = 0;      // (-) неприятно .. приятно (+)
-    qint32 sleepyPower = 0;      // сонный (+)
-    qint32 fearPower = 0;        // страх (+)
-    qint32 amazePower = 0;       // удивление (+)
-    qint32 laughPower = 0;       // ржач (+)
-    qint32 pokePower = 0;        // прикалываться, наезд, задираться (+)
-
-    // set counters
-    std::wstring studiedText = text.toStdWString();
-    for (size_t i = 0; i < studiedText.length(); i++) {
-        wchar_t symbol = studiedText.at(i);
-        switch (symbol) {
-        case 0x1F62C: // 😬 - grimacing face
-            godnessPower -= 1;
-            funnyPower += 1;
-            laughPower += 1;
-            break;
-        case 0x1F638: // 😸 - grinning cat face with smiling eyes
-        case 0x1F601: // 😁 - grinning face with smiling eyes
-        case 0x1F600: // 😀 - grinning face
-            funnyPower += 1;
-            laughPower += 1;
-            break;
-        case 0x1F639: // 😹 - cat face with tears of joy
-        case 0x1F602: // 😂 - face with tears of joy
-            laughPower += 2;
-            break;
-        case 0x1F63A: // 😺 - smiling cat face with open mouth
-        case 0x1F603: // 😃 - smiling face with open mouth
-            funnyPower += 1;
-            break;
-        case 0x1F604: // 😄 - smiling face with open mouth and smiling eyes
-            funnyPower += 2;
-            break;
-        case 0x1F605: // 😅 - smiling face with open mouth and cold sweat
-            funnyPower += 1;
-            amazePower += 1;
-            fearPower += 1;
-            break;
-        case 0x1F606: // 😆 - smiling face with open mouth and tightly-closed eyes
-            funnyPower += 3;
-            laughPower += 2;
-            break;
-        case 0x1F609: // 😉 - winking face
-            likingPower += 1;
-            break;
-        case 0x1F60A: // 😊 - smiling face with smiling eyes
-            funnyPower += 4;
-            nicelyPower += 2;
-            break;
-        case 0x1F60B: // 😋 - face savouring delicious food
-            funnyPower += 2;
-            nicelyPower += 1;
-            break;
-        case 0x1F60C: // 😌 - relieved face
-            fearPower = 0;
-            break;
-        case 0x1F63B: // 😻 - smiling cat face with heart-shaped eyes
-        case 0x1F60D: // 😍 - smiling face with heart-shaped eyes
-            likingPower += 4;
-            break;
-        case 0x1F63C: // 😼 - cat face with wry smile
-        case 0x1F60F: // 😏 - smirking face
-            funnyPower += 1;
-            godnessPower -= 1;
-            break;
-        case 0x1F612: // 😒 - unamused face
-            funnyPower -= 1;
-            break;
-        case 0x1F613: // 😓 - face with cold sweat
-            funnyPower -= 2;
-            fearPower += 1;
-            break;
-        case 0x1F614: // 😔 - pensive face
-        case 0x1F61F: // 😟 - worried face
-            funnyPower -= 1;
-            break;
-        case 0x1F626: // 😦 - frowning face with open mouth
-            funnyPower -= 1;
-            amazePower += 1;
-            break;
-        case 0x1F627: // 😧 - anguished face
-            funnyPower -= 2;
-            amazePower += 2;
-            break;
-        case 0x1F616: // 😖 - confounded face
-            funnyPower -= 2;
-            break;
-        case 0x1F618: // 😘 - face throwing a kiss
-            likingPower += 3;
-            break;
-        case 0x1F63D: // 😽 - kissing cat face with closed eyes
-        case 0x1F61A: // 😚 - kissing face with closed eyes
-        case 0x1F617: // 😗 - kissing face
-        case 0x1F619: // 😙 - kissing face with smiling eyes
-            likingPower += 2;
-            break;
-        case 0x1F61C: // 😜 - face with stuck-out tongue and winking eye
-        case 0x1F61B: // 😛 - face with stuck-out tongue
-            likingPower += 1;
-            pokePower += 2;
-            break;
-        case 0x1F61D: // 😝 - face with stuck-out tongue and tightly-closed eyes
-            likingPower += 1;
-            pokePower += 3;
-            break;
-        case 0x1F61E: // 😞 - disappointed face
-            funnyPower -= 3;
-            break;
-        case 0x1F620: // 😠 - angry face
-            godnessPower -= 2;
-            funnyPower -= 2;
-            break;
-        case 0x1F63E: // 😾 - pouting cat face
-        case 0x1F621: // 😡 - pouting face
-            funnyPower -= 2;
-            nicelyPower -= 2;
-            break;
-        case 0x1F63F: // 😿 - crying cat face
-        case 0x1F622: // 😢 - crying face
-            funnyPower -= 2;
-            nicelyPower -= 2;
-            break;
-        case 0x1F623: // 😣 - persevering face
-            funnyPower -= 1;
-            nicelyPower -= 1;
-            break;
-        case 0x1F624: // 😤 - face with look of triumph
-            funnyPower += 1;
-            pokePower += 1;
-            godnessPower -= 1;
-            break;
-        case 0x1F625: // 😥 - disappointed but relieved face
-            funnyPower -= 1;
-            nicelyPower -= 2;
-            break;
-        case 0x1F628: // 😨 - fearful face
-            fearPower += 2;
-            break;
-        case 0x1F640: // 🙀 - weary cat face
-        case 0x1F629: // 😩 - weary face
-        case 0x1F62B: // 😪 - tired face
-            funnyPower -= 1;
-            sleepyPower += 1;
-            break;
-        case 0x1F611: // 😑 - expressionless face
-            sleepyPower += 1;
-            break;
-        case 0x1F62A: // 😪 - sleepy face
-        case 0x1F4A4: // 💤 - sleeping symbol
-        case 0x1F634: // 😴 - sleeping face
-            sleepyPower += 2;
-            break;
-        case 0x1F62D: // 😭 - loudly crying face
-            funnyPower -= 4;
-            laughPower -= 4;
-            break;
-        case 0x1F630: // 😰 - face with open mouth and cold sweat
-            fearPower += 3;
-            break;
-        case 0x1F631: // 😰 - face screaming in fear
-            fearPower += 4;
-            break;
-        case 0x1F632: // 😲 - astonished face
-            amazePower += 2;
-            break;
-        case 0x1F633: // 😳 - flushed face
-            amazePower += 2;
-            nicelyPower += 2;
-            break;
-        case 0x1F635: // 😵 - dizzy face
-            amazePower += 4;
-            sicklinessPower += 1;
-            break;
-        case 0x1F637: // 😷 - face with medical mask
-            sicklinessPower += 2;
-            break;
-        case 0x1F912: // 🤒 - face with thermometer
-            sicklinessPower += 3;
-            break;
-        case 0x1F915: // 🤕 - face with head-bandage
-            sicklinessPower += 4;
-            break;
-        case 0x1F647: // 🙇 - person bowing deeply
-            pokePower -= 2;
-            likingPower += 4;
-            break;
-        case 0x1F64F: // 🙏 - person with folded hands
-            godnessPower += 2;
-            break;
-        case 0x263A: // ☺ - white smiling face
-            funnyPower += 1;
-            nicelyPower += 2;
-            break;
-        case 0x1F479: // 👹 - japanese ogre
-            godnessPower -= 4;
-            funnyPower += 1;
-            break;
-        case 0x1F47A: // 👺 - japanese goblin
-            godnessPower -= 3;
-            funnyPower += 2;
-            break;
-        case 0x1F47B: // 👻 - ghost
-            godnessPower -= 1;
-            funnyPower += 1;
-            pokePower += 1;
-            break;
-        case 0x1F47C: // 👼 - baby angel
-            godnessPower += 2;
-            funnyPower += 1;
-            break;
-        case 0x1F47F: // 👿 - imp
-            godnessPower -= 2;
-            funnyPower -= 2;
-            break;
-        case 0x1F480: // 💀 - skull
-        case 0x2620:
-            sicklinessPower += 100;
-            break;
-        case 0x1F48B: // 💋 - kiss mark
-        case 0x1F48F: // 💏 - kiss
-            likingPower += 5;
-            break;
-        case 0x1F48C: // 💌 - love letter
-        case 0x1F491: // 💑 - couple with heart
-        case 0x1F493: // 💓 - beating heart
-        case 0x1F495: // 💕 - two hearts
-        case 0x1F496: // 💖 - sparkling heart
-        case 0x1F497: // 💗 - growing heart
-        case 0x1F498: // 💘 - heart with arrow
-        case 0x1F49D: // 💝 - heart with ribbon
-        case 0x1F49E: // 💞 - revolving hearts
-            likingPower += 10;
-            break;
-        case 0x1F490: // 💐 - bouquet
-            likingPower += 2;
-            break;
-        case 0x1F494: // 💔 - broken heart
-            likingPower -= 10;
-            funnyPower -= 50;
-            break;
-        case 0x1F4A2: // 💢 - anger symbol
-            godnessPower -= 2;
-            nicelyPower -= 2;
-            break;
-        case 0x1F607: // 😇 - smiling face with halo
-            godnessPower += 2;
-            break;
-        case 0x1F608: // 😈 - smiling face with horns
-            godnessPower -= 2;
-            laughPower += 2;
-            break;
-        case 0x1F615: // 😕 - confused face
-            nicelyPower -= 1;
-            funnyPower -= 1;
-            break;
-        case 0x1F62E: // 😮 - face with open mouth
-        case 0x1F62F: // 😯 - hushed face
-        case 0x1F636: // 😶 - face without mouth
-            amazePower += 1;
-            break;
-        case 0x1F922: // 🤢 - nauseated face
-            likingPower -= 3;
-            break;
-        case 0x1F92E: // 🤮 - face vomiting
-            likingPower -= 4;
-            break;
-        case 0x1F973: // 🥳	- partying face
-            funnyPower += 4;
-            break;
-        case 0x1F4A9: // 💩 - pile of poo
-            pokePower += 10;
-            break;
-        default:
-            break;
-        }
-    }
-}
-
 bool CCBotPrivate::readMessagesFromJsonStr(QByteArray jsonData,
                                     QList<MessageData> &msgList,
                                     QString *errInfo)
@@ -734,6 +448,40 @@ void CCBotPrivate::addToLog(QString text, bool isTimelined)
         return;
     }
     m_log.appendLastLog(text);
+}
+
+void CCBotPrivate::addWordPairToReplaceForVoice(QString keyword, QString word)
+{
+    if (!m_dataToReplaceTextForVoice.isArray()) {
+        m_dataToReplaceTextForVoice = QJsonDocument::fromJson("[]");
+    }
+    QJsonArray jarr = m_dataToReplaceTextForVoice.array();
+
+    // if keyword was contained in data
+    for (int i = 0; i < jarr.size(); i++) {
+        QJsonValue value = jarr.at(i);
+        if (value.isObject()) {
+            QJsonObject objItem = value.toObject();
+            if (objItem.value("w").toString() == keyword) {
+                QJsonArray r = objItem.value("r").toArray();
+                r.append(QJsonValue(word));
+                objItem.insert("r", QJsonValue(r));
+                jarr.replace(i, QJsonValue(objItem));
+                m_dataToReplaceTextForVoice.setArray(jarr);
+                qDebug() << "JSON:" << m_dataToReplaceTextForVoice.toJson(QJsonDocument::Compact);
+                return;
+            }
+        }
+    }
+
+    // append keyword pair
+    QJsonObject newObjItem;
+    newObjItem.insert("w", QJsonValue(keyword));
+    QJsonArray r = {word};
+    newObjItem.insert("r", QJsonValue(r));
+    jarr.append(QJsonValue(newObjItem));
+    m_dataToReplaceTextForVoice.setArray(jarr);
+    qDebug() << "JSON:" << m_dataToReplaceTextForVoice.toJson(QJsonDocument::Compact);
 }
 
 const QString CCBotPrivate::getAppDataDirPath()

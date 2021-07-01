@@ -208,14 +208,7 @@ ViewChatForm {
         properties.listenClients = !properties.listenClients
     }
 
-    btSendMsg.enabled: client !== null && inputMsg.text.length > 0
-    btSendMsg.onClicked: {
-        let sendObj = { "type":"message", "text":inputMsg.text };
-        client.sendTextMessage(JSON.stringify(sendObj));
-        inputMsg.clear();
-    }
-
-    inputMsg.onAccepted: {
+    function sendMessage() {
         if (inputMsg.text.length === 0)
             return;
         if (client !== null) {
@@ -223,6 +216,15 @@ ViewChatForm {
             client.sendTextMessage(JSON.stringify(sendObj));
             inputMsg.clear();
         }
+    }
+
+    btSendMsg.enabled: client !== null && inputMsg.text.length > 0
+    btSendMsg.onClicked: {
+        sendMessage();
+    }
+
+    inputMsg.onAccepted: {
+        sendMessage();
     }
 
     Connections {

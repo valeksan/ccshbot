@@ -23,6 +23,12 @@ Page {
     property alias btTestVoice: btTestVoice
     property alias testMsgTTS: testMsgTTS
     property alias btTestTextMsgTTS: btTestTextMsgTTS
+    property alias replaceKeyword: replaceKeyword
+    property alias replaceWord: replaceWord
+    property alias btAddRepKeyword: btAddRepKeyword
+    property alias lvRepKeywords: lvRepKeywords
+    property alias btRemoveRepKeyword: btRemoveRepKeyword
+    property alias lvRepWords: lvRepWords
 
     Pane {
         anchors.fill: parent
@@ -250,17 +256,20 @@ Page {
                     Material.foreground: Material.Yellow
                 }
                 RowLayout {
-                    Layout.minimumWidth: contentSettings.width
                     ColumnLayout {
                         Layout.fillWidth: true
-                        Layout.maximumWidth: (contentSettings.width - 120) / 2
+                        Layout.leftMargin: 5
                         spacing: 5
                         Label {
                             text: qsTr("Заменяемое")
                         }
                         TextField {
                             id: replaceKeyword
-                            Layout.fillWidth: true
+                            width: 400
+                            Layout.minimumWidth: width
+                            leftInset: -5.0
+                            selectByMouse: true
+                            placeholderText: qsTr("Схивана")
                             background: Rectangle {
                                 border.color: "gray"
                                 radius: 5
@@ -270,13 +279,18 @@ Page {
                     }
                     ColumnLayout {
                         Layout.fillWidth: true
+                        Layout.leftMargin: 5
                         spacing: 5
                         Label {
                             text: qsTr("Замена")
                         }
                         TextField {
                             id: replaceWord
-                            Layout.fillWidth: true
+                            width: 400
+                            Layout.minimumWidth: width
+                            leftInset: -5.0
+                            selectByMouse: true
+                            placeholderText: qsTr("Дживана")
                             background: Rectangle {
                                 border.color: "gray"
                                 radius: 5
@@ -284,16 +298,68 @@ Page {
                             }
                         }
                     }
+                    Button {
+                        id: btAddRepKeyword
+                        text: qsTr("Добавить")
+                        Layout.alignment: Qt.AlignBottom
+                        Layout.topMargin: 22
+                        Layout.minimumHeight: 55
+                        Layout.minimumWidth: 95
+                    }
+                }
+                RowLayout {
+                    spacing: 5
                     ColumnLayout {
-                        Layout.minimumWidth: 120
-                        Layout.maximumWidth: 120
-                        Button {
-                            id: btAddRepKeyword
-                            text: qsTr("Добавить")
-                            Layout.alignment: Qt.AlignBottom
-                            Layout.topMargin: 22
-                            Layout.minimumHeight: 60
+                        Rectangle {
+                            width: 405
+                            Layout.minimumWidth: width
+                            Layout.minimumHeight: 300
+                            border.color: "gray"
+                            radius: 5
+                            color: "#121217"
+                            ListView {
+                                id: lvRepKeywords
+                                anchors.fill: parent
+                                flickableDirection: Flickable.VerticalFlick
+                                boundsBehavior: Flickable.StopAtBounds
+                                clip: true
+                                delegate: ItemDelegate {
+                                    text: modelData
+                                }
+                                model: []
+                                ScrollBar.vertical: ScrollBar {}
+                            }
                         }
+                    }
+                    ColumnLayout {
+                        Rectangle {
+                            width: 405
+                            Layout.minimumWidth: width
+                            Layout.minimumHeight: 300
+                            border.color: "gray"
+                            radius: 5
+                            color: "#121217"
+                            ListView {
+                                id: lvRepWords
+                                anchors.fill: parent
+                                flickableDirection: Flickable.VerticalFlick
+                                boundsBehavior: Flickable.StopAtBounds
+                                clip: true
+                                delegate: ItemDelegate {
+                                    text: modelData
+                                }
+                                model: []
+                                ScrollBar.vertical: ScrollBar {}
+                            }
+                        }
+                    }
+                    Button {
+                        id: btRemoveRepKeyword
+                        text: qsTr("Удалить")
+                        Layout.alignment: Qt.AlignTop
+                        Layout.topMargin: -6
+                        Layout.minimumHeight: 55
+                        Layout.minimumWidth: 95
                     }
                 }
             }
@@ -302,7 +368,7 @@ Page {
 }
 /*##^##
 Designer {
-    D{i:0;autoSize:true;height:600;width:800}
+    D{i:0;autoSize:true;height:2000;width:900}
 }
 ##^##*/
 

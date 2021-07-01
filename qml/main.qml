@@ -47,7 +47,7 @@ ApplicationWindow {
     y: properties.windowY
     height: properties.windowHeight
     width: properties.windowWidth
-    minimumWidth: 640
+    minimumWidth: 1024
     minimumHeight: 620
 
     color: "#1F1F2A"

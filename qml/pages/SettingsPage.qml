@@ -234,7 +234,31 @@ SettingsPageForm {
         ccbot.action(Task.VoiceLoad, [testMsgTTS.text]);
     }
 
-    //...
+    function addRepKeywordPair() {
+        //..
+        ccbot.addWordPairToReplaceForVoice(replaceKeyword.text,
+                                           replaceWord.text);
+        replaceWord.clear();
+    }
+
+    btAddRepKeyword.enabled: replaceKeyword.text.length > 0
+    btAddRepKeyword.onClicked: {
+        addRepKeywordPair();
+    }
+
+    replaceKeyword.onAccepted: {
+        if (replaceKeyword.text.length === 0) {
+            return;
+        }
+        replaceWord.forceActiveFocus();
+        replaceWord.selectAll();
+    }
+    replaceWord.onAccepted: {
+        if (replaceKeyword.text.length === 0) {
+            return;
+        }
+        addRepKeywordPair();
+    }
 
     focusEnder.onClicked: focusEnder.parent.forceActiveFocus()
 

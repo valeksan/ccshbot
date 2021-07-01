@@ -105,6 +105,10 @@ void CCBot::loadSettings()
                 cfg.value("SampleRateHertz",
                           defaultSpeechkitSampleRateHertz).toString());
     cfg.endGroup();
+
+    cfg.beginGroup("ToReplaceForVoice");
+    m_dataToReplaceTextForVoice = QJsonDocument::fromJson(cfg.value("data","[]").toByteArray());
+    cfg.endGroup();
 }
 
 void CCBot::saveSettings()
@@ -142,6 +146,11 @@ void CCBot::saveSettings()
     cfg.setValue("Speed", m_params->speechkitSpeed());
     cfg.setValue("SampleRateHertz", m_params->speechkitSampleRateHertz());
     cfg.endGroup();
+
+    cfg.beginGroup("ToReplaceForVoice");
+    cfg.setValue("data", m_dataToReplaceTextForVoice.toJson(QJsonDocument::Compact));
+    cfg.endGroup();
+
     //...
 
     if (m_params->flagLogging()) {

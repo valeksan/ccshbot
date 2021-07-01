@@ -43,11 +43,8 @@ function sendMessageToChat(text) {
     const input = document.querySelector("#app > div.viewport > div.content > div > div > div > div.stream__layout__left.stream__layout__left--no-padding > div.stream__layout__chat.stream__layout__chat--rtl > div > form > div > div > input");
     const submit = document.querySelector("#app > div.viewport > div.content > div > div > div > div.stream__layout__left.stream__layout__left--no-padding > div.stream__layout__chat.stream__layout__chat--rtl > div > form > button");
     input.value = text;
-    input.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true }));
-    input.dispatchEvent(new KeyboardEvent('keypress', { bubbles: true }));
-    input.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true }));
+    
     input.dispatchEvent(new Event('input', { bubbles: true }));
-    input.dispatchEvent(new Event('change', { bubbles: true }));
 
     sleep(200).then(() => {
         submit.click();
