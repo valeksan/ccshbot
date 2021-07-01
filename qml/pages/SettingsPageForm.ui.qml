@@ -240,6 +240,62 @@ Page {
                         Layout.alignment: Qt.AlignBottom
                     }
                 }
+                Label {
+                    text: qsTr("Автозамена произношения")
+                    Layout.fillWidth: true
+                    Layout.topMargin: 15
+                    horizontalAlignment: "AlignLeft"
+                    font.bold: true
+                    font.pixelSize: 20
+                    Material.foreground: Material.Yellow
+                }
+                RowLayout {
+                    Layout.minimumWidth: contentSettings.width
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        Layout.maximumWidth: (contentSettings.width - 120) / 2
+                        spacing: 5
+                        Label {
+                            text: qsTr("Заменяемое")
+                        }
+                        TextField {
+                            id: replaceKeyword
+                            Layout.fillWidth: true
+                            background: Rectangle {
+                                border.color: "gray"
+                                radius: 5
+                                color: "#121217"
+                            }
+                        }
+                    }
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        spacing: 5
+                        Label {
+                            text: qsTr("Замена")
+                        }
+                        TextField {
+                            id: replaceWord
+                            Layout.fillWidth: true
+                            background: Rectangle {
+                                border.color: "gray"
+                                radius: 5
+                                color: "#121217"
+                            }
+                        }
+                    }
+                    ColumnLayout {
+                        Layout.minimumWidth: 120
+                        Layout.maximumWidth: 120
+                        Button {
+                            id: btAddRepKeyword
+                            text: qsTr("Добавить")
+                            Layout.alignment: Qt.AlignBottom
+                            Layout.topMargin: 22
+                            Layout.minimumHeight: 60
+                        }
+                    }
+                }
             }
         }
     }
