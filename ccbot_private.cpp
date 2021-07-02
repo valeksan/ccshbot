@@ -484,6 +484,11 @@ void CCBotPrivate::addWordPairToReplaceForVoice(QString keyword, QString word)
     qDebug() << "JSON:" << m_dataToReplaceTextForVoice.toJson(QJsonDocument::Compact);
 }
 
+QString CCBotPrivate::getWordPairListInJson(bool compact)
+{
+    return QString::fromUtf8(m_dataToReplaceTextForVoice.toJson(compact ? QJsonDocument::Compact : QJsonDocument::Indented));
+}
+
 const QString CCBotPrivate::getAppDataDirPath()
 {
     QString path = QStandardPaths::writableLocation(

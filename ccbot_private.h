@@ -79,6 +79,7 @@ public:
 public slots:
     void addToLog(QString text, bool isTimelined = true);
     void addWordPairToReplaceForVoice(QString keyword, QString word);
+    QString getWordPairListInJson(bool compact = true);
     const QString getAppDataDirPath();
 
     virtual void action(int id, QVariantList args = QVariantList()) {

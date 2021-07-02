@@ -49,10 +49,9 @@ Page {
 
             MouseArea {
                 id: focusEnder
-                anchors.fill: parent
-                propagateComposedEvents: true
+                //anchors.fill: parent
+                //propagateComposedEvents: true
             }
-
             ColumnLayout {
                 id: contentSettings
                 width: flickSettings.width
@@ -320,13 +319,18 @@ Page {
                             ListView {
                                 id: lvRepKeywords
                                 anchors.fill: parent
+                                Layout.fillHeight: true
+                                Layout.fillWidth: true
                                 flickableDirection: Flickable.VerticalFlick
                                 boundsBehavior: Flickable.StopAtBounds
                                 clip: true
-                                delegate: ItemDelegate {
-                                    text: modelData
-                                }
                                 model: []
+                                highlight: Rectangle {
+                                    color: Qt.lighter("#121217", 1.5)
+                                    radius: 5
+                                    border.color: "gray"
+                                }
+                                highlightFollowsCurrentItem: true
                                 ScrollBar.vertical: ScrollBar {}
                             }
                         }
@@ -345,10 +349,13 @@ Page {
                                 flickableDirection: Flickable.VerticalFlick
                                 boundsBehavior: Flickable.StopAtBounds
                                 clip: true
-                                delegate: ItemDelegate {
-                                    text: modelData
-                                }
                                 model: []
+                                highlight: Rectangle {
+                                    color: Qt.lighter("#121217", 1.5)
+                                    radius: 5
+                                    border.color: "gray"
+                                }
+                                highlightFollowsCurrentItem: true
                                 ScrollBar.vertical: ScrollBar {}
                             }
                         }

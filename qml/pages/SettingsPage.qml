@@ -1,4 +1,5 @@
 import QtQuick 2.15
+import QtQuick.Controls 2.15
 
 import ccbot.tasks 1.0
 
@@ -235,10 +236,29 @@ SettingsPageForm {
     }
 
     function addRepKeywordPair() {
-        //..
         ccbot.addWordPairToReplaceForVoice(replaceKeyword.text,
                                            replaceWord.text);
         replaceWord.clear();
+        updateRepPairModels();
+    }
+
+    function updateRepPairModels() {
+        const currentIndex = lvRepKeywords.currentIndex;
+        //console.log(currentIndex)
+        try {
+            let jdata = JSON.parse(ccbot.getWordPairListInJson());
+            //console.log(jdata[0]["w"]);
+            lvRepKeywords.model = jdata;
+            if (currentIndex !== -1 && currentIndex < jdata.length) {
+                lvRepWords.model = jdata[currentIndex]["r"];
+                lvRepWords.currentIndex = -1;
+            } else {
+                lvRepKeywords.currentIndex = -1;
+            }
+            //console.log(lvRepKeywords.currentIndex)
+        } catch(e) {
+            console.warn("Error parsing! Uncorrect json data!", e);
+        }
     }
 
     btAddRepKeyword.enabled: replaceKeyword.text.length > 0
@@ -260,7 +280,120 @@ SettingsPageForm {
         addRepKeywordPair();
     }
 
+    lvRepKeywords.delegate: compLvkeywordDelegate
+
+    lvRepWords.delegate: compLvWordsDelegate
+
     focusEnder.onClicked: focusEnder.parent.forceActiveFocus()
+
+    Component {
+        id: compLvkeywordDelegate
+        ItemDelegate {
+            property var view: ListView.view
+            property int itemIndex: index
+            text: modelData.w
+            width: parent.width
+            height: 30
+            MouseArea {
+                anchors.fill: parent
+                onClicked: {
+                    if (view.currentIndex === itemIndex) {
+                        view.currentIndex = -1;
+                        lvRepWords.model = [];
+                    } else {
+                        view.currentIndex = itemIndex;
+                        lvRepWords.model = lvRepKeywords.model[itemIndex]["r"];
+                        lvRepWords.currentIndex = -1;
+                    }
+                }
+            }
+        }
+    }
+    Component {
+        id: compLvWordsDelegate
+        ItemDelegate {
+            property var view: ListView.view
+            property int itemIndex: index
+            property bool editMode: false
+            text: modelData.length > 0 ? modelData : qsTr("[ <i>текст отсутствует</i> ]")
+            width: parent.width
+            height: 30
+            MouseArea {
+                anchors.fill: parent
+                anchors.rightMargin: 35
+                enabled: !editMode
+                onClicked: {
+                    if (view.currentIndex === itemIndex)
+                        view.currentIndex = -1;
+                    else
+                        view.currentIndex = itemIndex;
+                }
+                onDoubleClicked: {
+                    editMode = true;
+                }
+            }
+            Button {
+                id: btEditRepWord
+                visible: !editMode
+                anchors.right: parent.right
+                anchors.rightMargin: 5
+                anchors.verticalCenter: parent.verticalCenter
+                text: "\u270e" // ✎
+                height: 30
+                width: 30
+                onClicked: {
+                    editMode = true;
+                }
+            }
+            Row {
+                visible: editMode
+                anchors.fill: parent
+                spacing: 5
+                Rectangle {
+                    border.color: "gray"
+                    radius: 5
+                    z: 10
+                    color: "#121217"
+                    width: parent.width - 70
+                    height: parent.height
+                    TextInput {
+                        anchors.fill: parent
+                        text: modelData
+                        color: "white"
+                        onAccepted: {
+                            //...
+                            editMode = false;
+                        }
+                        verticalAlignment: "AlignVCenter"
+                    }
+                }
+//                Rectangle {
+//                    width: parent.width - 70
+//                    height: parent.height
+//                }
+
+                Button {
+                    id: btAcceptEditWord
+                    text: "\u2714" // ✔
+                    height: 30
+                    width: 30
+                    onClicked: {
+                        //...
+                        editMode = false;
+                    }
+                }
+                Button {
+                    id: btCancelEditWord
+                    text: "\u2718" // ✘
+                    height: 30
+                    width: 30
+                    onClicked: {
+                        editMode = false;
+                    }
+                }
+            }
+        }
+    }
 
     Component.onCompleted: {
         // server
@@ -311,5 +444,7 @@ SettingsPageForm {
                     cfgSpeechkitSampleRateHertz.indexOfValue(
                         properties.speechkitSampleRateHertz);
         }
+
+        updateRepPairModels();
     }
 }
