@@ -281,8 +281,29 @@ SettingsPageForm {
     }
 
     lvRepKeywords.delegate: compLvkeywordDelegate
-
     lvRepWords.delegate: compLvWordsDelegate
+
+    btRemoveRepKeyword.enabled: lvRepKeywords.currentIndex !== -1
+                                || lvRepWords.currentIndex !== -1
+    btRemoveRepKeyword.onClicked: {
+        if (lvRepWords.currentIndex !== -1) {
+            const keyword = lvRepKeywords.model[lvRepKeywords.currentIndex]["w"];
+            if (lvRepWords.model.length === 1) {
+                ccbot.removeRepKeywordForVoice(keyword);
+                lvRepWords.model = [];
+                updateRepPairModels();
+                return;
+            }
+            const word = lvRepWords.model[lvRepWords.currentIndex];
+            ccbot.removeRepWordForVoice(keyword, word);
+            updateRepPairModels();
+        } else if (lvRepKeywords.currentIndex !== -1) {
+            const keyword = lvRepKeywords.model[lvRepKeywords.currentIndex]["w"];
+            ccbot.removeRepKeywordForVoice(keyword);
+            lvRepWords.model = [];
+            updateRepPairModels();
+        }
+    }
 
     focusEnder.onClicked: focusEnder.parent.forceActiveFocus()
 
@@ -311,13 +332,27 @@ SettingsPageForm {
     }
     Component {
         id: compLvWordsDelegate
-        ItemDelegate {
+        Item {
+            id: rootCompLvWordsDelegate
             property var view: ListView.view
             property int itemIndex: index
             property bool editMode: false
-            text: modelData.length > 0 ? modelData : qsTr("[ <i>текст отсутствует</i> ]")
+
+            function editWord(oldWord, newWord) {
+                const keyword = lvRepKeywords.model[lvRepKeywords.currentIndex]["w"];
+                ccbot.editRepitWordForVoice(keyword, oldWord, newWord);
+            }
+
             width: parent.width
             height: 30
+            Label {
+                visible: !editMode
+                anchors.fill: parent
+                anchors.rightMargin: btEditRepWord.width + 5
+                anchors.leftMargin: 15
+                verticalAlignment: "AlignVCenter"
+                text: modelData.length > 0 ? modelData : qsTr("[ <i>текст отсутствует</i> ]")
+            }
             MouseArea {
                 anchors.fill: parent
                 anchors.rightMargin: 35
@@ -348,6 +383,7 @@ SettingsPageForm {
             Row {
                 visible: editMode
                 anchors.fill: parent
+                anchors.rightMargin: 5
                 spacing: 5
                 Rectangle {
                     border.color: "gray"
@@ -357,29 +393,29 @@ SettingsPageForm {
                     width: parent.width - 70
                     height: parent.height
                     TextInput {
+                        id: editWord
                         anchors.fill: parent
+                        anchors.leftMargin: 15
                         text: modelData
                         color: "white"
                         onAccepted: {
-                            //...
+                            rootCompLvWordsDelegate.editWord(modelData, editWord.text);
                             editMode = false;
+                            updateRepPairModels();
+
                         }
                         verticalAlignment: "AlignVCenter"
                     }
                 }
-//                Rectangle {
-//                    width: parent.width - 70
-//                    height: parent.height
-//                }
-
                 Button {
                     id: btAcceptEditWord
                     text: "\u2714" // ✔
                     height: 30
                     width: 30
                     onClicked: {
-                        //...
+                        rootCompLvWordsDelegate.editWord(modelData, editWord.text);
                         editMode = false;
+                        updateRepPairModels();
                     }
                 }
                 Button {

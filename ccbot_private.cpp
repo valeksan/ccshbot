@@ -410,9 +410,19 @@ bool CCBotPrivate::checkAutoVoiceMessage(const MessageData &msg, QString &text)
             )
     {
         QString analyseText = msg.msg;
+
+        QJsonArray jarr = m_dataToReplaceTextForVoice.array();
+        for (int i = 0; i < jarr.size(); i++) {
+            QJsonValue value = jarr.at(i);
+            if (value.isObject()) {
+                QJsonObject objItem = value.toObject();
+                QString keyword = objItem.value("w").toString();
+                analyseText.replace(keyword, getReplaceWordForVoice(keyword));
+            }
+        }
         analyseText = analyseText.remove(
                     QRegularExpression("[\\x{1F600}-\\x{1F7FF}]+"));
-        analyseText.replace("Zhivana", "Джеванна");
+
         // check on empty message
         bool emptyMsg = true;
         for (int i = 0; i < analyseText.length(); i++) {
@@ -425,6 +435,34 @@ bool CCBotPrivate::checkAutoVoiceMessage(const MessageData &msg, QString &text)
         return !emptyMsg;
     }
     return false;
+}
+
+QString CCBotPrivate::getReplaceWordForVoice(QString keyword)
+{
+    QString result = keyword;
+
+    QJsonArray jarr = m_dataToReplaceTextForVoice.array();
+
+    for (int i = 0; i < jarr.size(); i++) {
+        QJsonValue value = jarr.at(i);
+        if (value.isObject()) {
+            QJsonObject objItem = value.toObject();
+            if (objItem.value("w").toString() == keyword) {
+                QJsonArray r = objItem.value("r").toArray();
+                if (r.size() == 1) {
+                    result = r.at(0).toString();
+                    break;
+                } else {
+                    QRandomGenerator *rg = QRandomGenerator::global();
+                    int max = r.size();
+                    int dash = rg->bounded(1, max);
+                    result = r.at(dash).toString();
+                }
+            }
+        }
+    }
+
+    return result;
 }
 
 bool CCBotPrivate::checkCmdMessage(const MessageData &msg,
@@ -482,6 +520,93 @@ void CCBotPrivate::addWordPairToReplaceForVoice(QString keyword, QString word)
     jarr.append(QJsonValue(newObjItem));
     m_dataToReplaceTextForVoice.setArray(jarr);
     qDebug() << "JSON:" << m_dataToReplaceTextForVoice.toJson(QJsonDocument::Compact);
+}
+
+void CCBotPrivate::editRepitWordForVoice(QString keyword, QString oldWord, QString newWord)
+{
+    if (!m_dataToReplaceTextForVoice.isArray()) {
+        m_dataToReplaceTextForVoice = QJsonDocument::fromJson("[]");
+    }
+    QJsonArray jarr = m_dataToReplaceTextForVoice.array();
+
+    // if keyword was contained in data
+    for (int i = 0; i < jarr.size(); i++) {
+        QJsonValue value = jarr.at(i);
+        if (value.isObject()) {
+            QJsonObject objItem = value.toObject();
+            if (objItem.value("w").toString() == keyword) {
+                qDebug() << "found keyword!";
+                QJsonArray r = objItem.value("r").toArray();
+                for (int j = 0; j < r.size(); j++) {
+                    if (r.at(j) == oldWord) {
+                        qDebug() << "found word!";
+                        r.replace(j, QJsonValue(newWord));
+                        objItem.insert("r", QJsonValue(r));
+                        jarr.replace(i, QJsonValue(objItem));
+                        m_dataToReplaceTextForVoice.setArray(jarr);
+                        return;
+                    }
+                }
+                return;
+            }
+        }
+    }
+}
+
+void CCBotPrivate::removeRepWordForVoice(QString keyword, QString word)
+{
+    if (!m_dataToReplaceTextForVoice.isArray()) {
+        m_dataToReplaceTextForVoice = QJsonDocument::fromJson("[]");
+    }
+    QJsonArray jarr = m_dataToReplaceTextForVoice.array();
+
+    // if keyword was contained in data
+    for (int i = 0; i < jarr.size(); i++) {
+        QJsonValue value = jarr.at(i);
+        if (value.isObject()) {
+            QJsonObject objItem = value.toObject();
+            if (objItem.value("w").toString() == keyword) {
+                qDebug() << "found keyword!";
+                QJsonArray r = objItem.value("r").toArray();
+                for (int j = 0; j < r.size(); j++) {
+                    if (r.at(j) == word) {
+                        qDebug() << "found word!";
+                        r.removeAt(j);
+                        objItem.insert("r", QJsonValue(r));
+                        jarr.replace(i, QJsonValue(objItem));
+                        m_dataToReplaceTextForVoice.setArray(jarr);
+                        if (r.isEmpty()) {
+                            removeRepKeywordForVoice(keyword);
+                        }
+                        return;
+                    }
+                }
+                return;
+            }
+        }
+    }
+}
+
+void CCBotPrivate::removeRepKeywordForVoice(QString keyword)
+{
+    if (!m_dataToReplaceTextForVoice.isArray()) {
+        m_dataToReplaceTextForVoice = QJsonDocument::fromJson("[]");
+    }
+    QJsonArray jarr = m_dataToReplaceTextForVoice.array();
+
+    // if keyword was contained in data
+    for (int i = 0; i < jarr.size(); i++) {
+        QJsonValue value = jarr.at(i);
+        if (value.isObject()) {
+            QJsonObject objItem = value.toObject();
+            if (objItem.value("w").toString() == keyword) {
+                qDebug() << "found keyword!";
+                jarr.removeAt(i);
+                m_dataToReplaceTextForVoice.setArray(jarr);
+                return;
+            }
+        }
+    }
 }
 
 QString CCBotPrivate::getWordPairListInJson(bool compact)

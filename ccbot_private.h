@@ -57,6 +57,7 @@ protected:
     void analyseNewMessages(const QList<MessageData> &msgsl);
 
     bool checkAutoVoiceMessage(const MessageData &msg, QString &text);
+    QString getReplaceWordForVoice(QString keyword);
     bool checkCmdMessage(const MessageData &msg, QString &cmd, QStringList &args);
 
     // helper methods
@@ -79,6 +80,9 @@ public:
 public slots:
     void addToLog(QString text, bool isTimelined = true);
     void addWordPairToReplaceForVoice(QString keyword, QString word);
+    void editRepitWordForVoice(QString keyword, QString oldWord, QString newWord);
+    void removeRepWordForVoice(QString keyword, QString word);
+    void removeRepKeywordForVoice(QString keyword);
     QString getWordPairListInJson(bool compact = true);
     const QString getAppDataDirPath();
 
