@@ -231,7 +231,7 @@ bool CCBotPrivate::boxContainUser(QString nikname, bool &contain)
     QSqlQuery qry;
     QString sql;
 
-    sql = "SELECT nikname FROM box WHERE nikname=:nikname;";
+    sql = "SELECT id FROM box WHERE nikname=:nikname;";
     qry.prepare(sql);
     qry.bindValue(":nikname", nikname);
 
