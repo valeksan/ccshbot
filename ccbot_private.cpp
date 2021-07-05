@@ -235,7 +235,7 @@ bool CCBotPrivate::boxContainUser(QString nikname, bool &contain)
     qry.prepare(sql);
     qry.bindValue(":nikname", nikname);
 
-    bool state = qry.exec(sql);
+    bool state = qry.exec();
 
     if (m_params->flagLogging() && !state) {
         QString info = QString("Sql query-select error(%1): ")
