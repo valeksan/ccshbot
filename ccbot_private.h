@@ -75,7 +75,7 @@ protected:
     bool appendMsgIntoTableDB(QString streamId, QList<MessageData> &msgList);
     // - box database
     bool createBoxTableInDB();
-    bool boxContainUser(QString nikname);
+    bool boxContainUser(QString nikname, bool &contain);
     bool boxRegisterNewUser(QString nikname);
     bool boxGetStatisticsOfMessage(QString nikname, quint64 &numMessages, quint64 &numSymbols);
     bool boxAddStatisticsOfMessage(QString nikname, int numSymbolsToAdd);

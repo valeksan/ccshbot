@@ -52,8 +52,7 @@ class Properties : public QObject
     Q_PROPERTY(QString speechkitIamToken READ speechkitIamToken WRITE setSpeechkitIamToken NOTIFY speechkitIamTokenChanged)
     Q_PROPERTY(QString speechkitGetIamTokenHost READ speechkitGetIamTokenHost WRITE setSpeechkitGetIamTokenHost NOTIFY speechkitGetIamTokenHostChanged)
     Q_PROPERTY(QDateTime speechkitIamTokenExpiryDate READ speechkitIamTokenExpiryDate WRITE setSpeechkitIamTokenExpiryDate NOTIFY speechkitIamTokenExpiryDateChanged)
-    Q_PROPERTY(double speechKitPriceSimpleVoice READ speechKitPriceSimpleVoice WRITE setSpeechKitPriceSimpleVoice NOTIFY speechKitPriceSimpleVoiceChanged)
-    Q_PROPERTY(double speechKitPricePremiumVoice READ speechKitPricePremiumVoice WRITE setSpeechKitPricePremiumVoice NOTIFY speechKitPricePremiumVoiceChanged)
+    Q_PROPERTY(double speechKitPriceBySymbol READ speechKitPriceBySymbol WRITE setSpeechKitPriceBySymbol NOTIFY speechKitPriceBySymbolChanged)
 
     // Box settings (for chat interlocutors)
     Q_PROPERTY(double boxUserStartingBalance READ boxUserStartingBalance WRITE setBoxUserStartingBalance NOTIFY boxUserStartingBalanceChanged)
@@ -91,9 +90,8 @@ class Properties : public QObject
     QString m_currentStreamerNikname;
     bool m_flagLogging = false;
     double m_boxUserStartingBalance = 0.0;
-    double m_speechKitPriceSimpleVoice = 0.0;
-    double m_speechKitPricePremiumVoice = 0.0;
     bool m_boxDefaultOnFlag0 = false;
+    double m_speechKitPriceBySymbol = 0.0;
 
 public:
     explicit Properties(QObject *parent = nullptr) : QObject(parent),
@@ -193,14 +191,11 @@ public:
     double boxUserStartingBalance() const;
     void setBoxUserStartingBalance(double newBoxUserStartingBalance);
 
-    double speechKitPriceSimpleVoice() const;
-    void setSpeechKitPriceSimpleVoice(double newSpeechKitPriceSimpleVoice);
-
-    double speechKitPricePremiumVoice() const;
-    void setSpeechKitPricePremiumVoice(double newSpeechKitPricePremiumVoice);
-
     bool boxDefaultOnFlag0() const;
     void setBoxDefaultOnFlag0(bool newBoxDefaultOnFlag0);
+
+    double speechKitPriceBySymbol() const;
+    void setSpeechKitPriceBySymbol(double newSpeechKitPriceBySymbol);
 
 public slots:
 
@@ -237,10 +232,22 @@ signals:
     void currentStreamerNiknameChanged();
     void flagLoggingChanged();
     void boxUserStartingBalanceChanged();
-    void speechKitPriceSimpleVoiceChanged();
-    void speechKitPricePremiumVoiceChanged();
     void boxDefaultOnFlag0Changed();
+    void speechKitPriceBySymbolChanged();
 };
+
+inline double Properties::speechKitPriceBySymbol() const
+{
+    return m_speechKitPriceBySymbol;
+}
+
+inline void Properties::setSpeechKitPriceBySymbol(double newSpeechKitPriceBySymbol)
+{
+    if (qFuzzyCompare(m_speechKitPriceBySymbol, newSpeechKitPriceBySymbol))
+        return;
+    m_speechKitPriceBySymbol = newSpeechKitPriceBySymbol;
+    emit speechKitPriceBySymbolChanged();
+}
 
 inline bool Properties::boxDefaultOnFlag0() const
 {
@@ -253,32 +260,6 @@ inline void Properties::setBoxDefaultOnFlag0(bool newBoxDefaultOnFlag0)
         return;
     m_boxDefaultOnFlag0 = newBoxDefaultOnFlag0;
     emit boxDefaultOnFlag0Changed();
-}
-
-inline double Properties::speechKitPricePremiumVoice() const
-{
-    return m_speechKitPricePremiumVoice;
-}
-
-inline void Properties::setSpeechKitPricePremiumVoice(double newSpeechKitPricePremiumVoice)
-{
-    if (qFuzzyCompare(m_speechKitPricePremiumVoice, newSpeechKitPricePremiumVoice))
-        return;
-    m_speechKitPricePremiumVoice = newSpeechKitPricePremiumVoice;
-    emit speechKitPricePremiumVoiceChanged();
-}
-
-inline double Properties::speechKitPriceSimpleVoice() const
-{
-    return m_speechKitPriceSimpleVoice;
-}
-
-inline void Properties::setSpeechKitPriceSimpleVoice(double newSpeechKitPriceSimpleVoice)
-{
-    if (qFuzzyCompare(m_speechKitPriceSimpleVoice, newSpeechKitPriceSimpleVoice))
-        return;
-    m_speechKitPriceSimpleVoice = newSpeechKitPriceSimpleVoice;
-    emit speechKitPriceSimpleVoiceChanged();
 }
 
 inline double Properties::boxUserStartingBalance() const

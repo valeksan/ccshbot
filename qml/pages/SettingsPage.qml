@@ -151,10 +151,10 @@ SettingsPageForm {
     cfgSpeechkitFormat.textRole: "title"
     cfgSpeechkitFormat.valueRole: "format"
     cfgSpeechkitFormat.model: [{
-            "title": "OGG OPUS (*.ogg)",
+            "title": "OGG OPUS",
             "format": "oggopus"
         }, {
-            "title": "LPCM (*.wav)",
+            "title": "LPCM",
             "format": "lpcm"
         }]
     cfgSpeechkitFormat.onActivated: {
@@ -204,7 +204,27 @@ SettingsPageForm {
                                          "" : number.toFixed(1));
     }
 
-    testMsgTTS.text: "Напишите тут любое сообщение%"
+    cfgSpeechkitSymbolPrice.value: properties.speechKitPriceBySymbol
+    cfgSpeechkitSymbolPrice.editable: true
+    cfgSpeechkitSymbolPrice.precision: 6
+    cfgSpeechkitSymbolPrice.from: 0.0
+    cfgSpeechkitSymbolPrice.step: 0.001
+    cfgSpeechkitSymbolPrice.suffix: " $"
+    cfgSpeechkitSymbolPrice.onFinishEdit: {
+        properties.speechKitPriceBySymbol = number;
+    }
+
+    cfgBoxUserStartBonusBalance.value: properties.boxUserStartingBalance
+    cfgBoxUserStartBonusBalance.editable: true
+    cfgBoxUserStartBonusBalance.precision: 5
+    cfgBoxUserStartBonusBalance.from: 0.0
+    cfgBoxUserStartBonusBalance.step: 0.1
+    cfgBoxUserStartBonusBalance.suffix: " $"
+    cfgBoxUserStartBonusBalance.onFinishEdit: {
+        properties.boxUserStartingBalance = number;
+    }
+
+    testMsgTTS.text: "Здравствуйте, меня зовут AlexNek, и сегодня я раскажу 4 способа, 4 способа... И сегодня я вам раскажу 4 способа, как запустить стрим на Crazy Cash."
     testMsgTTS.selectByMouse: true
     btTestTextMsgTTS.enabled: testMsgTTS.text.length > 0
     btTestTextMsgTTS.onClicked: {
@@ -223,7 +243,6 @@ SettingsPageForm {
         //console.log(currentIndex)
         try {
             let jdata = JSON.parse(ccbot.getWordPairListInJson());
-            //console.log(jdata[0]["w"]);
             lvRepKeywords.model = jdata;
             if (currentIndex !== -1 && currentIndex < jdata.length) {
                 lvRepWords.model = jdata[currentIndex]["r"];
@@ -231,7 +250,6 @@ SettingsPageForm {
             } else {
                 lvRepKeywords.currentIndex = -1;
             }
-            //console.log(lvRepKeywords.currentIndex)
         } catch(e) {
             console.warn("Error parsing! Uncorrect json data!", e);
         }
@@ -435,6 +453,10 @@ SettingsPageForm {
         }
     }
 
+    cfgBoxUserByRegisterOnFlag0.onCheckedChanged: {
+        properties.boxDefaultOnFlag0 = cfgBoxUserByRegisterOnFlag0.checked;
+    }
+
     Component.onCompleted: {
         // server
         cfgSocketHost.text = properties.listenHost;
@@ -486,5 +508,7 @@ SettingsPageForm {
         }
 
         updateRepPairModels();
+
+        cfgBoxUserByRegisterOnFlag0.checked = properties.boxDefaultOnFlag0;
     }
 }

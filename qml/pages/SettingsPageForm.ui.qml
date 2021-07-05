@@ -31,6 +31,9 @@ Page {
     property alias lvRepWords: lvRepWords
     property alias btRepWordUp: btRepWordUp
     property alias btRepWordDown: btRepWordDown
+    property alias cfgBoxUserStartBonusBalance: cfgBoxUserStartBonusBalance
+    property alias cfgBoxUserByRegisterOnFlag0: cfgBoxUserByRegisterOnFlag0
+    property alias cfgSpeechkitSymbolPrice: cfgSpeechkitSymbolPrice
 
     Pane {
         anchors.fill: parent
@@ -51,8 +54,7 @@ Page {
 
             MouseArea {
                 id: focusEnder
-                //anchors.fill: parent
-                //propagateComposedEvents: true
+                anchors.fill: parent
             }
             ColumnLayout {
                 id: contentSettings
@@ -226,6 +228,19 @@ Page {
                             Layout.minimumHeight: height
                         }
                     }
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        spacing: 5
+                        Label {
+                            text: qsTr("Прайс за символ")
+                        }
+                        NumBox {
+                            id: cfgSpeechkitSymbolPrice
+                            width: 150
+                            Layout.minimumWidth: width
+                            Layout.minimumHeight: height
+                        }
+                    }
                 }
                 RowLayout {
                     ColumnLayout {
@@ -387,6 +402,36 @@ Page {
                                 Layout.minimumWidth: 95
                             }
                         }
+                    }
+                }
+                Label {
+                    text: qsTr("Настройка стартовых параметров участников чата")
+                    Layout.fillWidth: true
+                    Layout.topMargin: 15
+                    horizontalAlignment: "AlignLeft"
+                    font.bold: true
+                    font.pixelSize: 20
+                    Material.foreground: Material.Yellow
+                }
+                RowLayout {
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        spacing: 5
+                        Label {
+                            text: qsTr("Стартовый баланс (бонус) ")
+                        }
+                        NumBox {
+                            id: cfgBoxUserStartBonusBalance
+                            width: 200
+                            Layout.minimumWidth: width
+                            Layout.minimumHeight: height
+                        }
+                    }
+                }
+                RowLayout {
+                    CheckBox {
+                        id: cfgBoxUserByRegisterOnFlag0
+                        text: qsTr("Включить озвучку сообщений сразу")
                     }
                 }
             }

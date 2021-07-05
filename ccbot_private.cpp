@@ -226,7 +226,7 @@ bool CCBotPrivate::createBoxTableInDB()
     return state;
 }
 
-bool CCBotPrivate::boxContainUser(QString nikname)
+bool CCBotPrivate::boxContainUser(QString nikname, bool &contain)
 {
     QSqlQuery qry;
     QString sql;
@@ -245,10 +245,11 @@ bool CCBotPrivate::boxContainUser(QString nikname)
         return false;
     }
 
-    if (qry.size() > 0)
-        return true;
+    if (qry.size() > 0) {
+        contain = true;
+    }
 
-    return false;
+    return state;
 }
 
 bool CCBotPrivate::boxRegisterNewUser(QString nikname)
@@ -325,6 +326,7 @@ bool CCBotPrivate::boxAddStatisticsOfMessage(QString nikname,
     // get prev places
     quint64 countMsgIn;
     quint64 countSymbolsIn;
+
     state = boxGetStatisticsOfMessage(nikname, countMsgIn, countSymbolsIn);
 
     if (!state)
@@ -333,14 +335,17 @@ bool CCBotPrivate::boxAddStatisticsOfMessage(QString nikname,
     // update places
     sql = "UPDATE box SET "
             "count_msg = :count_msg, "
-            "count_symbols = :count_symbols "
+            "count_symbols = :count_symbols, "
+            "last_activity_date = :timestamp "
             "WHERE nikname = :nikname;";
     qry.prepare(sql);
     quint64 countMsgUpdated = countMsgIn + 1;
     quint64 countSymbolsUpdated = countSymbolsIn
             + static_cast<quint64>(numSymbolsToAdd);
+    QDateTime timestamp = QDateTime::currentDateTime();
     qry.bindValue(":count_msg", countMsgUpdated);
     qry.bindValue(":count_symbols", countSymbolsUpdated);
+    qry.bindValue(":timestamp", timestamp);
     qry.bindValue(":nikname", nikname);
 
     state = qry.exec(sql);
@@ -539,8 +544,7 @@ bool CCBotPrivate::boxCalculatePriceForSpeech(QString nikname, int numSpeechSymb
     QSqlQuery qry;
     QString sql;
 
-    if (qFuzzyCompare(m_params->speechKitPricePremiumVoice(), 0.0)
-            && qFuzzyCompare(m_params->speechKitPriceSimpleVoice(), 0.0)) {
+    if (qFuzzyCompare(m_params->speechKitPriceBySymbol(), 0.0)) {
         price = 0.0;
         return true;
     }
@@ -566,12 +570,7 @@ bool CCBotPrivate::boxCalculatePriceForSpeech(QString nikname, int numSpeechSymb
         if (voiceIn) {
             *voiceIn = voice;
         }
-        double priceSymbol;
-        if (voice == "filipp" || voice == "alena") {
-            priceSymbol = m_params->speechKitPricePremiumVoice();
-        } else {
-            priceSymbol = m_params->speechKitPriceSimpleVoice();
-        }
+        double priceSymbol = m_params->speechKitPriceBySymbol();
         price = priceSymbol * numSpeechSymbols;
         return true;
     }
@@ -1120,11 +1119,41 @@ void CCBotPrivate::updateChat(const QList<MessageData> &msgsl,
 
 void CCBotPrivate::analyseNewMessages(const QList<MessageData> &msgsl)
 {
+    bool boxTableCreated = false;
+    if (!m_db.tables().contains("box")) {
+        boxTableCreated = createBoxTableInDB();
+    } else {
+        boxTableCreated = true;
+    }
     for (int i = 0; i < msgsl.size(); i++) {
         MessageData msg = msgsl.at(i);
+        bool userIsRegistred = false;
+        bool state = boxContainUser(msg.sender, userIsRegistred);
+        if (!userIsRegistred && state) {
+            state = boxRegisterNewUser(msg.sender);
+            if (state) {
+                userIsRegistred = true;
+            }
+        }
+        if (userIsRegistred) {
+            boxAddBalance(msg.sender, msg.pay);
+        }
+        if (msg.sender != m_params->currentStreamerNikname()
+                && boxTableCreated)
+        {
+            if (userIsRegistred)
+                boxAddStatisticsOfMessage(msg.sender, msg.msg.length());
+        }
         QString text = "";
         if (checkAutoVoiceMessage(msg, text)) {
             m_pCore->addTask(CCBotTaskEnums::VoiceLoad, text);
+            if (msg.sender != m_params->currentStreamerNikname()
+                    && boxTableCreated)
+            {
+                if (userIsRegistred)
+                    boxAddNumSpeechSymbolsInStatistics(msg.sender,
+                                                       text.length());
+            }
         }
     }
 }

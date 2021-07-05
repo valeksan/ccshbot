@@ -84,6 +84,7 @@ void CCBot::loadSettings()
     cfg.endGroup();
 
     cfg.beginGroup("SpeechKit");
+    m_params->setSpeechKitPriceBySymbol(cfg.value("PriceSymbol", 0.0).toDouble());
     m_params->setSpeechkitFolderId(cfg.value("FolderID", "").toString());
     m_params->setSpeechkitOAuthToken(cfg.value("OAuthToken", "").toString());
     m_params->setSpeechkitHost(
@@ -108,6 +109,11 @@ void CCBot::loadSettings()
 
     cfg.beginGroup("ToReplaceForVoice");
     m_dataToReplaceTextForVoice = QJsonDocument::fromJson(cfg.value("data","[]").toByteArray());
+    cfg.endGroup();
+
+    cfg.beginGroup("Box");
+    m_params->setBoxUserStartingBalance(cfg.value("UserStartingBalance", 0.0).toDouble());
+    m_params->setBoxDefaultOnFlag0(cfg.value("DefaultOnFlag0", false).toBool());
     cfg.endGroup();
 }
 
@@ -135,6 +141,7 @@ void CCBot::saveSettings()
     cfg.endGroup();
 
     cfg.beginGroup("SpeechKit");
+    cfg.setValue("PriceSymbol", m_params->speechKitPriceBySymbol());
     cfg.setValue("FolderID", m_params->speechkitFolderId());
     cfg.setValue("OAuthToken", m_params->speechkitOAuthToken());
     cfg.setValue("Host", m_params->speechkitHost());
@@ -149,6 +156,11 @@ void CCBot::saveSettings()
 
     cfg.beginGroup("ToReplaceForVoice");
     cfg.setValue("data", m_dataToReplaceTextForVoice.toJson(QJsonDocument::Compact));
+    cfg.endGroup();
+
+    cfg.beginGroup("Box");
+    cfg.setValue("UserStartingBalance", m_params->boxUserStartingBalance());
+    cfg.setValue("DefaultOnFlag0", m_params->boxDefaultOnFlag0());
     cfg.endGroup();
 
     //...
