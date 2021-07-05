@@ -105,5 +105,12 @@ inline QString addUniqueSuffix(const QString &fileName)
     }
 }
 
+// взведение бита в числе
+#define macro_qBitOn(VALUE,INDEX) (VALUE |= (0x1 << INDEX))
+#define macro_qBitOff(VALUE,INDEX) (VALUE &= ~(0x1 << INDEX))
+
+// Для чтения бита из значения VALUE, где порядковый номер бита NUM
+#define macro_qReadBit(VALUE,NUM) ((VALUE >> NUM)&0x1)
+
 
 #endif // MISC_H

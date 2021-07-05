@@ -28,4 +28,14 @@ namespace CCBotErrEnums {
     Q_ENUMS(CCBotErrEnum)
 }
 
+namespace BoxFlagsEnums {
+    Q_NAMESPACE
+
+    enum BoxFlagsEnum {
+        FLAG_SPEECH_ON = 0,
+        FLAG_SHOWED_MSG_NO_MONEY_FOR_SPEECH = 1,
+    };
+    Q_ENUMS(BoxFlagsEnum)
+}
+
 #endif // ENUMS_H

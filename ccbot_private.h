@@ -75,8 +75,28 @@ protected:
     bool appendMsgIntoTableDB(QString streamId, QList<MessageData> &msgList);
     // - box database
     bool createBoxTableInDB();
-    bool containNiknameInBoxDB(QString nikname);
-    void insertNewNiknamePlaceInBoxDB();
+    bool boxContainUser(QString nikname);
+    bool boxRegisterNewUser(QString nikname);
+    bool boxGetStatisticsOfMessage(QString nikname, quint64 &numMessages, quint64 &numSymbols);
+    bool boxAddStatisticsOfMessage(QString nikname, int numSymbolsToAdd);
+    bool boxGetBalanceInfo(QString nikname, double &donation, double &balance);
+    bool boxAddBalance(QString nikname, double cash, bool bonus = false);
+    bool boxSpendBalace(QString nikname, double cash, bool &isEmptyMoney);
+    bool boxGetStatisticsOfSpeech(QString nikname, quint64 &numSpeechSymbols);
+    bool boxAddNumSpeechSymbolsInStatistics(QString nikname, int numSymbolsAdds);
+    bool boxCalculatePriceForSpeech(QString nikname, int numSpeechSymbols, double &price, QString *voiceIn = nullptr);
+    bool boxSetUserVoice(QString nikname, QString voice);
+    bool boxGetUserVoice(QString nikname, QString &voice);
+    bool boxSetUserSpeedVoice(QString nikname, QString speed);
+    bool boxGetUserSpeedVoice(QString nikname, QString &speed);
+    bool boxSetUserEmotionVoice(QString nikname, QString emotion);
+    bool boxGetUserEmotionVoice(QString nikname, QString &emotion);
+    bool boxGetAchieveList(QString nikname, QStringList &achieves);
+    bool boxAddAchieve(QString nikname, QString achieve);
+    bool boxSetUserInfo(QString nikname, QString info);
+    bool boxGetUserInfo(QString nikname, QString &info);
+    bool boxGetFlags(QString nikname, quint32 &flags);
+    bool boxSetFlag(QString nikname, int flag, int st);
 
 public:
     explicit CCBotPrivate(QObject *parent = nullptr);

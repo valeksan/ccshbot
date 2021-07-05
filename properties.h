@@ -52,6 +52,12 @@ class Properties : public QObject
     Q_PROPERTY(QString speechkitIamToken READ speechkitIamToken WRITE setSpeechkitIamToken NOTIFY speechkitIamTokenChanged)
     Q_PROPERTY(QString speechkitGetIamTokenHost READ speechkitGetIamTokenHost WRITE setSpeechkitGetIamTokenHost NOTIFY speechkitGetIamTokenHostChanged)
     Q_PROPERTY(QDateTime speechkitIamTokenExpiryDate READ speechkitIamTokenExpiryDate WRITE setSpeechkitIamTokenExpiryDate NOTIFY speechkitIamTokenExpiryDateChanged)
+    Q_PROPERTY(double speechKitPriceSimpleVoice READ speechKitPriceSimpleVoice WRITE setSpeechKitPriceSimpleVoice NOTIFY speechKitPriceSimpleVoiceChanged)
+    Q_PROPERTY(double speechKitPricePremiumVoice READ speechKitPricePremiumVoice WRITE setSpeechKitPricePremiumVoice NOTIFY speechKitPricePremiumVoiceChanged)
+
+    // Box settings (for chat interlocutors)
+    Q_PROPERTY(double boxUserStartingBalance READ boxUserStartingBalance WRITE setBoxUserStartingBalance NOTIFY boxUserStartingBalanceChanged)
+    Q_PROPERTY(bool boxDefaultOnFlag0 READ boxDefaultOnFlag0 WRITE setBoxDefaultOnFlag0 NOTIFY boxDefaultOnFlag0Changed)
 
     bool m_flagLoadingChat = true;
     QString m_currentStreamId;
@@ -84,6 +90,10 @@ class Properties : public QObject
     QString m_testStr;
     QString m_currentStreamerNikname;
     bool m_flagLogging = false;
+    double m_boxUserStartingBalance = 0.0;
+    double m_speechKitPriceSimpleVoice = 0.0;
+    double m_speechKitPricePremiumVoice = 0.0;
+    bool m_boxDefaultOnFlag0 = false;
 
 public:
     explicit Properties(QObject *parent = nullptr) : QObject(parent),
@@ -180,6 +190,18 @@ public:
     bool flagLogging() const;
     void setFlagLogging(bool newFlagLogging);
 
+    double boxUserStartingBalance() const;
+    void setBoxUserStartingBalance(double newBoxUserStartingBalance);
+
+    double speechKitPriceSimpleVoice() const;
+    void setSpeechKitPriceSimpleVoice(double newSpeechKitPriceSimpleVoice);
+
+    double speechKitPricePremiumVoice() const;
+    void setSpeechKitPricePremiumVoice(double newSpeechKitPricePremiumVoice);
+
+    bool boxDefaultOnFlag0() const;
+    void setBoxDefaultOnFlag0(bool newBoxDefaultOnFlag0);
+
 public slots:
 
 signals:
@@ -214,7 +236,63 @@ signals:
     void testStrChanged();
     void currentStreamerNiknameChanged();
     void flagLoggingChanged();
+    void boxUserStartingBalanceChanged();
+    void speechKitPriceSimpleVoiceChanged();
+    void speechKitPricePremiumVoiceChanged();
+    void boxDefaultOnFlag0Changed();
 };
+
+inline bool Properties::boxDefaultOnFlag0() const
+{
+    return m_boxDefaultOnFlag0;
+}
+
+inline void Properties::setBoxDefaultOnFlag0(bool newBoxDefaultOnFlag0)
+{
+    if (m_boxDefaultOnFlag0 == newBoxDefaultOnFlag0)
+        return;
+    m_boxDefaultOnFlag0 = newBoxDefaultOnFlag0;
+    emit boxDefaultOnFlag0Changed();
+}
+
+inline double Properties::speechKitPricePremiumVoice() const
+{
+    return m_speechKitPricePremiumVoice;
+}
+
+inline void Properties::setSpeechKitPricePremiumVoice(double newSpeechKitPricePremiumVoice)
+{
+    if (qFuzzyCompare(m_speechKitPricePremiumVoice, newSpeechKitPricePremiumVoice))
+        return;
+    m_speechKitPricePremiumVoice = newSpeechKitPricePremiumVoice;
+    emit speechKitPricePremiumVoiceChanged();
+}
+
+inline double Properties::speechKitPriceSimpleVoice() const
+{
+    return m_speechKitPriceSimpleVoice;
+}
+
+inline void Properties::setSpeechKitPriceSimpleVoice(double newSpeechKitPriceSimpleVoice)
+{
+    if (qFuzzyCompare(m_speechKitPriceSimpleVoice, newSpeechKitPriceSimpleVoice))
+        return;
+    m_speechKitPriceSimpleVoice = newSpeechKitPriceSimpleVoice;
+    emit speechKitPriceSimpleVoiceChanged();
+}
+
+inline double Properties::boxUserStartingBalance() const
+{
+    return m_boxUserStartingBalance;
+}
+
+inline void Properties::setBoxUserStartingBalance(double newBoxUserStartingBalance)
+{
+    if (qFuzzyCompare(m_boxUserStartingBalance, newBoxUserStartingBalance))
+        return;
+    m_boxUserStartingBalance = newBoxUserStartingBalance;
+    emit boxUserStartingBalanceChanged();
+}
 
 inline bool Properties::flagLogging() const
 {

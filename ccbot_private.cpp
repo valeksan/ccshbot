@@ -200,29 +200,21 @@ bool CCBotPrivate::createBoxTableInDB()
                             "nikname TEXT NOT NULL UNIQUE, "
                             "info TEXT DEFAULT NULL, "
                             "achieves TEXT DEFAULT NULL, "
-                            "registration_date DATETIME DEFAULT :reg_date, "
-                            "last_activity_date DATETIME DEFAULT :reg_date, "
+                            "flags INTEGER DEFAULT 0, "
+                            "registration_date DATETIME DEFAULT NULL, "
+                            "last_activity_date DATETIME DEFAULT NULL, "
                             "count_msg INTEGER DEFAULT 0, "
                             "count_symbols INTEGER DEFAULT 0, "
                             "count_speech_symbols INTEGER DEFAULT 0, "
-                            "num_donation REAL DEFAULT 0.0, "
-                            "num_donation_balance REAL DEFAULT :starting_balance, "
-                            "flag_attention_empty_balace_shown INTEGER DEFAULT 0, "
-                            "tts_voice TEXT DEFAULT :tts_voice, "
-                            "tts_speed_voice REAL DEFAULT 1.0, "
+                            "donation REAL DEFAULT 0.0, "
+                            "balance REAL DEFAULT NULL, "
+                            "tts_voice TEXT DEFAULT NULL, "
+                            "tts_speed_voice TEXT DEFAULT NULL, "
                             "tts_voice_emotion TEXT DEFAULT NULL, "
                             "rezerv TEXT DEFAULT NULL";
     const QString sql = QString("CREATE TABLE IF NOT EXISTS 'box' (%1)").arg(values);
 
-    qry.prepare(sql);
-
-    QDateTime timestamp = QDateTime::currentDateTime();
-
-    qry.bindValue(":reg_date", timestamp.toString("yyyy-MM-dd hh:mm:ss"));
-    qry.bindValue(":starting_balance", 0.5); // will set property!
-    qry.bindValue(":tts_voice", "zahar"); // will set property!
-
-    bool state = qry.exec();
+    bool state = qry.exec(sql);
 
     if (m_params->flagLogging() && !state) {
         QString info = QString("Sql query-create error(%1): ")
@@ -234,19 +226,22 @@ bool CCBotPrivate::createBoxTableInDB()
     return state;
 }
 
-bool CCBotPrivate::containNiknameInBoxDB(QString nikname)
+bool CCBotPrivate::boxContainUser(QString nikname)
 {
     QSqlQuery qry;
     QString sql;
 
-    sql = QString("SELECT nikname FROM box WHERE nikname=:nikname;");
+    sql = "SELECT nikname FROM box WHERE nikname=:nikname;";
     qry.prepare(sql);
     qry.bindValue(":nikname", nikname);
 
     bool state = qry.exec(sql);
 
-    if (!state) {
-        qDebug() << "err sql:" << qry.lastError().text();
+    if (m_params->flagLogging() && !state) {
+        QString info = QString("Sql query-select error(%1): ")
+                .arg(qry.lastError().type()) + qry.lastError().text()
+                + QString("\nQuery: %1").arg(qry.lastQuery());
+        addToLog(info);
         return false;
     }
 
@@ -254,6 +249,676 @@ bool CCBotPrivate::containNiknameInBoxDB(QString nikname)
         return true;
 
     return false;
+}
+
+bool CCBotPrivate::boxRegisterNewUser(QString nikname)
+{
+    QSqlQuery qry;
+    QString sql;
+
+    QDateTime timestamp = QDateTime::currentDateTime();
+    quint32 flags = 0;
+
+    if (m_params->boxDefaultOnFlag0()) {
+        macro_qBitOn(flags, 0);
+    }
+
+    sql = "INSERT INTO box "
+            "(nikname, registration_date, last_activity_date, balance, tts_voice, tts_speed_voice, tts_voice_emotion, flags) "
+            "VALUES (:nikname, :reg_date, :reg_date, :balance, :voice, :speed, :emotion, :flags);";
+    qry.prepare(sql);
+    qry.bindValue(":reg_date", timestamp.toString("yyyy-MM-dd hh:mm:ss"));
+    qry.bindValue(":nikname", nikname);
+    qry.bindValue(":balance", m_params->boxUserStartingBalance());
+    qry.bindValue(":voice", m_params->speechkitVoice());
+    qry.bindValue(":speed", m_params->speechkitSpeed());
+    qry.bindValue(":emotion", m_params->speechkitEmotion());
+    qry.bindValue(":flags", flags);
+
+    bool state = qry.exec(sql);
+
+    if (m_params->flagLogging() && !state) {
+        QString info = QString("Sql query-insert error(%1): ")
+                .arg(qry.lastError().type()) + qry.lastError().text()
+                + QString("\nQuery: %1").arg(qry.lastQuery());
+        addToLog(info);
+    }
+
+    return state;
+}
+
+bool CCBotPrivate::boxGetStatisticsOfMessage(QString nikname, quint64 &numMessages, quint64 &numSymbols)
+{
+    QSqlQuery qry;
+    QString sql;
+
+    sql = "SELECT count_msg, count_symbols FROM box WHERE nikname=:nikname;";
+    qry.prepare(sql);
+    qry.bindValue(":nikname", nikname);
+
+    bool state = qry.exec(sql);
+
+    if (m_params->flagLogging() && !state) {
+        QString info = QString("Sql query-select error(%1): ")
+                .arg(qry.lastError().type()) + qry.lastError().text()
+                + QString("\nQuery: %1").arg(qry.lastQuery());
+        addToLog(info);
+        return false;
+    }
+
+    if (qry.next()) {
+        numMessages = qry.value(0).toULongLong();
+        numSymbols = qry.value(1).toULongLong();
+        return true;
+    }
+
+    return false;
+}
+
+bool CCBotPrivate::boxAddStatisticsOfMessage(QString nikname,
+                                                 int numSymbolsToAdd)
+{
+    QSqlQuery qry;
+    QString sql;
+    bool state = false;
+
+    // get prev places
+    quint64 countMsgIn;
+    quint64 countSymbolsIn;
+    state = boxGetStatisticsOfMessage(nikname, countMsgIn, countSymbolsIn);
+
+    if (!state)
+        return false;
+
+    // update places
+    sql = "UPDATE box SET "
+            "count_msg = :count_msg, "
+            "count_symbols = :count_symbols "
+            "WHERE nikname = :nikname;";
+    qry.prepare(sql);
+    quint64 countMsgUpdated = countMsgIn + 1;
+    quint64 countSymbolsUpdated = countSymbolsIn
+            + static_cast<quint64>(numSymbolsToAdd);
+    qry.bindValue(":count_msg", countMsgUpdated);
+    qry.bindValue(":count_symbols", countSymbolsUpdated);
+    qry.bindValue(":nikname", nikname);
+
+    state = qry.exec(sql);
+
+    if (m_params->flagLogging() && !state) {
+        QString info = QString("Sql query-update error(%1): ")
+                .arg(qry.lastError().type()) + qry.lastError().text()
+                + QString("\nQuery: %1").arg(qry.lastQuery());
+        addToLog(info);
+    }
+
+    return state;
+}
+
+bool CCBotPrivate::boxGetBalanceInfo(QString nikname, double &donation, double &balance)
+{
+    QSqlQuery qry;
+    QString sql;
+
+    sql = "SELECT donation, balance FROM box WHERE nikname=:nikname;";
+    qry.prepare(sql);
+    qry.bindValue(":nikname", nikname);
+
+    bool state = qry.exec(sql);
+
+    if (m_params->flagLogging() && !state) {
+        QString info = QString("Sql query-select error(%1): ")
+                .arg(qry.lastError().type()) + qry.lastError().text()
+                + QString("\nQuery: %1").arg(qry.lastQuery());
+        addToLog(info);
+        return false;
+    }
+
+    if (qry.next()) {
+        donation = qry.value(0).toDouble();
+        balance = qry.value(1).toDouble();
+        return true;
+    }
+
+    return false;
+}
+
+bool CCBotPrivate::boxAddBalance(QString nikname, double cash, bool bonus)
+{
+    QSqlQuery qry;
+    QString sql;
+    bool state = false;
+
+    // get prev places
+    double prevDonationIn;
+    double prevBalanceIn;
+    state = boxGetBalanceInfo(nikname, prevDonationIn, prevBalanceIn);
+
+    if (!state)
+        return false;
+
+    // update places
+    if (!bonus) {
+        sql = "UPDATE box SET "
+                "donation = :donation, "
+                "balance = :balance "
+                "WHERE nikname = :nikname;";
+    } else {
+        sql = "UPDATE box SET "
+                "balance = :balance "
+                "WHERE nikname = :nikname;";
+    }
+    qry.prepare(sql);
+    if (!bonus) {
+        double donationUpdated = prevDonationIn + cash;
+        qry.bindValue(":donation", donationUpdated);
+    }
+    double balanceUpdated = prevBalanceIn + cash;
+    qry.bindValue(":balance", balanceUpdated);
+    qry.bindValue(":nikname", nikname);
+
+    state = qry.exec(sql);
+
+    if (m_params->flagLogging() && !state) {
+        QString info = QString("Sql query-update error(%1): ")
+                .arg(qry.lastError().type()) + qry.lastError().text()
+                + QString("\nQuery: %1").arg(qry.lastQuery());
+        addToLog(info);
+    }
+
+    return state;
+}
+
+bool CCBotPrivate::boxSpendBalace(QString nikname, double cash, bool &isEmptyMoney)
+{
+    QSqlQuery qry;
+    QString sql;
+    bool state = false;
+
+    // get prev places
+    double prevDonationIn;
+    double prevBalanceIn;
+    state = boxGetBalanceInfo(nikname, prevDonationIn, prevBalanceIn);
+
+    if (!state)
+        return false;
+
+    double balanceUpdated = prevBalanceIn - cash;
+
+    if (balanceUpdated < 0.0) {
+        isEmptyMoney = true;
+        return false;
+    }
+    isEmptyMoney = false;
+
+    // update place
+    sql = "UPDATE box SET "
+            "balance = :balance "
+            "WHERE nikname = :nikname;";
+    qry.prepare(sql);
+    qry.bindValue(":balance", balanceUpdated);
+    qry.bindValue(":nikname", nikname);
+
+    state = qry.exec(sql);
+
+    if (m_params->flagLogging() && !state) {
+        QString info = QString("Sql query-update error(%1): ")
+                .arg(qry.lastError().type()) + qry.lastError().text()
+                + QString("\nQuery: %1").arg(qry.lastQuery());
+        addToLog(info);
+    }
+
+    return state;
+}
+
+bool CCBotPrivate::boxGetStatisticsOfSpeech(QString nikname, quint64 &numSpeechSymbols)
+{
+    QSqlQuery qry;
+    QString sql;
+
+    sql = "SELECT count_speech_symbols FROM box WHERE nikname=:nikname;";
+    qry.prepare(sql);
+    qry.bindValue(":nikname", nikname);
+
+    bool state = qry.exec(sql);
+
+    if (m_params->flagLogging() && !state) {
+        QString info = QString("Sql query-select error(%1): ")
+                .arg(qry.lastError().type()) + qry.lastError().text()
+                + QString("\nQuery: %1").arg(qry.lastQuery());
+        addToLog(info);
+        return false;
+    }
+
+    if (qry.next()) {
+        numSpeechSymbols = qry.value(0).toULongLong();
+        return true;
+    }
+
+    return false;
+}
+
+bool CCBotPrivate::boxAddNumSpeechSymbolsInStatistics(QString nikname, int numSymbolsAdds)
+{
+    QSqlQuery qry;
+    QString sql;
+    bool state = false;
+
+    // get prev places
+    quint64 prevSpeechSymbolsIn;
+    state = boxGetStatisticsOfSpeech(nikname, prevSpeechSymbolsIn);
+
+    if (!state)
+        return false;
+
+    quint64 speechSymbolsUpdated = prevSpeechSymbolsIn
+            + static_cast<quint64>(numSymbolsAdds);
+
+    // update places
+    sql = "UPDATE box SET "
+            "count_speech_symbols = :count_speech_symbols "
+            "WHERE nikname = :nikname;";
+    qry.prepare(sql);
+    qry.bindValue(":count_speech_symbols", speechSymbolsUpdated);
+    qry.bindValue(":nikname", nikname);
+
+    state = qry.exec(sql);
+
+    if (m_params->flagLogging() && !state) {
+        QString info = QString("Sql query-update error(%1): ")
+                .arg(qry.lastError().type()) + qry.lastError().text()
+                + QString("\nQuery: %1").arg(qry.lastQuery());
+        addToLog(info);
+    }
+
+    return state;
+}
+
+bool CCBotPrivate::boxCalculatePriceForSpeech(QString nikname, int numSpeechSymbols, double &price, QString *voiceIn)
+{
+    QSqlQuery qry;
+    QString sql;
+
+    if (qFuzzyCompare(m_params->speechKitPricePremiumVoice(), 0.0)
+            && qFuzzyCompare(m_params->speechKitPriceSimpleVoice(), 0.0)) {
+        price = 0.0;
+        return true;
+    }
+
+    sql = "SELECT tts_voice FROM box WHERE nikname=:nikname;";
+    qry.prepare(sql);
+    qry.bindValue(":nikname", nikname);
+
+    bool state = qry.exec(sql);
+
+    if (m_params->flagLogging() && !state) {
+        QString info = QString("Sql query-select error(%1): ")
+                .arg(qry.lastError().type()) + qry.lastError().text()
+                + QString("\nQuery: %1").arg(qry.lastQuery());
+        addToLog(info);
+        return false;
+    }
+
+    QString voice;
+
+    if (qry.next()) {
+        voice = qry.value(0).toString();
+        if (voiceIn) {
+            *voiceIn = voice;
+        }
+        double priceSymbol;
+        if (voice == "filipp" || voice == "alena") {
+            priceSymbol = m_params->speechKitPricePremiumVoice();
+        } else {
+            priceSymbol = m_params->speechKitPriceSimpleVoice();
+        }
+        price = priceSymbol * numSpeechSymbols;
+        return true;
+    }
+
+    price = 0.0;
+
+    return false;
+}
+
+bool CCBotPrivate::boxSetUserVoice(QString nikname, QString voice)
+{
+    QSqlQuery qry;
+    QString sql;
+
+    // update places
+    sql = "UPDATE box SET "
+            "tts_voice = :tts_voice "
+            "WHERE nikname = :nikname;";
+    qry.prepare(sql);
+    qry.bindValue(":tts_voice", voice);
+    qry.bindValue(":nikname", nikname);
+
+    bool state = qry.exec(sql);
+
+    if (m_params->flagLogging() && !state) {
+        QString info = QString("Sql query-update error(%1): ")
+                .arg(qry.lastError().type()) + qry.lastError().text()
+                + QString("\nQuery: %1").arg(qry.lastQuery());
+        addToLog(info);
+    }
+
+    return state;
+}
+
+bool CCBotPrivate::boxGetUserVoice(QString nikname, QString &voice)
+{
+    QSqlQuery qry;
+    QString sql;
+
+    sql = "SELECT tts_voice FROM box WHERE nikname=:nikname;";
+    qry.prepare(sql);
+    qry.bindValue(":nikname", nikname);
+
+    bool state = qry.exec(sql);
+
+    if (m_params->flagLogging() && !state) {
+        QString info = QString("Sql query-select error(%1): ")
+                .arg(qry.lastError().type()) + qry.lastError().text()
+                + QString("\nQuery: %1").arg(qry.lastQuery());
+        addToLog(info);
+        return false;
+    }
+
+    if (qry.next()) {
+        voice = qry.value(0).toString();
+        return true;
+    }
+
+    return false;
+}
+
+bool CCBotPrivate::boxSetUserSpeedVoice(QString nikname, QString speed)
+{
+    QSqlQuery qry;
+    QString sql;
+
+    sql = "UPDATE box SET "
+            "tts_speed_voice = :tts_speed_voice "
+            "WHERE nikname = :nikname;";
+    qry.prepare(sql);
+    qry.bindValue(":tts_speed_voice", speed);
+    qry.bindValue(":nikname", nikname);
+
+    bool state = qry.exec(sql);
+
+    if (m_params->flagLogging() && !state) {
+        QString info = QString("Sql query-update error(%1): ")
+                .arg(qry.lastError().type()) + qry.lastError().text()
+                + QString("\nQuery: %1").arg(qry.lastQuery());
+        addToLog(info);
+    }
+
+    return state;
+}
+
+bool CCBotPrivate::boxGetUserSpeedVoice(QString nikname, QString &speed)
+{
+    QSqlQuery qry;
+    QString sql;
+
+    sql = "SELECT tts_speed_voice FROM box WHERE nikname=:nikname;";
+    qry.prepare(sql);
+    qry.bindValue(":nikname", nikname);
+
+    bool state = qry.exec(sql);
+
+    if (m_params->flagLogging() && !state) {
+        QString info = QString("Sql query-select error(%1): ")
+                .arg(qry.lastError().type()) + qry.lastError().text()
+                + QString("\nQuery: %1").arg(qry.lastQuery());
+        addToLog(info);
+        return false;
+    }
+
+    if (qry.next()) {
+        speed = qry.value(0).toString();
+        return true;
+    }
+
+    return false;
+}
+
+bool CCBotPrivate::boxSetUserEmotionVoice(QString nikname, QString emotion)
+{
+    QSqlQuery qry;
+    QString sql;
+
+    sql = "UPDATE box SET "
+            "tts_voice_emotion = :tts_voice_emotion "
+            "WHERE nikname = :nikname;";
+    qry.prepare(sql);
+    qry.bindValue(":tts_voice_emotion", emotion);
+    qry.bindValue(":nikname", nikname);
+
+    bool state = qry.exec(sql);
+
+    if (m_params->flagLogging() && !state) {
+        QString info = QString("Sql query-update error(%1): ")
+                .arg(qry.lastError().type()) + qry.lastError().text()
+                + QString("\nQuery: %1").arg(qry.lastQuery());
+        addToLog(info);
+    }
+
+    return state;
+}
+
+bool CCBotPrivate::boxGetUserEmotionVoice(QString nikname, QString &emotion)
+{
+    QSqlQuery qry;
+    QString sql;
+
+    sql = "SELECT tts_voice_emotion FROM box WHERE nikname=:nikname;";
+    qry.prepare(sql);
+    qry.bindValue(":nikname", nikname);
+
+    bool state = qry.exec(sql);
+
+    if (m_params->flagLogging() && !state) {
+        QString info = QString("Sql query-select error(%1): ")
+                .arg(qry.lastError().type()) + qry.lastError().text()
+                + QString("\nQuery: %1").arg(qry.lastQuery());
+        addToLog(info);
+        return false;
+    }
+
+    if (qry.next()) {
+        emotion = qry.value(0).toString();
+        return true;
+    }
+
+    return false;
+}
+
+bool CCBotPrivate::boxGetAchieveList(QString nikname, QStringList &achieves)
+{
+    QSqlQuery qry;
+    QString sql;
+
+    sql = "SELECT achieves FROM box WHERE nikname=:nikname;";
+    qry.prepare(sql);
+    qry.bindValue(":nikname", nikname);
+
+    bool state = qry.exec(sql);
+
+    if (m_params->flagLogging() && !state) {
+        QString info = QString("Sql query-select error(%1): ")
+                .arg(qry.lastError().type()) + qry.lastError().text()
+                + QString("\nQuery: %1").arg(qry.lastQuery());
+        addToLog(info);
+        return false;
+    }
+
+    if (qry.next()) {
+        achieves = qry.value(0).toString().split(",");
+        return true;
+    }
+
+    return false;
+}
+
+bool CCBotPrivate::boxAddAchieve(QString nikname, QString achieve)
+{
+    QSqlQuery qry;
+    QString sql;
+    bool state = false;
+
+    // get list
+    QStringList achieveList;
+    state = boxGetAchieveList(nikname, achieveList);
+
+    if (!state)
+        return false;
+
+    // update list
+    if (achieveList.contains(achieve)) {
+        return true;
+    } else {
+        achieveList.append(achieve);
+    }
+
+    sql = "UPDATE box SET "
+            "achieves = :achieves "
+            "WHERE nikname = :nikname;";
+    qry.prepare(sql);
+    qry.bindValue(":achieves", achieveList.join(","));
+    qry.bindValue(":nikname", nikname);
+
+    state = qry.exec(sql);
+
+    if (m_params->flagLogging() && !state) {
+        QString info = QString("Sql query-update error(%1): ")
+                .arg(qry.lastError().type()) + qry.lastError().text()
+                + QString("\nQuery: %1").arg(qry.lastQuery());
+        addToLog(info);
+    }
+
+    return state;
+}
+
+bool CCBotPrivate::boxSetUserInfo(QString nikname, QString info)
+{
+    QSqlQuery qry;
+    QString sql;
+
+    sql = "UPDATE box SET "
+            "info = :info "
+            "WHERE nikname = :nikname;";
+    qry.prepare(sql);
+    qry.bindValue(":info", info);
+    qry.bindValue(":nikname", nikname);
+
+    bool state = qry.exec(sql);
+
+    if (m_params->flagLogging() && !state) {
+        QString info = QString("Sql query-update error(%1): ")
+                .arg(qry.lastError().type()) + qry.lastError().text()
+                + QString("\nQuery: %1").arg(qry.lastQuery());
+        addToLog(info);
+    }
+
+    return state;
+}
+
+bool CCBotPrivate::boxGetUserInfo(QString nikname, QString &info)
+{
+    QSqlQuery qry;
+    QString sql;
+
+    sql = "SELECT info FROM box WHERE nikname=:nikname;";
+    qry.prepare(sql);
+    qry.bindValue(":nikname", nikname);
+
+    bool state = qry.exec(sql);
+
+    if (m_params->flagLogging() && !state) {
+        QString info = QString("Sql query-select error(%1): ")
+                .arg(qry.lastError().type()) + qry.lastError().text()
+                + QString("\nQuery: %1").arg(qry.lastQuery());
+        addToLog(info);
+        return false;
+    }
+
+    if (qry.next()) {
+        info = qry.value(0).toString();
+        return true;
+    }
+
+    return false;
+}
+
+bool CCBotPrivate::boxGetFlags(QString nikname, quint32 &flags)
+{
+    QSqlQuery qry;
+    QString sql;
+
+    sql = "SELECT flags FROM box WHERE nikname=:nikname;";
+    qry.prepare(sql);
+    qry.bindValue(":nikname", nikname);
+
+    bool state = qry.exec(sql);
+
+    if (m_params->flagLogging() && !state) {
+        QString info = QString("Sql query-select error(%1): ")
+                .arg(qry.lastError().type()) + qry.lastError().text()
+                + QString("\nQuery: %1").arg(qry.lastQuery());
+        addToLog(info);
+        return false;
+    }
+
+    if (qry.next()) {
+        flags = qry.value(0).toUInt();
+        return true;
+    }
+
+    return false;
+}
+
+bool CCBotPrivate::boxSetFlag(QString nikname, int flag, int st)
+{
+    QSqlQuery qry;
+    QString sql;
+    bool state = false;
+
+    // get flags
+    quint32 flagsIn;
+    state = boxGetFlags(nikname, flagsIn);
+
+    if (!state)
+        return false;
+
+    // update flags
+    quint32 flagsUpdated = flagsIn;
+    if (st == 1)
+        macro_qBitOn(flagsUpdated, flag);
+    else
+        macro_qBitOff(flagsUpdated, flag);
+
+    if (flagsIn == flagsUpdated)
+        return true;
+
+    sql = "UPDATE box SET "
+            "flags = :flags "
+            "WHERE nikname = :nikname;";
+    qry.prepare(sql);
+    qry.bindValue(":flags", flagsUpdated);
+    qry.bindValue(":nikname", nikname);
+
+    state = qry.exec(sql);
+
+    if (m_params->flagLogging() && !state) {
+        QString info = QString("Sql query-update error(%1): ")
+                .arg(qry.lastError().type()) + qry.lastError().text()
+                + QString("\nQuery: %1").arg(qry.lastQuery());
+        addToLog(info);
+    }
+
+    return state;
 }
 
 void CCBotPrivate::mergeMessages(QList<MessageData> oldMsgList,
