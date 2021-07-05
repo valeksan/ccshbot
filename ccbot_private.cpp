@@ -276,7 +276,7 @@ bool CCBotPrivate::boxRegisterNewUser(QString nikname)
     qry.bindValue(":emotion", m_params->speechkitEmotion());
     qry.bindValue(":flags", flags);
 
-    bool state = qry.exec(sql);
+    bool state = qry.exec();
 
     if (m_params->flagLogging() && !state) {
         QString info = QString("Sql query-insert error(%1): ")
