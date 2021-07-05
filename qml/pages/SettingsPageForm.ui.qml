@@ -29,6 +29,8 @@ Page {
     property alias lvRepKeywords: lvRepKeywords
     property alias btRemoveRepKeyword: btRemoveRepKeyword
     property alias lvRepWords: lvRepWords
+    property alias btRepWordUp: btRepWordUp
+    property alias btRepWordDown: btRepWordDown
 
     Pane {
         anchors.fill: parent
@@ -360,13 +362,31 @@ Page {
                             }
                         }
                     }
-                    Button {
-                        id: btRemoveRepKeyword
-                        text: qsTr("Удалить")
+                    ColumnLayout {
                         Layout.alignment: Qt.AlignTop
                         Layout.topMargin: -6
-                        Layout.minimumHeight: 55
-                        Layout.minimumWidth: 95
+                        spacing: 10
+                        Button {
+                            id: btRemoveRepKeyword
+                            text: qsTr("Удалить")
+                            Layout.minimumHeight: 55
+                            Layout.minimumWidth: 95
+                        }
+                        ColumnLayout {
+                            spacing: 0
+                            Button {
+                                id: btRepWordUp
+                                text: qsTr("Вверх")
+                                Layout.minimumHeight: 55
+                                Layout.minimumWidth: 95
+                            }
+                            Button {
+                                id: btRepWordDown
+                                text: qsTr("Вниз")
+                                Layout.minimumHeight: 55
+                                Layout.minimumWidth: 95
+                            }
+                        }
                     }
                 }
             }

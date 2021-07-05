@@ -73,6 +73,10 @@ protected:
     bool existsTableDB(QString streamId);
     bool selectMsgsFromTableDB(QString streamId, QList<MessageData> &msgList, int limit = -1);
     bool appendMsgIntoTableDB(QString streamId, QList<MessageData> &msgList);
+    // - box database
+    bool createBoxTableInDB();
+    bool containNiknameInBoxDB(QString nikname);
+    void insertNewNiknamePlaceInBoxDB();
 
 public:
     explicit CCBotPrivate(QObject *parent = nullptr);
@@ -83,6 +87,8 @@ public slots:
     void editRepitWordForVoice(QString keyword, QString oldWord, QString newWord);
     void removeRepWordForVoice(QString keyword, QString word);
     void removeRepKeywordForVoice(QString keyword);
+    void downSwapRepKeywordForVoice(int index);
+    void upSwapRepKeywordForVoice(int index);
     QString getWordPairListInJson(bool compact = true);
     const QString getAppDataDirPath();
 

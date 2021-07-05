@@ -192,6 +192,70 @@ bool CCBotPrivate::appendMsgIntoTableDB(QString streamId,
     return false;
 }
 
+bool CCBotPrivate::createBoxTableInDB()
+{
+    QSqlQuery qry;
+
+    const QString values =  "id INTEGER PRIMARY KEY AUTOINCREMENT, "
+                            "nikname TEXT NOT NULL UNIQUE, "
+                            "info TEXT DEFAULT NULL, "
+                            "achieves TEXT DEFAULT NULL, "
+                            "registration_date DATETIME DEFAULT :reg_date, "
+                            "last_activity_date DATETIME DEFAULT :reg_date, "
+                            "count_msg INTEGER DEFAULT 0, "
+                            "count_symbols INTEGER DEFAULT 0, "
+                            "count_speech_symbols INTEGER DEFAULT 0, "
+                            "num_donation REAL DEFAULT 0.0, "
+                            "num_donation_balance REAL DEFAULT :starting_balance, "
+                            "flag_attention_empty_balace_shown INTEGER DEFAULT 0, "
+                            "tts_voice TEXT DEFAULT :tts_voice, "
+                            "tts_speed_voice REAL DEFAULT 1.0, "
+                            "tts_voice_emotion TEXT DEFAULT NULL, "
+                            "rezerv TEXT DEFAULT NULL";
+    const QString sql = QString("CREATE TABLE IF NOT EXISTS 'box' (%1)").arg(values);
+
+    qry.prepare(sql);
+
+    QDateTime timestamp = QDateTime::currentDateTime();
+
+    qry.bindValue(":reg_date", timestamp.toString("yyyy-MM-dd hh:mm:ss"));
+    qry.bindValue(":starting_balance", 0.5); // will set property!
+    qry.bindValue(":tts_voice", "zahar"); // will set property!
+
+    bool state = qry.exec();
+
+    if (m_params->flagLogging() && !state) {
+        QString info = QString("Sql query-create error(%1): ")
+                .arg(qry.lastError().type()) + qry.lastError().text()
+                + QString("\nQuery: %1").arg(qry.lastQuery());
+        addToLog(info);
+    }
+
+    return state;
+}
+
+bool CCBotPrivate::containNiknameInBoxDB(QString nikname)
+{
+    QSqlQuery qry;
+    QString sql;
+
+    sql = QString("SELECT nikname FROM box WHERE nikname=:nikname;");
+    qry.prepare(sql);
+    qry.bindValue(":nikname", nikname);
+
+    bool state = qry.exec(sql);
+
+    if (!state) {
+        qDebug() << "err sql:" << qry.lastError().text();
+        return false;
+    }
+
+    if (qry.size() > 0)
+        return true;
+
+    return false;
+}
+
 void CCBotPrivate::mergeMessages(QList<MessageData> oldMsgList,
                                  QList<MessageData> newMsgList,
                                  QList<MessageData> &mergedMsgList)
@@ -506,7 +570,6 @@ void CCBotPrivate::addWordPairToReplaceForVoice(QString keyword, QString word)
                 objItem.insert("r", QJsonValue(r));
                 jarr.replace(i, QJsonValue(objItem));
                 m_dataToReplaceTextForVoice.setArray(jarr);
-                qDebug() << "JSON:" << m_dataToReplaceTextForVoice.toJson(QJsonDocument::Compact);
                 return;
             }
         }
@@ -535,11 +598,9 @@ void CCBotPrivate::editRepitWordForVoice(QString keyword, QString oldWord, QStri
         if (value.isObject()) {
             QJsonObject objItem = value.toObject();
             if (objItem.value("w").toString() == keyword) {
-                qDebug() << "found keyword!";
                 QJsonArray r = objItem.value("r").toArray();
                 for (int j = 0; j < r.size(); j++) {
                     if (r.at(j) == oldWord) {
-                        qDebug() << "found word!";
                         r.replace(j, QJsonValue(newWord));
                         objItem.insert("r", QJsonValue(r));
                         jarr.replace(i, QJsonValue(objItem));
@@ -566,11 +627,9 @@ void CCBotPrivate::removeRepWordForVoice(QString keyword, QString word)
         if (value.isObject()) {
             QJsonObject objItem = value.toObject();
             if (objItem.value("w").toString() == keyword) {
-                qDebug() << "found keyword!";
                 QJsonArray r = objItem.value("r").toArray();
                 for (int j = 0; j < r.size(); j++) {
                     if (r.at(j) == word) {
-                        qDebug() << "found word!";
                         r.removeAt(j);
                         objItem.insert("r", QJsonValue(r));
                         jarr.replace(i, QJsonValue(objItem));
@@ -600,13 +659,53 @@ void CCBotPrivate::removeRepKeywordForVoice(QString keyword)
         if (value.isObject()) {
             QJsonObject objItem = value.toObject();
             if (objItem.value("w").toString() == keyword) {
-                qDebug() << "found keyword!";
                 jarr.removeAt(i);
                 m_dataToReplaceTextForVoice.setArray(jarr);
                 return;
             }
         }
     }
+}
+
+void CCBotPrivate::downSwapRepKeywordForVoice(int index)
+{
+    if (!m_dataToReplaceTextForVoice.isArray()) {
+        m_dataToReplaceTextForVoice = QJsonDocument::fromJson("[]");
+    }
+    QJsonArray jarr = m_dataToReplaceTextForVoice.array();
+
+    if (index >= jarr.size() - 1
+            || index == -1
+            || jarr.size() < 2)
+    {
+        return;
+    }
+
+    QJsonValue tmp = jarr.at(index);
+    jarr.replace(index, jarr.at(index + 1));
+    jarr.replace(index + 1, tmp);
+
+    m_dataToReplaceTextForVoice.setArray(jarr);
+}
+
+void CCBotPrivate::upSwapRepKeywordForVoice(int index)
+{
+    if (!m_dataToReplaceTextForVoice.isArray()) {
+        m_dataToReplaceTextForVoice = QJsonDocument::fromJson("[]");
+    }
+    QJsonArray jarr = m_dataToReplaceTextForVoice.array();
+
+    if (index < 1
+            || jarr.size() < 2)
+    {
+        return;
+    }
+
+    QJsonValue tmp = jarr.at(index);
+    jarr.replace(index, jarr.at(index - 1));
+    jarr.replace(index - 1, tmp);
+
+    m_dataToReplaceTextForVoice.setArray(jarr);
 }
 
 QString CCBotPrivate::getWordPairListInJson(bool compact)

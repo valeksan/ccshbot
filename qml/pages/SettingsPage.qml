@@ -64,10 +64,6 @@ SettingsPageForm {
             "lang": "ru-RU",
             "voice": "oksana"
         }, {
-            "title": "Oksana (Female, English)",
-            "lang": "en-US",
-            "voice": "oksana"
-        }, {
             "title": "Филипп PR (Мужской, Русский)",
             "lang": "ru-RU",
             "voice": "filipp"
@@ -80,32 +76,16 @@ SettingsPageForm {
             "lang": "ru-RU",
             "voice": "jane"
         }, {
-            "title": "Jane (Female, English)",
-            "lang": "en-US",
-            "voice": "jane"
-        }, {
             "title": "Омаж (Женский, Русский)",
             "lang": "ru-RU",
-            "voice": "omazh"
-        }, {
-            "title": "Omazh (Female, English)",
-            "lang": "en-US",
             "voice": "omazh"
         }, {
             "title": "Захар (Мужской, Русский)",
             "lang": "ru-RU",
             "voice": "zahar"
         }, {
-            "title": "Zahar (Male, English)",
-            "lang": "en-US",
-            "voice": "zahar"
-        }, {
             "title": "Ермил (Мужской, Русский)",
             "lang": "ru-RU",
-            "voice": "ermil"
-        }, {
-            "title": "Ermil (Male, English)",
-            "lang": "en-US",
             "voice": "ermil"
         }, {
             "title": "Silaerkan (Kadın, Türk)",
@@ -118,10 +98,6 @@ SettingsPageForm {
         }, {
             "title": "Alyss (Female, English)",
             "lang": "en-US",
-            "voice": "alyss"
-        }, {
-            "title": "Алиса (Женский, Русский)",
-            "lang": "ru-RU",
             "voice": "alyss"
         }, {
             "title": "Nick (Male, English)",
@@ -305,6 +281,23 @@ SettingsPageForm {
         }
     }
 
+    btRepWordDown.visible: lvRepKeywords.currentIndex !== -1
+    btRepWordDown.enabled: lvRepKeywords.currentIndex < lvRepKeywords.model.length-1
+                           && lvRepKeywords.currentIndex >= 0
+                           && lvRepWords.currentIndex === -1
+    btRepWordDown.onClicked: {
+        ccbot.downSwapRepKeywordForVoice(lvRepKeywords.currentIndex);
+        updateRepPairModels();
+    }
+
+    btRepWordUp.visible: lvRepKeywords.currentIndex !== -1
+    btRepWordUp.enabled: lvRepKeywords.currentIndex > 0
+                         && lvRepWords.currentIndex === -1
+    btRepWordUp.onClicked: {
+        ccbot.upSwapRepKeywordForVoice(lvRepKeywords.currentIndex);
+        updateRepPairModels();
+    }
+
     focusEnder.onClicked: focusEnder.parent.forceActiveFocus()
 
     Component {
@@ -405,6 +398,17 @@ SettingsPageForm {
 
                         }
                         verticalAlignment: "AlignVCenter"
+                        Keys.onPressed: {
+                            if (event.key === Qt.Key_Escape) {
+                                editMode = false;
+                                event.accepted = true;
+                            }
+                            if (event.key === Qt.Key_Enter) {
+                                rootCompLvWordsDelegate.editWord(modelData, editWord.text);
+                                editMode = false;
+                                event.accepted = true;
+                            }
+                        }
                     }
                 }
                 Button {
