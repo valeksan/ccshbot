@@ -670,7 +670,6 @@ int CCBot::insertNewMessagesInTable(QString streamId, QByteArray jsonData, bool 
     QList<MessageData> rowsFromServer;
     QList<MessageData> rowsForInsert;
 
-    bool tableNotExist = false;
     bool state = false;
 
     // 0. Упаковка данных с CrazyCash
@@ -682,7 +681,6 @@ int CCBot::insertNewMessagesInTable(QString streamId, QByteArray jsonData, bool 
     // 1. Проверка что таблица есть, иначе создать ее
     bool newTableCreated = false;
     if (!existsTableDB(streamId)) {
-        tableNotExist = true;
         if (!createTableDB(streamId)) {
             if (errInfo) {
                 *errInfo = m_db.lastError().text();
@@ -718,7 +716,7 @@ int CCBot::insertNewMessagesInTable(QString streamId, QByteArray jsonData, bool 
     m_mapListType3SendersOld.insert(streamId, newOldList);
 
     // 2. Запрос сообщений с таблицы (100, либо все)
-    if (!tableNotExist) {
+    if (!newTableCreated) {
         if (mergeOnly) {
             selectMsgsFromTableDB(streamId, rowsFromDB, 100);
         } else {
@@ -727,7 +725,7 @@ int CCBot::insertNewMessagesInTable(QString streamId, QByteArray jsonData, bool 
     }
 
     // 3. Слияние
-    if (tableNotExist) {
+    if (newTableCreated) {
         rowsForInsert.append(rowsFromServer);
     } else {
         if (mergeOnly) {
@@ -743,7 +741,6 @@ int CCBot::insertNewMessagesInTable(QString streamId, QByteArray jsonData, bool 
     appendMsgIntoTableDB(streamId, rowsForInsert);
 
     // 5. Обновление чата
-    //updateChat(rowsForInsert);
     if (mergeOnly) {
         updateChat(rowsForInsert);
     } else {

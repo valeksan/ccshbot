@@ -5,7 +5,16 @@ const DEF_TIMEOUT_REPEAT = 1500;
 const DEF_HOST = 'localhost';
 const DEF_PORT = 3000;
 
-let chatVoiceEnable = JSON.parse(localStorage.getItem('ChatVoiceEnable'));
+const chatVoiceEnableCfgObj = localStorage.getItem('ChatVoiceEnableCfg')
+let chatVoiceEnableCfg;
+
+if (chatVoiceEnableCfgObj)
+    chatVoiceEnableCfg = JSON.parse(chatVoiceEnableCfgObj);
+else
+    chatVoiceEnableCfg = new Array();
+
+console.log("__chatVoiceEnableCfg", chatVoiceEnableCfg);
+let chatVoiceEnable = false;
 let flagConnection = false;
 
 let cfgTimeoutRepeat = DEF_TIMEOUT_REPEAT;
@@ -127,8 +136,33 @@ function initCfg() {
 }
 
 function clickBtChatVoice() {
-    chatVoiceEnable = !chatVoiceEnable;
-    localStorage.setItem('ChatVoiceEnable', chatVoiceEnable);
+    //chatVoiceEnable = !chatVoiceEnable;
+
+    const currentPageUrl = window.location.href;
+    const selectorStreamId = RegExp(/https:\/\/crazycash.tv\/view-stream\/(\d{1,})/).exec(currentPageUrl);
+    const streamId = ((selectorStreamId !== null) ? String(selectorStreamId[1]) : "");
+    const flagIsCorrectPage = (streamId.length > 0);
+
+    if (!flagIsCorrectPage)
+        return;
+
+    let chatVoiceEnableFountIndex = -1;
+    for (let i = 0; i < chatVoiceEnableCfg.length; i++) {
+        if (chatVoiceEnableCfg[i]["id"] === streamId) {
+            chatVoiceEnableFountIndex = i;
+            chatVoiceEnable = chatVoiceEnableCfg[i]["chatVoiceEnable"];
+            chatVoiceEnable = !chatVoiceEnable;
+            chatVoiceEnableCfg[i]["chatVoiceEnable"] = chatVoiceEnable;
+            break;
+        }
+    }
+    if (chatVoiceEnableFountIndex === -1) {
+        chatVoiceEnable = true;
+        const btChatVoiceObj = {"id":streamId,"chatVoiceEnable":chatVoiceEnable};
+        chatVoiceEnableCfg.push(btChatVoiceObj);
+    }
+
+    localStorage.setItem('ChatVoiceEnable', chatVoiceEnableCfg);
     if (chatVoiceEnable) {
         doRepeatGetDataCC();
         buttonChatVoiceEnable.className = buttonChatVoiceEnable.className.replace(/\bbtn--light-gray\b/g, "btn--yellow");

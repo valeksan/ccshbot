@@ -273,8 +273,6 @@ bool CCBotPrivate::boxContainUser(QString nikname, bool &contain)
         contain = true;
     }
 
-    qDebug() << "__TEST:" << contain << state << qry.last();
-
     return state;
 }
 
