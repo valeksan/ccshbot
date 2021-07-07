@@ -297,7 +297,7 @@ bool CCBotPrivate::boxGetStatisticsOfMessage(QString nikname, quint64 &numMessag
     qry.prepare(sql);
     qry.bindValue(":nikname", nikname);
 
-    bool state = qry.exec(sql);
+    bool state = qry.exec();
 
     if (m_params->flagLogging() && !state) {
         QString info = QString("Sql query-select error(%1): ")
@@ -348,7 +348,7 @@ bool CCBotPrivate::boxAddStatisticsOfMessage(QString nikname,
     qry.bindValue(":timestamp", timestamp);
     qry.bindValue(":nikname", nikname);
 
-    state = qry.exec(sql);
+    state = qry.exec();
 
     if (m_params->flagLogging() && !state) {
         QString info = QString("Sql query-update error(%1): ")
@@ -369,7 +369,7 @@ bool CCBotPrivate::boxGetBalanceInfo(QString nikname, double &donation, double &
     qry.prepare(sql);
     qry.bindValue(":nikname", nikname);
 
-    bool state = qry.exec(sql);
+    bool state = qry.exec();
 
     if (m_params->flagLogging() && !state) {
         QString info = QString("Sql query-select error(%1): ")
@@ -422,7 +422,7 @@ bool CCBotPrivate::boxAddBalance(QString nikname, double cash, bool bonus)
     qry.bindValue(":balance", balanceUpdated);
     qry.bindValue(":nikname", nikname);
 
-    state = qry.exec(sql);
+    state = qry.exec();
 
     if (m_params->flagLogging() && !state) {
         QString info = QString("Sql query-update error(%1): ")
@@ -464,7 +464,7 @@ bool CCBotPrivate::boxSpendBalace(QString nikname, double cash, bool &isEmptyMon
     qry.bindValue(":balance", balanceUpdated);
     qry.bindValue(":nikname", nikname);
 
-    state = qry.exec(sql);
+    state = qry.exec();
 
     if (m_params->flagLogging() && !state) {
         QString info = QString("Sql query-update error(%1): ")
@@ -485,7 +485,7 @@ bool CCBotPrivate::boxGetStatisticsOfSpeech(QString nikname, quint64 &numSpeechS
     qry.prepare(sql);
     qry.bindValue(":nikname", nikname);
 
-    bool state = qry.exec(sql);
+    bool state = qry.exec();
 
     if (m_params->flagLogging() && !state) {
         QString info = QString("Sql query-select error(%1): ")
@@ -527,7 +527,7 @@ bool CCBotPrivate::boxAddNumSpeechSymbolsInStatistics(QString nikname, int numSy
     qry.bindValue(":count_speech_symbols", speechSymbolsUpdated);
     qry.bindValue(":nikname", nikname);
 
-    state = qry.exec(sql);
+    state = qry.exec();
 
     if (m_params->flagLogging() && !state) {
         QString info = QString("Sql query-update error(%1): ")
@@ -553,7 +553,7 @@ bool CCBotPrivate::boxCalculatePriceForSpeech(QString nikname, int numSpeechSymb
     qry.prepare(sql);
     qry.bindValue(":nikname", nikname);
 
-    bool state = qry.exec(sql);
+    bool state = qry.exec();
 
     if (m_params->flagLogging() && !state) {
         QString info = QString("Sql query-select error(%1): ")
@@ -593,7 +593,7 @@ bool CCBotPrivate::boxSetUserVoice(QString nikname, QString voice)
     qry.bindValue(":tts_voice", voice);
     qry.bindValue(":nikname", nikname);
 
-    bool state = qry.exec(sql);
+    bool state = qry.exec();
 
     if (m_params->flagLogging() && !state) {
         QString info = QString("Sql query-update error(%1): ")
@@ -614,7 +614,7 @@ bool CCBotPrivate::boxGetUserVoice(QString nikname, QString &voice)
     qry.prepare(sql);
     qry.bindValue(":nikname", nikname);
 
-    bool state = qry.exec(sql);
+    bool state = qry.exec();
 
     if (m_params->flagLogging() && !state) {
         QString info = QString("Sql query-select error(%1): ")
@@ -644,7 +644,7 @@ bool CCBotPrivate::boxSetUserSpeedVoice(QString nikname, QString speed)
     qry.bindValue(":tts_speed_voice", speed);
     qry.bindValue(":nikname", nikname);
 
-    bool state = qry.exec(sql);
+    bool state = qry.exec();
 
     if (m_params->flagLogging() && !state) {
         QString info = QString("Sql query-update error(%1): ")
@@ -665,7 +665,7 @@ bool CCBotPrivate::boxGetUserSpeedVoice(QString nikname, QString &speed)
     qry.prepare(sql);
     qry.bindValue(":nikname", nikname);
 
-    bool state = qry.exec(sql);
+    bool state = qry.exec();
 
     if (m_params->flagLogging() && !state) {
         QString info = QString("Sql query-select error(%1): ")
@@ -695,7 +695,7 @@ bool CCBotPrivate::boxSetUserEmotionVoice(QString nikname, QString emotion)
     qry.bindValue(":tts_voice_emotion", emotion);
     qry.bindValue(":nikname", nikname);
 
-    bool state = qry.exec(sql);
+    bool state = qry.exec();
 
     if (m_params->flagLogging() && !state) {
         QString info = QString("Sql query-update error(%1): ")
@@ -716,7 +716,7 @@ bool CCBotPrivate::boxGetUserEmotionVoice(QString nikname, QString &emotion)
     qry.prepare(sql);
     qry.bindValue(":nikname", nikname);
 
-    bool state = qry.exec(sql);
+    bool state = qry.exec();
 
     if (m_params->flagLogging() && !state) {
         QString info = QString("Sql query-select error(%1): ")
@@ -743,7 +743,7 @@ bool CCBotPrivate::boxGetAchieveList(QString nikname, QStringList &achieves)
     qry.prepare(sql);
     qry.bindValue(":nikname", nikname);
 
-    bool state = qry.exec(sql);
+    bool state = qry.exec();
 
     if (m_params->flagLogging() && !state) {
         QString info = QString("Sql query-select error(%1): ")
@@ -788,7 +788,7 @@ bool CCBotPrivate::boxAddAchieve(QString nikname, QString achieve)
     qry.bindValue(":achieves", achieveList.join(","));
     qry.bindValue(":nikname", nikname);
 
-    state = qry.exec(sql);
+    state = qry.exec();
 
     if (m_params->flagLogging() && !state) {
         QString info = QString("Sql query-update error(%1): ")
@@ -812,7 +812,7 @@ bool CCBotPrivate::boxSetUserInfo(QString nikname, QString info)
     qry.bindValue(":info", info);
     qry.bindValue(":nikname", nikname);
 
-    bool state = qry.exec(sql);
+    bool state = qry.exec();
 
     if (m_params->flagLogging() && !state) {
         QString info = QString("Sql query-update error(%1): ")
@@ -833,7 +833,7 @@ bool CCBotPrivate::boxGetUserInfo(QString nikname, QString &info)
     qry.prepare(sql);
     qry.bindValue(":nikname", nikname);
 
-    bool state = qry.exec(sql);
+    bool state = qry.exec();
 
     if (m_params->flagLogging() && !state) {
         QString info = QString("Sql query-select error(%1): ")
@@ -860,7 +860,7 @@ bool CCBotPrivate::boxGetFlags(QString nikname, quint32 &flags)
     qry.prepare(sql);
     qry.bindValue(":nikname", nikname);
 
-    bool state = qry.exec(sql);
+    bool state = qry.exec();
 
     if (m_params->flagLogging() && !state) {
         QString info = QString("Sql query-select error(%1): ")
@@ -908,7 +908,7 @@ bool CCBotPrivate::boxSetFlag(QString nikname, int flag, int st)
     qry.bindValue(":flags", flagsUpdated);
     qry.bindValue(":nikname", nikname);
 
-    state = qry.exec(sql);
+    state = qry.exec();
 
     if (m_params->flagLogging() && !state) {
         QString info = QString("Sql query-update error(%1): ")
@@ -1128,27 +1128,27 @@ void CCBotPrivate::analyseNewMessages(const QList<MessageData> &msgsl)
     for (int i = 0; i < msgsl.size(); i++) {
         MessageData msg = msgsl.at(i);
         bool userIsRegistred = false;
-        bool state = boxContainUser(msg.sender, userIsRegistred);
-        if (!userIsRegistred && state) {
-            state = boxRegisterNewUser(msg.sender);
-            if (state) {
-                userIsRegistred = true;
+        bool isStreammerMsg = msg.sender.toUpper() == m_params->currentStreamerNikname();
+        if (!isStreammerMsg) {
+            bool state = boxContainUser(msg.sender, userIsRegistred);
+            qDebug() << "boxContainUser:" << userIsRegistred << state;
+            if (!userIsRegistred && state) {
+                state = boxRegisterNewUser(msg.sender);
+                if (state) {
+                    userIsRegistred = true;
+                }
             }
-        }
-        if (userIsRegistred) {
-            boxAddBalance(msg.sender, msg.pay);
-        }
-        if (msg.sender != m_params->currentStreamerNikname()
-                && boxTableCreated)
-        {
-            if (userIsRegistred)
+            if (userIsRegistred) {
+                boxAddBalance(msg.sender, msg.pay);
+            }
+            if (boxTableCreated && userIsRegistred) {
                 boxAddStatisticsOfMessage(msg.sender, msg.msg.length());
+            }
         }
         QString text = "";
         if (checkAutoVoiceMessage(msg, text)) {
             m_pCore->addTask(CCBotTaskEnums::VoiceLoad, text);
-            if (msg.sender != m_params->currentStreamerNikname()
-                    && boxTableCreated)
+            if (!isStreammerMsg && boxTableCreated)
             {
                 if (userIsRegistred)
                     boxAddNumSpeechSymbolsInStatistics(msg.sender,

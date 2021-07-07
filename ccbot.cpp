@@ -178,6 +178,9 @@ void CCBot::initTimers()
 void CCBot::initConnections()
 {
     // соединение: конец проигрывания файла
+    connect(m_params, &Properties::currentStreamIdChanged, [=]() {
+        m_listType3Senders.clear();
+    });
     connect(m_player,
             &QMediaPlayer::stateChanged,
             [this](QMediaPlayer::State state)
@@ -692,14 +695,15 @@ int CCBot::insertNewMessagesInTable(QString streamId, QByteArray jsonData, bool 
 
     // Fix. remove type 4 and check on have type 3
     int removeCount = 0;
-    QStringList listType3Senders;
+    //QStringList listType3Senders;
     for (int i = 0; i < rowsFromServer.size(); i++) {
         if (rowsFromServer.at(i).type == 4) {
             rowsFromServer.removeAt(i--);
             ++removeCount;
         } else if (rowsFromServer.at(i).type == 3) {
             const QString bannedUser = rowsFromServer.at(i).sender;
-            listType3Senders.append(bannedUser);
+            if (!m_listType3Senders.contains(bannedUser))
+                m_listType3Senders.append(bannedUser);
             if (m_params->flagLogging()) {
                 addToLog(QString("Notification. "
                     "Ban user - %1!").arg(bannedUser));
@@ -717,9 +721,9 @@ int CCBot::insertNewMessagesInTable(QString streamId, QByteArray jsonData, bool 
     }
 
     // 2.1. Fix. remove senders checks in listType3Senders
-    if (!listType3Senders.isEmpty()) {
+    if (!m_listType3Senders.isEmpty()) {
         for (int i = 0; i < rowsFromDB.size(); i++) {
-            if (listType3Senders.contains(rowsFromDB.at(i).sender)) {
+            if (m_listType3Senders.contains(rowsFromDB.at(i).sender)) {
                 rowsFromDB.removeAt(i--);
             }
         }

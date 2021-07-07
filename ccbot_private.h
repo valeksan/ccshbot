@@ -49,6 +49,7 @@ protected:
     QMediaPlayer *m_player;
     LogMaker m_log;
     QJsonDocument m_dataToReplaceTextForVoice;
+    QStringList m_listType3Senders;
 
     mutable QMutex m_mutex;
 
