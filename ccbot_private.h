@@ -49,7 +49,7 @@ protected:
     QMediaPlayer *m_player;
     LogMaker m_log;
     QJsonDocument m_dataToReplaceTextForVoice;
-    QStringList m_listType3Senders;
+    QMap<QString, QStringList> m_mapListType3SendersOld;
 
     mutable QMutex m_mutex;
 
@@ -72,6 +72,7 @@ protected:
     // methods for working with the database
     bool createTableDB(QString streamId);
     bool existsTableDB(QString streamId);
+    bool removeMessagesBannedUserFromTableDB(QString streamId, QString user);
     bool selectMsgsFromTableDB(QString streamId, QList<MessageData> &msgList, int limit = -1);
     bool appendMsgIntoTableDB(QString streamId, QList<MessageData> &msgList);
     // - box database
@@ -98,6 +99,7 @@ protected:
     bool boxGetUserInfo(QString nikname, QString &info);
     bool boxGetFlags(QString nikname, quint32 &flags);
     bool boxSetFlag(QString nikname, int flag, int st);
+    void boxUpdate(const QList<MessageData> &newMsgs);
 
 public:
     explicit CCBotPrivate(QObject *parent = nullptr);

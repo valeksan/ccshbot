@@ -114,6 +114,29 @@ bool CCBotPrivate::existsTableDB(QString streamId)
     return state;
 }
 
+bool CCBotPrivate::removeMessagesBannedUserFromTableDB(QString streamId, QString user)
+{
+    QString tableName = "t_" + streamId;
+    QSqlQuery qry;
+    QString sql;
+
+    sql = "DELETE FROM :table WHERE sender=:user;";
+    qry.prepare(sql);
+    qry.bindValue(":table", tableName);
+    qry.bindValue(":user", user);
+
+    bool state = qry.exec();
+
+    if (m_params->flagLogging() && !state) {
+        QString info = QString("Sql query-select error(%1): ")
+                .arg(qry.lastError().type()) + qry.lastError().text()
+                + QString("\nQuery: %1").arg(qry.lastQuery());
+        addToLog(info);
+    }
+
+    return state;
+}
+
 bool CCBotPrivate::selectMsgsFromTableDB(QString streamId,
                                   QList<MessageData> &msgList,
                                   int limit)
@@ -125,7 +148,8 @@ bool CCBotPrivate::selectMsgsFromTableDB(QString streamId,
         sql = QString("SELECT * FROM ( "
                     "SELECT * FROM t_%1 ORDER BY id DESC LIMIT %2) "
                     "ORDER BY id ASC;")
-                .arg(streamId).arg(limit);
+                .arg(streamId)
+                .arg(limit);
     } else {
         sql = QString("SELECT * FROM t_%1 ORDER BY id ASC;").arg(streamId);
     }
@@ -197,7 +221,7 @@ bool CCBotPrivate::createBoxTableInDB()
     QSqlQuery qry;
 
     const QString values =  "id INTEGER PRIMARY KEY AUTOINCREMENT, "
-                            "nikname TEXT NOT NULL UNIQUE, "
+                            "nikname TEXT, "
                             "info TEXT DEFAULT NULL, "
                             "achieves TEXT DEFAULT NULL, "
                             "flags INTEGER DEFAULT 0, "
@@ -231,9 +255,9 @@ bool CCBotPrivate::boxContainUser(QString nikname, bool &contain)
     QSqlQuery qry;
     QString sql;
 
-    sql = "SELECT id FROM box WHERE nikname=:nikname;";
+    sql = "SELECT id FROM box WHERE nikname = :user LIMIT 1;";
     qry.prepare(sql);
-    qry.bindValue(":nikname", nikname);
+    qry.bindValue(":user", nikname);
 
     bool state = qry.exec();
 
@@ -245,9 +269,11 @@ bool CCBotPrivate::boxContainUser(QString nikname, bool &contain)
         return false;
     }
 
-    if (qry.size() > 0) {
+    if (qry.last()) {
         contain = true;
     }
+
+    qDebug() << "__TEST:" << contain << state << qry.last();
 
     return state;
 }
@@ -271,9 +297,9 @@ bool CCBotPrivate::boxRegisterNewUser(QString nikname)
     qry.bindValue(":reg_date", timestamp.toString("yyyy-MM-dd hh:mm:ss"));
     qry.bindValue(":nikname", nikname);
     qry.bindValue(":balance", m_params->boxUserStartingBalance());
-    qry.bindValue(":voice", m_params->speechkitVoice());
-    qry.bindValue(":speed", m_params->speechkitSpeed());
-    qry.bindValue(":emotion", m_params->speechkitEmotion());
+    qry.bindValue(":voice", "zahar");
+    qry.bindValue(":speed", "1.0");
+    qry.bindValue(":emotion", "");
     qry.bindValue(":flags", flags);
 
     bool state = qry.exec();
@@ -332,23 +358,24 @@ bool CCBotPrivate::boxAddStatisticsOfMessage(QString nikname,
     if (!state)
         return false;
 
-    // update places
-    sql = "UPDATE box SET "
-            "count_msg = :count_msg, "
-            "count_symbols = :count_symbols, "
-            "last_activity_date = :timestamp "
-            "WHERE nikname = :nikname;";
-    qry.prepare(sql);
+    QDateTime timestamp = QDateTime::currentDateTime();
+
     quint64 countMsgUpdated = countMsgIn + 1;
     quint64 countSymbolsUpdated = countSymbolsIn
             + static_cast<quint64>(numSymbolsToAdd);
-    QDateTime timestamp = QDateTime::currentDateTime();
-    qry.bindValue(":count_msg", countMsgUpdated);
-    qry.bindValue(":count_symbols", countSymbolsUpdated);
-    qry.bindValue(":timestamp", timestamp);
-    qry.bindValue(":nikname", nikname);
 
-    state = qry.exec();
+    // update places
+    sql = QString("UPDATE box SET "
+            "count_msg=%1,"
+            "count_symbols=%2,"
+            "last_activity_date=\"%3\" "
+            "WHERE nikname=\"%4\";")
+            .arg(countMsgUpdated)
+            .arg(countSymbolsUpdated)
+            .arg(timestamp.toString("yyyy-MM-dd hh:mm:ss"))
+            .arg(nikname);
+
+    state = qry.exec(sql);
 
     if (m_params->flagLogging() && !state) {
         QString info = QString("Sql query-update error(%1): ")
@@ -403,26 +430,25 @@ bool CCBotPrivate::boxAddBalance(QString nikname, double cash, bool bonus)
         return false;
 
     // update places
-    if (!bonus) {
-        sql = "UPDATE box SET "
-                "donation = :donation, "
-                "balance = :balance "
-                "WHERE nikname = :nikname;";
-    } else {
-        sql = "UPDATE box SET "
-                "balance = :balance "
-                "WHERE nikname = :nikname;";
-    }
-    qry.prepare(sql);
+    double balanceUpdated = prevBalanceIn + cash;
     if (!bonus) {
         double donationUpdated = prevDonationIn + cash;
-        qry.bindValue(":donation", donationUpdated);
+        sql = QString("UPDATE box SET "
+                "donation = \"%1\", "
+                "balance = \"%2\" "
+                "WHERE nikname = \"%3\"")
+                .arg(donationUpdated)
+                .arg(balanceUpdated)
+                .arg(nikname);
+    } else {
+        sql = QString("UPDATE box SET "
+                "balance = \"%1\" "
+                "WHERE nikname = \"%2\";")
+                .arg(balanceUpdated)
+                .arg(nikname);
     }
-    double balanceUpdated = prevBalanceIn + cash;
-    qry.bindValue(":balance", balanceUpdated);
-    qry.bindValue(":nikname", nikname);
 
-    state = qry.exec();
+    state = qry.exec(sql);
 
     if (m_params->flagLogging() && !state) {
         QString info = QString("Sql query-update error(%1): ")
@@ -450,21 +476,20 @@ bool CCBotPrivate::boxSpendBalace(QString nikname, double cash, bool &isEmptyMon
 
     double balanceUpdated = prevBalanceIn - cash;
 
-    if (balanceUpdated < 0.0) {
+    if (balanceUpdated <= 0.0) {
         isEmptyMoney = true;
         return false;
     }
     isEmptyMoney = false;
 
     // update place
-    sql = "UPDATE box SET "
-            "balance = :balance "
-            "WHERE nikname = :nikname;";
-    qry.prepare(sql);
-    qry.bindValue(":balance", balanceUpdated);
-    qry.bindValue(":nikname", nikname);
+    sql = QString("UPDATE box SET "
+            "balance = %1 "
+            "WHERE nikname = \"%2\";")
+            .arg(balanceUpdated)
+            .arg(nikname);
 
-    state = qry.exec();
+    state = qry.exec(sql);
 
     if (m_params->flagLogging() && !state) {
         QString info = QString("Sql query-update error(%1): ")
@@ -520,14 +545,13 @@ bool CCBotPrivate::boxAddNumSpeechSymbolsInStatistics(QString nikname, int numSy
             + static_cast<quint64>(numSymbolsAdds);
 
     // update places
-    sql = "UPDATE box SET "
-            "count_speech_symbols = :count_speech_symbols "
-            "WHERE nikname = :nikname;";
-    qry.prepare(sql);
-    qry.bindValue(":count_speech_symbols", speechSymbolsUpdated);
-    qry.bindValue(":nikname", nikname);
+    sql = QString("UPDATE box SET "
+            "count_speech_symbols = %1 "
+            "WHERE nikname = \"%2\";")
+            .arg(speechSymbolsUpdated)
+            .arg(nikname);
 
-    state = qry.exec();
+    state = qry.exec(sql);
 
     if (m_params->flagLogging() && !state) {
         QString info = QString("Sql query-update error(%1): ")
@@ -586,14 +610,13 @@ bool CCBotPrivate::boxSetUserVoice(QString nikname, QString voice)
     QString sql;
 
     // update places
-    sql = "UPDATE box SET "
-            "tts_voice = :tts_voice "
-            "WHERE nikname = :nikname;";
-    qry.prepare(sql);
-    qry.bindValue(":tts_voice", voice);
-    qry.bindValue(":nikname", nikname);
+    sql = QString("UPDATE box SET "
+            "tts_voice = \"%1\" "
+            "WHERE nikname = \"%2\";")
+            .arg(voice)
+            .arg(nikname);
 
-    bool state = qry.exec();
+    bool state = qry.exec(sql);
 
     if (m_params->flagLogging() && !state) {
         QString info = QString("Sql query-update error(%1): ")
@@ -637,14 +660,13 @@ bool CCBotPrivate::boxSetUserSpeedVoice(QString nikname, QString speed)
     QSqlQuery qry;
     QString sql;
 
-    sql = "UPDATE box SET "
-            "tts_speed_voice = :tts_speed_voice "
-            "WHERE nikname = :nikname;";
-    qry.prepare(sql);
-    qry.bindValue(":tts_speed_voice", speed);
-    qry.bindValue(":nikname", nikname);
+    sql = QString("UPDATE box SET "
+            "tts_speed_voice = \"%1\" "
+            "WHERE nikname = \"%2\";")
+            .arg(speed)
+            .arg(nikname);
 
-    bool state = qry.exec();
+    bool state = qry.exec(sql);
 
     if (m_params->flagLogging() && !state) {
         QString info = QString("Sql query-update error(%1): ")
@@ -688,14 +710,13 @@ bool CCBotPrivate::boxSetUserEmotionVoice(QString nikname, QString emotion)
     QSqlQuery qry;
     QString sql;
 
-    sql = "UPDATE box SET "
-            "tts_voice_emotion = :tts_voice_emotion "
-            "WHERE nikname = :nikname;";
-    qry.prepare(sql);
-    qry.bindValue(":tts_voice_emotion", emotion);
-    qry.bindValue(":nikname", nikname);
+    sql = QString("UPDATE box SET "
+            "tts_voice_emotion = \"%1\" "
+            "WHERE nikname = \"%2\";")
+            .arg(emotion)
+            .arg(nikname);
 
-    bool state = qry.exec();
+    bool state = qry.exec(sql);
 
     if (m_params->flagLogging() && !state) {
         QString info = QString("Sql query-update error(%1): ")
@@ -781,14 +802,15 @@ bool CCBotPrivate::boxAddAchieve(QString nikname, QString achieve)
         achieveList.append(achieve);
     }
 
-    sql = "UPDATE box SET "
-            "achieves = :achieves "
-            "WHERE nikname = :nikname;";
-    qry.prepare(sql);
-    qry.bindValue(":achieves", achieveList.join(","));
-    qry.bindValue(":nikname", nikname);
+    QString achieves = achieveList.join(",");
 
-    state = qry.exec();
+    sql = QString("UPDATE box SET "
+            "achieves = \"%1\" "
+            "WHERE nikname = \"%2\";")
+            .arg(achieves)
+            .arg(nikname);
+
+    state = qry.exec(sql);
 
     if (m_params->flagLogging() && !state) {
         QString info = QString("Sql query-update error(%1): ")
@@ -805,14 +827,13 @@ bool CCBotPrivate::boxSetUserInfo(QString nikname, QString info)
     QSqlQuery qry;
     QString sql;
 
-    sql = "UPDATE box SET "
-            "info = :info "
-            "WHERE nikname = :nikname;";
-    qry.prepare(sql);
-    qry.bindValue(":info", info);
-    qry.bindValue(":nikname", nikname);
+    sql = QString("UPDATE box SET "
+            "info = \"%1\" "
+            "WHERE nikname = \"%2\";")
+            .arg(info)
+            .arg(nikname);
 
-    bool state = qry.exec();
+    bool state = qry.exec(sql);
 
     if (m_params->flagLogging() && !state) {
         QString info = QString("Sql query-update error(%1): ")
@@ -901,14 +922,13 @@ bool CCBotPrivate::boxSetFlag(QString nikname, int flag, int st)
     if (flagsIn == flagsUpdated)
         return true;
 
-    sql = "UPDATE box SET "
-            "flags = :flags "
-            "WHERE nikname = :nikname;";
-    qry.prepare(sql);
-    qry.bindValue(":flags", flagsUpdated);
-    qry.bindValue(":nikname", nikname);
+    sql = QString("UPDATE box SET "
+            "flags = %1 "
+            "WHERE nikname = \"%2\";")
+            .arg(flagsUpdated)
+            .arg(nikname);
 
-    state = qry.exec();
+    state = qry.exec(sql);
 
     if (m_params->flagLogging() && !state) {
         QString info = QString("Sql query-update error(%1): ")
@@ -920,42 +940,43 @@ bool CCBotPrivate::boxSetFlag(QString nikname, int flag, int st)
     return state;
 }
 
+void CCBotPrivate::boxUpdate(const QList<MessageData> &newMsgs)
+{
+    bool boxTableCreated = m_db.tables().contains("box");
+
+    if (!boxTableCreated) {
+        boxTableCreated = createBoxTableInDB();
+        if (!boxTableCreated)
+            return;
+    }
+
+    for (int i = 0; i < newMsgs.size(); i++) {
+        if (newMsgs.at(i).type == 1)
+            continue;
+        MessageData msg = newMsgs.at(i);
+        bool userIsRegistred = false;
+        bool state = boxContainUser(msg.sender, userIsRegistred);
+        if (!userIsRegistred && state) {
+            state = boxRegisterNewUser(msg.sender);
+            if (!state) {
+                continue;
+            }
+        }
+        if (msg.type == 2) {
+            boxAddBalance(msg.sender, static_cast<double>(msg.pay));
+        }
+        boxAddStatisticsOfMessage(msg.sender, msg.msg.length());
+        QString textForSpeek = "";
+        if (checkAutoVoiceMessage(msg, textForSpeek)) {
+            boxAddNumSpeechSymbolsInStatistics(msg.sender, textForSpeek.length());
+        }
+    }
+}
+
 void CCBotPrivate::mergeMessages(QList<MessageData> oldMsgList,
                                  QList<MessageData> newMsgList,
                                  QList<MessageData> &mergedMsgList)
 {
-
-//    if (oldMsgList.isEmpty()) {
-//        mergedMsgList.append(newMsgList);
-//        return;
-//    }
-
-//    QStringList type3NikNames;
-
-//    // Поиск ников помеченных как тип 3 для игнорирования в сравнении списков
-//    foreach (const MessageData &msg, newMsgList) {
-//        if (msg.type == 3 && !type3NikNames.contains(msg.sender)) {
-//            type3NikNames.append(msg.sender);
-//            if (m_params->flagLogging()) {
-//                addToLog(QString("Notification. Ban user - %1!").arg(msg.sender));
-//            }
-//        }
-//    }
-
-//    // Удаление из сравнения сообщений с ником из списка
-//    for (const auto &nik : type3NikNames) {
-//        for (int i = 0; i < oldMsgList.size(); i++) {
-//            if (oldMsgList.at(i).sender == nik) {
-//                oldMsgList.removeAt(i--);
-//            }
-//        }
-//        for (int i = 0; i < newMsgList.size(); i++) {
-//            if (newMsgList.at(i).sender == nik) {
-//                newMsgList.removeAt(i--);
-//            }
-//        }
-//    }
-
     // Поиск интервалов похожести для выбора наилучшего слияния списка
     // (выбирается интервал с большим весом - weight)
     QList<MessageData>::const_reverse_iterator iOldMsgs;
@@ -965,14 +986,46 @@ void CCBotPrivate::mergeMessages(QList<MessageData> oldMsgList,
     int weight = 0;
     int spaceMsgCount = 0;
     bool flagEnterInterval = false;
+    bool isBanState = false;
 
-    if (!newMsgList.isEmpty() && !oldMsgList.isEmpty()) {
-        for (iNewMsgs = newMsgList.crbegin(), iOldMsgs = oldMsgList.crbegin();
-             iNewMsgs != newMsgList.crend() && iOldMsgs != oldMsgList.crend();)
+    QStringList allNiknames;
+
+    for (auto msg : oldMsgList) {
+        if(msg.type != 1) {
+            if (!allNiknames.contains(msg.sender)) {
+                allNiknames.append(msg.sender);
+            }
+        }
+    }
+
+    int currentNikIndexIfBanState = -1;
+
+    QList<MessageData> oldMsgListTmp;
+    QList<MessageData> newMsgListTmp;
+
+    QPair<int,int> savedMaxInterval;
+    QList<MessageData> savedOldMsgListTmp = oldMsgList;
+
+    fixBanState:
+
+    oldMsgListTmp = savedOldMsgListTmp;
+    newMsgListTmp = newMsgList;
+
+    if (isBanState) {
+        for (int i = 0; i < oldMsgListTmp.size(); i++) {
+            if (oldMsgListTmp.at(i).sender == allNiknames.at(currentNikIndexIfBanState)) {
+                oldMsgListTmp.removeAt(i--);
+            }
+        }
+    }
+
+    if (!newMsgListTmp.isEmpty() && !oldMsgListTmp.isEmpty()) {
+        for (iNewMsgs = newMsgListTmp.crbegin(), iOldMsgs = oldMsgListTmp.crbegin();
+             iNewMsgs != newMsgListTmp.crend() && iOldMsgs != oldMsgListTmp.crend();)
         {
             if (equalMessages(*iNewMsgs, *iOldMsgs)) {
                 if (!flagEnterInterval) {
-                    start = iNewMsgs - newMsgList.crbegin();
+                    start = iNewMsgs - newMsgListTmp.crbegin();
                     weight = 1;
                     flagEnterInterval = true;
                 } else {
@@ -980,11 +1033,11 @@ void CCBotPrivate::mergeMessages(QList<MessageData> oldMsgList,
                 }
                 ++iOldMsgs;
                 ++iNewMsgs;
-                if (iOldMsgs == oldMsgList.crend()) {
+                if (iOldMsgs == oldMsgListTmp.crend()) {
                     intervals.append(QPair<int,int>(start, weight));
                     break;
                 }
-                if (iNewMsgs == newMsgList.crend()) {
+                if (iNewMsgs == newMsgListTmp.crend()) {
                     intervals.append(QPair<int,int>(start, weight));
                     iOldMsgs -= (weight + spaceMsgCount);
                 }
@@ -1000,16 +1053,16 @@ void CCBotPrivate::mergeMessages(QList<MessageData> oldMsgList,
         }
     } else {
         if (m_params->flagLogging()) {
-            if (newMsgList.isEmpty()) {
+            if (newMsgListTmp.isEmpty()) {
                 addToLog(QString("Warrning. New message list is empty!"));
             }
-            if (oldMsgList.isEmpty()) {
+            if (oldMsgListTmp.isEmpty()) {
                 addToLog(QString("Notification. "
                     "Old message list is empty, no merge, load all messages."));
             }
         }
-        if (oldMsgList.isEmpty()) {
-            mergedMsgList.append(newMsgList);
+        if (oldMsgListTmp.isEmpty()) {
+            mergedMsgList.append(newMsgListTmp);
         }
         return;
     }
@@ -1022,13 +1075,35 @@ void CCBotPrivate::mergeMessages(QList<MessageData> oldMsgList,
         }
     }
 
+    if (maxInterval.second < oldMsgListTmp.size()/2
+            && allNiknames.size() > 1
+            && oldMsgListTmp.size() > 1)
+    {
+        if (!isBanState || savedMaxInterval.second < maxInterval.second) {
+            savedMaxInterval = maxInterval;
+            savedOldMsgListTmp = oldMsgListTmp;
+        }
+        isBanState = true;
+        if (currentNikIndexIfBanState != allNiknames.size()-1) {
+            ++currentNikIndexIfBanState;
+            goto fixBanState;
+        }
+    } else {
+        isBanState = false;
+    }
+
+    if (isBanState) {
+        maxInterval = savedMaxInterval;
+        oldMsgListTmp = savedOldMsgListTmp;
+    }
+
     // Спам-пакет из пачки сообщений т.к. не найдено совпадений вообще!
     // (если такое возможно) -> передаем его сразу в запись
     if (maxInterval.first == -1) {
-        mergedMsgList = newMsgList;
+        mergedMsgList = newMsgListTmp;
         if (m_params->flagLogging()) {
             addToLog(QString("Warrning. New message list is very big(%1 msgs)! "
-                "No matches found in the database.").arg(newMsgList.size()));
+                "No matches found in the database.").arg(newMsgListTmp.size()));
         }
         return;
     }
@@ -1039,14 +1114,14 @@ void CCBotPrivate::mergeMessages(QList<MessageData> oldMsgList,
     }
 
     // Записываем новые сообщения в список слияния
-    int startIndex = newMsgList.size() - maxInterval.first;
-    mergedMsgList.append(newMsgList.mid(startIndex));
+    int startIndex = newMsgListTmp.size() - maxInterval.first;
+    mergedMsgList.append(newMsgListTmp.mid(startIndex));
     if (maxInterval.first != -1 &&
             mergedMsgList.size() > 10 &&
             m_params->flagLogging())
     {
         addToLog(QString("Warrning. New message list is big(%1 msgs)!")
-                 .arg(newMsgList.size()));
+                 .arg(newMsgListTmp.size()));
     }
 }
 
@@ -1119,41 +1194,11 @@ void CCBotPrivate::updateChat(const QList<MessageData> &msgsl,
 
 void CCBotPrivate::analyseNewMessages(const QList<MessageData> &msgsl)
 {
-    bool boxTableCreated = false;
-    if (!m_db.tables().contains("box")) {
-        boxTableCreated = createBoxTableInDB();
-    } else {
-        boxTableCreated = true;
-    }
     for (int i = 0; i < msgsl.size(); i++) {
         MessageData msg = msgsl.at(i);
-        bool userIsRegistred = false;
-        bool isStreammerMsg = msg.sender.toUpper() == m_params->currentStreamerNikname();
-        if (!isStreammerMsg) {
-            bool state = boxContainUser(msg.sender, userIsRegistred);
-            qDebug() << "boxContainUser:" << userIsRegistred << state;
-            if (!userIsRegistred && state) {
-                state = boxRegisterNewUser(msg.sender);
-                if (state) {
-                    userIsRegistred = true;
-                }
-            }
-            if (userIsRegistred) {
-                boxAddBalance(msg.sender, msg.pay);
-            }
-            if (boxTableCreated && userIsRegistred) {
-                boxAddStatisticsOfMessage(msg.sender, msg.msg.length());
-            }
-        }
         QString text = "";
         if (checkAutoVoiceMessage(msg, text)) {
             m_pCore->addTask(CCBotTaskEnums::VoiceLoad, text);
-            if (!isStreammerMsg && boxTableCreated)
-            {
-                if (userIsRegistred)
-                    boxAddNumSpeechSymbolsInStatistics(msg.sender,
-                                                       text.length());
-            }
         }
     }
 }

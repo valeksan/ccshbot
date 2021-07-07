@@ -178,9 +178,6 @@ void CCBot::initTimers()
 void CCBot::initConnections()
 {
     // соединение: конец проигрывания файла
-    connect(m_params, &Properties::currentStreamIdChanged, [=]() {
-        m_listType3Senders.clear();
-    });
     connect(m_player,
             &QMediaPlayer::stateChanged,
             [this](QMediaPlayer::State state)
@@ -683,6 +680,7 @@ int CCBot::insertNewMessagesInTable(QString streamId, QByteArray jsonData, bool 
     }
 
     // 1. Проверка что таблица есть, иначе создать ее
+    bool newTableCreated = false;
     if (!existsTableDB(streamId)) {
         tableNotExist = true;
         if (!createTableDB(streamId)) {
@@ -691,41 +689,40 @@ int CCBot::insertNewMessagesInTable(QString streamId, QByteArray jsonData, bool 
             }
             return CCBotErrEnums::Sql;
         }
+        newTableCreated = true;
     }
 
     // Fix. remove type 4 and check on have type 3
-    int removeCount = 0;
-    //QStringList listType3Senders;
+    QStringList listType3Senders;
     for (int i = 0; i < rowsFromServer.size(); i++) {
         if (rowsFromServer.at(i).type == 4) {
             rowsFromServer.removeAt(i--);
-            ++removeCount;
         } else if (rowsFromServer.at(i).type == 3) {
             const QString bannedUser = rowsFromServer.at(i).sender;
-            if (!m_listType3Senders.contains(bannedUser))
-                m_listType3Senders.append(bannedUser);
-            if (m_params->flagLogging()) {
+            bool isOld = m_mapListType3SendersOld.value(streamId).contains(bannedUser);
+            if (!isOld)
+                listType3Senders.append(bannedUser);
+            if (!isOld && m_params->flagLogging()) {
                 addToLog(QString("Notification. "
                     "Ban user - %1!").arg(bannedUser));
             }
+            rowsFromServer.removeAt(i--);
         }
     }
 
+    // Fix. remove banned user from table
+    for (int i = 0; i < listType3Senders.size(); i++) {
+        removeMessagesBannedUserFromTableDB(streamId, listType3Senders.at(i));
+    }
+    QStringList newOldList = m_mapListType3SendersOld[streamId] + listType3Senders;
+    m_mapListType3SendersOld.insert(streamId, newOldList);
+
     // 2. Запрос сообщений с таблицы (100, либо все)
-    if(!tableNotExist) {
+    if (!tableNotExist) {
         if (mergeOnly) {
             selectMsgsFromTableDB(streamId, rowsFromDB, 100);
         } else {
             selectMsgsFromTableDB(streamId, rowsFromDB, -1);
-        }
-    }
-
-    // 2.1. Fix. remove senders checks in listType3Senders
-    if (!m_listType3Senders.isEmpty()) {
-        for (int i = 0; i < rowsFromDB.size(); i++) {
-            if (m_listType3Senders.contains(rowsFromDB.at(i).sender)) {
-                rowsFromDB.removeAt(i--);
-            }
         }
     }
 
@@ -754,7 +751,8 @@ int CCBot::insertNewMessagesInTable(QString streamId, QByteArray jsonData, bool 
     }
 
     // 6. Анализ сообщений на комманды -> выполнение комманд (добавление задач)
-    if (mergeOnly) {
+    if (mergeOnly || newTableCreated) {
+        boxUpdate(rowsForInsert);
         analyseNewMessages(rowsForInsert);
     }
 
