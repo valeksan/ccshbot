@@ -5,17 +5,28 @@ const DEF_TIMEOUT_REPEAT = 1500;
 const DEF_HOST = 'localhost';
 const DEF_PORT = 3000;
 
-const chatVoiceEnableCfgObj = localStorage.getItem('ChatVoiceEnableCfg')
-let chatVoiceEnableCfg;
+//let chatVoiceEnableCfgObj = localStorage.getItem('ChatVoiceEnableCfg') | null;
+let chatVoiceEnableCfg = JSON.parse(localStorage.getItem('ChatVoiceEnableCfg'));
 
-if (chatVoiceEnableCfgObj)
-    chatVoiceEnableCfg = JSON.parse(chatVoiceEnableCfgObj);
-else
-    chatVoiceEnableCfg = new Array();
+console.log("__test1", chatVoiceEnableCfg)
+
+if (chatVoiceEnableCfg) {
+    //chatVoiceEnableCfg = JSON.parse(chatVoiceEnableCfgObj);
+    console.log("__test2", chatVoiceEnableCfg)
+} else {
+    chatVoiceEnableCfg = new Map();
+}
 
 console.log("__chatVoiceEnableCfg", chatVoiceEnableCfg);
+let lastStreamId = localStorage.getItem('lastStreamId') | null;
 let chatVoiceEnable = false;
 let flagConnection = false;
+
+if (lastStreamId) {
+    if (chatVoiceEnableCfg[lastStreamId]) {
+        chatVoiceEnable = chatVoiceEnableCfg[lastStreamId];
+    }
+}
 
 let cfgTimeoutRepeat = DEF_TIMEOUT_REPEAT;
 let cfgHost = DEF_HOST;
@@ -145,24 +156,29 @@ function clickBtChatVoice() {
 
     if (!flagIsCorrectPage)
         return;
+    
+    chatVoiceEnable = chatVoiceEnableCfg[streamId];
+    chatVoiceEnable = !chatVoiceEnable;
+    chatVoiceEnableCfg[streamId] = chatVoiceEnable;
 
-    let chatVoiceEnableFountIndex = -1;
-    for (let i = 0; i < chatVoiceEnableCfg.length; i++) {
-        if (chatVoiceEnableCfg[i]["id"] === streamId) {
-            chatVoiceEnableFountIndex = i;
-            chatVoiceEnable = chatVoiceEnableCfg[i]["chatVoiceEnable"];
-            chatVoiceEnable = !chatVoiceEnable;
-            chatVoiceEnableCfg[i]["chatVoiceEnable"] = chatVoiceEnable;
-            break;
-        }
-    }
-    if (chatVoiceEnableFountIndex === -1) {
-        chatVoiceEnable = true;
-        const btChatVoiceObj = {"id":streamId,"chatVoiceEnable":chatVoiceEnable};
-        chatVoiceEnableCfg.push(btChatVoiceObj);
-    }
+    // let chatVoiceEnableFoundIndex = -1;
+    // for (let i = 0; i < chatVoiceEnableCfg.length; i++) {
+    //     if (chatVoiceEnableCfg[i]["id"] === streamId) {
+    //         chatVoiceEnableFoundIndex = i;
+    //         chatVoiceEnable = chatVoiceEnableCfg[i]["chatVoiceEnable"];
+    //         chatVoiceEnable = !chatVoiceEnable;
+    //         chatVoiceEnableCfg[i]["chatVoiceEnable"] = chatVoiceEnable;
+    //         break;
+    //     }
+    // }
+    // if (chatVoiceEnableFoundIndex === -1) {
+    //     chatVoiceEnable = !chatVoiceEnable;
+    //     let btChatVoiceObj = {"id":streamId,"chatVoiceEnable":chatVoiceEnable};
+    //     chatVoiceEnableCfg.push(btChatVoiceObj);
+    // }
 
-    localStorage.setItem('ChatVoiceEnable', chatVoiceEnableCfg);
+    localStorage.setItem('ChatVoiceEnableCfg', JSON.stringify(chatVoiceEnableCfg));
+    localStorage.setItem('lastStreamId', streamId);
     if (chatVoiceEnable) {
         doRepeatGetDataCC();
         buttonChatVoiceEnable.className = buttonChatVoiceEnable.className.replace(/\bbtn--light-gray\b/g, "btn--yellow");
