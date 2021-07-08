@@ -13,6 +13,13 @@
 #include "misc.h"
 #include "messagedata.h"
 #include "logmaker.h"
+#include "console.h"
+
+struct SpeakOptions {
+    QString voice = "";
+    QString speed = "";
+    QString emotion = "";
+};
 
 class TaskResult {
 public:
@@ -50,6 +57,7 @@ protected:
     LogMaker m_log;
     QJsonDocument m_dataToReplaceTextForVoice;
     QMap<QString, QStringList> m_mapListType3SendersOld;
+    Console *m_consoleInput;
 
     mutable QMutex m_mutex;
 
@@ -65,6 +73,8 @@ protected:
     void mergeMessages(QList<MessageData> oldMsgList, QList<MessageData> newMsgList, QList<MessageData> &mergedMsgList);
     bool equalMessages(const MessageData& msg1, const MessageData& msg2);
     QString generateErrMsg(int type, int errCode, QString info = "");
+    bool isValidVoiceName(const QString name);
+    QString getLangByVoiceName(const QString name);
 
     // data unpacking methods
     bool readMessagesFromJsonStr(QByteArray jsonData, QList<MessageData> &msgList, QString *errInfo = nullptr);
@@ -141,8 +151,10 @@ public slots:
 signals:
     void showChatMessage(QString message);
     void showHistoryMessage(QString message);
+    void sendChatMessage(QString text);
 };
 
 Q_DECLARE_METATYPE(TaskResult)
+Q_DECLARE_METATYPE(SpeakOptions)
 
 #endif // CCBOT_PRIVATE_H

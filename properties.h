@@ -35,6 +35,7 @@ class Properties : public QObject
     Q_PROPERTY(quint32 listenPort READ listenPort WRITE setListenPort NOTIFY listenPortChanged)
 
     // Options
+    Q_PROPERTY(int speakOptionReasonType READ speakOptionReasonType WRITE setSpeakOptionReasonType NOTIFY speakOptionReasonTypeChanged)
     Q_PROPERTY(bool flagAnalyseVoiceAllMsgType2 READ flagAnalyseVoiceAllMsgType2 WRITE setFlagAnalyseVoiceAllMsgType2 NOTIFY flagAnalyseVoiceAllMsgType2Changed)
     Q_PROPERTY(bool flagAnalyseVoiceAllMsgType0 READ flagAnalyseVoiceAllMsgType0 WRITE setFlagAnalyseVoiceAllMsgType0 NOTIFY flagAnalyseVoiceAllMsgType0Changed)
     Q_PROPERTY(bool flagLogging READ flagLogging WRITE setFlagLogging NOTIFY flagLoggingChanged)
@@ -92,6 +93,8 @@ class Properties : public QObject
     double m_boxUserStartingBalance = 0.0;
     bool m_boxDefaultOnFlag0 = false;
     double m_speechKitPriceBySymbol = 0.0;
+
+    int m_speakOptionReasonType;
 
 public:
     explicit Properties(QObject *parent = nullptr) : QObject(parent),
@@ -197,6 +200,9 @@ public:
     double speechKitPriceBySymbol() const;
     void setSpeechKitPriceBySymbol(double newSpeechKitPriceBySymbol);
 
+    int speakOptionReasonType() const;
+    void setSpeakOptionReasonType(int newSpeakOptionReasonType);
+
 public slots:
 
 signals:
@@ -234,7 +240,21 @@ signals:
     void boxUserStartingBalanceChanged();
     void boxDefaultOnFlag0Changed();
     void speechKitPriceBySymbolChanged();
+    void speakOptionReasonTypeChanged();
 };
+
+inline int Properties::speakOptionReasonType() const
+{
+    return m_speakOptionReasonType;
+}
+
+inline void Properties::setSpeakOptionReasonType(int newSpeakOptionReasonType)
+{
+    if (m_speakOptionReasonType == newSpeakOptionReasonType)
+        return;
+    m_speakOptionReasonType = newSpeakOptionReasonType;
+    emit speakOptionReasonTypeChanged();
+}
 
 inline double Properties::speechKitPriceBySymbol() const
 {

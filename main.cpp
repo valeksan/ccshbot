@@ -63,9 +63,14 @@ int main(int argc, char *argv[])
     // Passing functional objects to the QML engine
     // - Declaring QML Classes
     qmlRegisterUncreatableMetaObject(CCBotTaskEnums::staticMetaObject,
-                                     "ccbot.tasks",
+                                     "ccbot.enums",
                                      1, 0,
                                      "Task",
+                                     "Access to enums & flags only");
+    qmlRegisterUncreatableMetaObject(SpeakReasonEnums::staticMetaObject,
+                                     "ccbot.enums",
+                                     1, 0,
+                                     "SpeakReason",
                                      "Access to enums & flags only");
 
     // Loading the interface

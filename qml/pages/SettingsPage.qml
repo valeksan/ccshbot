@@ -1,7 +1,7 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 
-import ccbot.tasks 1.0
+import ccbot.enums 1.0
 
 
 SettingsPageForm {

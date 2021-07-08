@@ -12,6 +12,8 @@ Page {
     property alias toolButtonStartServer: toolButtonStartServer
     property alias inputMsg: inputMsg
     property alias btSendMsg: btSendMsg
+    property alias btVoiceBalanceSpending: btVoiceBalanceSpending
+    property alias rowLayout: rowLayout
     antialiasing: true
 
     ToolBar {
@@ -28,6 +30,7 @@ Page {
         }
 
         RowLayout {
+            id: rowLayout
             anchors.fill: parent
             ToolButton {
                 id: toolButtonStartServer
@@ -48,11 +51,14 @@ Page {
                     RadioButton {
                         id: btVoiceOff
                         text: qsTr("Отключена")
-                        checked: true
                     }
                     RadioButton {
                         id: btVoiceType2
                         text: qsTr("Донаты")
+                    }
+                    RadioButton {
+                        id: btVoiceBalanceSpending
+                        text: qsTr("Баланс")
                     }
                     RadioButton {
                         id: btVoiceAll

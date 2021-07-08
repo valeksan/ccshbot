@@ -83,6 +83,7 @@ void CCBot::loadSettings()
     m_params->setListenPort(cfg.value("Port", 3000U).toUInt());
     cfg.endGroup();
 
+    cfg.setValue("OptionSpeakReasonType", m_params->speakOptionReasonType());
     cfg.beginGroup("SpeechKit");
     m_params->setSpeechKitPriceBySymbol(cfg.value("PriceSymbol", 0.0).toDouble());
     m_params->setSpeechkitFolderId(cfg.value("FolderID", "").toString());
@@ -105,6 +106,9 @@ void CCBot::loadSettings()
     m_params->setSpeechkitSampleRateHertz(
                 cfg.value("SampleRateHertz",
                           defaultSpeechkitSampleRateHertz).toString());
+    m_params->setSpeakOptionReasonType(
+                cfg.value("OptionSpeakReasonType",
+                          SpeakReasonEnums::DisableAll).toInt());
     cfg.endGroup();
 
     cfg.beginGroup("ToReplaceForVoice");
@@ -115,6 +119,9 @@ void CCBot::loadSettings()
     m_params->setBoxUserStartingBalance(cfg.value("UserStartingBalance", 0.0).toDouble());
     m_params->setBoxDefaultOnFlag0(cfg.value("DefaultOnFlag0", false).toBool());
     cfg.endGroup();
+
+    // load saved command buffer stack
+    m_consoleInput->loadCommandBufferStackSaves();
 }
 
 void CCBot::saveSettings()
@@ -152,6 +159,7 @@ void CCBot::saveSettings()
     cfg.setValue("Emotion", m_params->speechkitEmotion());
     cfg.setValue("Speed", m_params->speechkitSpeed());
     cfg.setValue("SampleRateHertz", m_params->speechkitSampleRateHertz());
+    cfg.setValue("OptionSpeakReasonType", m_params->speakOptionReasonType());
     cfg.endGroup();
 
     cfg.beginGroup("ToReplaceForVoice");
@@ -168,6 +176,9 @@ void CCBot::saveSettings()
     if (m_params->flagLogging()) {
         m_log.endLogSession();
     }
+
+    // save command buffer stack
+    m_consoleInput->saveCommandBufferStack();
 }
 
 void CCBot::initTimers()
@@ -196,6 +207,74 @@ void CCBot::initConnections()
             addToLog(errStr);
         }
     });
+    // соединение: запуск комманд через консоль
+    connect(m_consoleInput, &Console::runCommand, [=](QString sender, QString command, QStringList args) {
+        int type = m_consoleInput->getType(command);
+        switch (type) {
+        case CCBotTaskEnums::SysCmdSetVoice:
+            {
+                bool isStreamer = sender.toUpper() == m_params->currentStreamerNikname();
+                QString target = "";
+                if (isStreamer) {
+                    for (const auto &arg : args) {
+                        QString option = arg.section('=', 0, 0);
+                        if (option == "target") {
+                            QString value = arg.section('=', -1, -1);
+                            target = value;
+                            break;
+                        }
+                    }
+                }
+                for (const auto &arg : args) {
+                    QString option = arg.section('=', 0, 0);
+                    QString value = arg.section('=', -1, -1);
+                    if (option == "on") {
+                        boxSetFlag(sender, BoxFlagsEnums::FLAG_SPEECH_ON, 1);
+                    } else if (option == "off") {
+                        boxSetFlag(sender, BoxFlagsEnums::FLAG_SPEECH_ON, 0);
+                    } else if (option == "name") {
+                        if (isValidVoiceName(value)) {
+                            if (!isStreamer) {
+                                boxSetUserVoice(sender, value);
+                            } else {
+                                boxSetUserVoice(target, value);
+                            }
+                        }
+                    } else if (option == "emotion") {
+                        if (value == "evil"
+                                || "neutral"
+                                || "normal"
+                                || "good"
+                                || value.isEmpty())
+                        {
+                            if (value == "normal")
+                                value = "neutral";
+                            if (!isStreamer) {
+                                boxSetUserEmotionVoice(sender, value);
+                            } else {
+                                boxSetUserEmotionVoice(target, value);
+                            }
+                        }
+                    } else if (option == "speed") {
+                        if (isStreamer) {
+                            double fvalue = value.toDouble();
+                            if (fvalue >= 0.3 && fvalue <= 3.0) {
+                                boxGetUserSpeedVoice(target, value);
+                            }
+                        }
+                    }
+                }
+            }
+            break;
+        default:
+            break;
+        }
+    });
+}
+
+void CCBot::initSysCommands()
+{
+    m_consoleInput->registerTaskTypeAlias("!voice", CCBotTaskEnums::SysCmdSetVoice); // установка голоса
 }
 
 void CCBot::initTasks()
@@ -228,7 +307,7 @@ void CCBot::initTasks()
     });
 
     m_pCore->registerTask(CCBotTaskEnums::VoiceLoad,
-                          [this](QString text) -> TaskResult {
+                          [this](QString text, SpeakOptions options) -> TaskResult {
         TaskResult result;
         QNetworkAccessManager *manager = new QNetworkAccessManager();
 
@@ -365,21 +444,20 @@ void CCBot::initTasks()
             postDataEncoded.addQueryItem("folderId",
                                          m_params->speechkitFolderId());
 
-            if (!m_params->speechkitLang().isEmpty()) {
-                postDataEncoded.addQueryItem("lang",
-                                             m_params->speechkitLang());
+            QString voice = options.voice.isEmpty() ? m_params->speechkitVoice() : options.voice;
+            QString emotion = options.emotion.isEmpty() ? m_params->speechkitEmotion() : options.emotion;
+            QString speed = options.speed.isEmpty() ? m_params->speechkitSpeed() : options.speed;
+
+            if (!voice.isEmpty()) {
+                postDataEncoded.addQueryItem("lang", getLangByVoiceName(voice));
+                postDataEncoded.addQueryItem("voice", voice);
             }
-            if (!m_params->speechkitVoice().isEmpty()) {
-                postDataEncoded.addQueryItem("voice",
-                                             m_params->speechkitVoice());
+
+            if (!emotion.isEmpty()) {
+                postDataEncoded.addQueryItem("emotion", emotion);
             }
-            if (!m_params->speechkitEmotion().isEmpty()) {
-                postDataEncoded.addQueryItem("emotion",
-                                             m_params->speechkitEmotion());
-            }
-            if (!m_params->speechkitSpeed().isEmpty()) {
-                postDataEncoded.addQueryItem("speed",
-                                             m_params->speechkitSpeed());
+            if (!speed.isEmpty()) {
+                postDataEncoded.addQueryItem("speed", speed);
             }
             if (!m_params->speechkitFormat().isEmpty()) {
                 postDataEncoded.addQueryItem("format",
@@ -788,6 +866,11 @@ void CCBot::action(int type, QVariantList args)
     default:
         break;
     }
+}
+
+void CCBot::exec(QString command)
+{
+    m_consoleInput->exec(m_params->currentStreamerNikname(), command);
 }
 
 void CCBot::slotFinishedTask(long id, int type, QVariantList argsList, QVariant result)

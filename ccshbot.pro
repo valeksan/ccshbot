@@ -3,7 +3,7 @@
 #-------------------------------------------------
 TEMPLATE = app
 TARGET  = ccshbot
-VERSION = 0.5.6-0
+VERSION = 0.5.7-0
 
 QT += core gui
 QT += qml
@@ -33,12 +33,14 @@ DEFINES += 'VERSION_STRING=\\\"$$VERSION\\\"'
 SOURCES += \
         ccbot.cpp \
         ccbot_private.cpp \
+        console.cpp \
         logmaker.cpp \
         main.cpp
 
 HEADERS += \
     ccbot.h \
     ccbot_private.h \
+    console.h \
     core.h \
     enums.h \
     logmaker.h \

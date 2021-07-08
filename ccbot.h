@@ -37,6 +37,7 @@ private:
     void initDB();                  // database initialization
     void initTimers();              // initializing timers
     void initConnections();         // initialization of connections
+    void initSysCommands();         // registration system commands
     void initTasks();               // initialization of tasks
 
 private slots:
@@ -52,6 +53,7 @@ public slots:
     bool isOpenedDB();
     void closeDB();
     void action(int type, QVariantList args = QVariantList()) override;
+    void exec(QString command);
     void slotFinishedTask(long id, int type, QVariantList argsList, QVariant result) override;
 
     // save \ load settings

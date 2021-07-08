@@ -1,7 +1,7 @@
 import QtQuick 2.15
 import QtWebSockets 1.15
 
-import ccbot.tasks 1.0
+import ccbot.enums 1.0
 
 ViewChatForm {
     id: page
@@ -181,18 +181,19 @@ ViewChatForm {
     }
 
     btVoiceOff.onToggled: {
-        properties.flagAnalyseVoiceAllMsgType0 = false;
-        properties.flagAnalyseVoiceAllMsgType2 = false;
+        properties.speakOptionReasonType = SpeakReason.DisableAll;
     }
 
     btVoiceType2.onToggled: {
-        properties.flagAnalyseVoiceAllMsgType0 = false;
-        properties.flagAnalyseVoiceAllMsgType2 = true;
+        properties.speakOptionReasonType = SpeakReason.Donation;
+    }
+
+    btVoiceBalanceSpending.onToggled: {
+        properties.speakOptionReasonType = SpeakReason.BalanceSpending;
     }
 
     btVoiceAll.onToggled: {
-        properties.flagAnalyseVoiceAllMsgType0 = true;
-        properties.flagAnalyseVoiceAllMsgType2 = true;
+        properties.speakOptionReasonType = SpeakReason.EnableAll;
     }
 
     toolButtonStartServer.text: properties.listenClients ? qsTr("Отключиться") : qsTr("Читать чат")
@@ -211,10 +212,21 @@ ViewChatForm {
     function sendMessage() {
         if (inputMsg.text.length === 0)
             return;
+        if (inputMsg.text.charAt(0) === '!') {
+            ccbot.exec(inputMsg.text);
+            inputMsg.clear();
+            return;
+        }
         if (client !== null) {
             let sendObj = { "type":"message", "text":inputMsg.text };
             client.sendTextMessage(JSON.stringify(sendObj));
             inputMsg.clear();
+        }
+    }
+    function sendMessageAuto(text) {
+        if (client !== null) {
+            let sendObj = { "type":"message", "text":text };
+            client.sendTextMessage(JSON.stringify(sendObj));
         }
     }
 
@@ -231,6 +243,9 @@ ViewChatForm {
         target: ccbot
         function onShowChatMessage(message) {
             page.chatAddText(message);
+        }
+        function onSendChatMessage(text) {
+            sendMessageAuto(text);
         }
     }
 
@@ -255,6 +270,26 @@ ViewChatForm {
                 }
                 ccbot.closeDB();
             }
+        }
+    }
+
+    Component.onCompleted: {
+        switch(properties.speakOptionReasonType) {
+        case SpeakReason.DisableAll:
+            btVoiceOff.checked = true;
+            break;
+        case SpeakReason.EnableAll:
+            btVoiceAll.checked = true;
+            break;
+        case SpeakReason.Donation:
+            btVoiceType2.checked = true;
+            break;
+        case SpeakReason.BalanceSpending:
+            btVoiceBalanceSpending.checked = true;
+            break;
+        default:
+            btVoiceOff.checked = true;
+            break;
         }
     }
 }

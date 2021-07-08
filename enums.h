@@ -10,7 +10,8 @@ namespace CCBotTaskEnums {
         VoiceLoad,
         VoiceSpeech,
         OpenBase,
-        CloseBase
+        CloseBase,
+        SysCmdSetVoice,
     };
     Q_ENUMS(CCBotTaskEnum)
 }
@@ -36,6 +37,18 @@ namespace BoxFlagsEnums {
         FLAG_SHOWED_MSG_NO_MONEY_FOR_SPEECH = 1,
     };
     Q_ENUMS(BoxFlagsEnum)
+}
+
+namespace SpeakReasonEnums {
+    Q_NAMESPACE
+
+    enum SpeakReasonEnum {
+        DisableAll = 0,
+        EnableAll,
+        Donation,
+        BalanceSpending
+    };
+    Q_ENUMS(SpeakReasonEnum)
 }
 
 #endif // ENUMS_H

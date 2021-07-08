@@ -5,7 +5,7 @@ import QtQuick.Layouts 1.15
 import QtQuick.Controls.Material 2.15
 import QtQuick.Dialogs 1.2
 
-import ccbot.tasks 1.0
+import ccbot.enums 1.0
 
 import "pages"
 import "dialogs"

@@ -7,7 +7,7 @@
 #include <QSqlError>
 
 CCBotPrivate::CCBotPrivate(QObject *parent)
-    : QObject(parent), m_pCore(new Core())
+    : QObject(parent), m_pCore(new Core()), m_consoleInput(new Console(parent))
 {
     connect(m_pCore, &Core::finishedTask, this, &CCBotPrivate::slotFinishedTask);
 }
@@ -28,6 +28,53 @@ QString CCBotPrivate::generateErrMsg(int type, int errCode, QString info)
         return QString("%1").arg(info);
 
     return QString("Неизвестная ошибка, нет описания.");
+}
+
+bool CCBotPrivate::isValidVoiceName(const QString name)
+{
+    if (name == "oksana"
+            || name == "filipp"
+            || name == "alena"
+            || name == "jane"
+            || name == "omazh"
+            || name == "zahar"
+            || name == "ermil"
+            || name == "silaerkan"
+            || name == "erkanyavas"
+            || name == "alyss"
+            || name == "nick")
+    {
+        return true;
+    }
+
+    return false;
+}
+
+QString CCBotPrivate::getLangByVoiceName(const QString name)
+{
+    if (name == "oksana")
+        return "ru-RU";
+    if (name == "filipp")
+        return "ru-RU";
+    if (name == "alena")
+        return "ru-RU";
+    if (name == "jane")
+        return "ru-RU";
+    if (name == "omazh")
+        return "ru-RU";
+    if (name == "zahar")
+        return "ru-RU";
+    if (name == "ermil")
+        return "ru-RU";
+    if (name == "silaerkan")
+        return "tr-TR";
+    if (name == "erkanyavas")
+        return "tr-TR";
+    if (name == "alyss")
+        return "en-US";
+    if (name == "nick")
+        return "en-US";
+    return "";
 }
 
 bool CCBotPrivate::readMessagesFromJsonStr(QByteArray jsonData,
@@ -295,8 +342,8 @@ bool CCBotPrivate::boxRegisterNewUser(QString nikname)
     qry.bindValue(":reg_date", timestamp.toString("yyyy-MM-dd hh:mm:ss"));
     qry.bindValue(":nikname", nikname);
     qry.bindValue(":balance", m_params->boxUserStartingBalance());
-    qry.bindValue(":voice", "zahar");
-    qry.bindValue(":speed", "1.0");
+    qry.bindValue(":voice", "");
+    qry.bindValue(":speed", "");
     qry.bindValue(":emotion", "");
     qry.bindValue(":flags", flags);
 
@@ -453,6 +500,10 @@ bool CCBotPrivate::boxAddBalance(QString nikname, double cash, bool bonus)
                 .arg(qry.lastError().type()) + qry.lastError().text()
                 + QString("\nQuery: %1").arg(qry.lastQuery());
         addToLog(info);
+    } else {
+        boxSetFlag(nikname,
+                   BoxFlagsEnums::FLAG_SHOWED_MSG_NO_MONEY_FOR_SPEECH,
+                   0);
     }
 
     return state;
@@ -476,7 +527,20 @@ bool CCBotPrivate::boxSpendBalace(QString nikname, double cash, bool &isEmptyMon
 
     if (balanceUpdated <= 0.0) {
         isEmptyMoney = true;
-        return false;
+        quint32 flags = 0;
+        state = boxGetFlags(nikname, flags);
+        if (state) {
+            if (macro_qReadBit(flags, BoxFlagsEnums::FLAG_SHOWED_MSG_NO_MONEY_FOR_SPEECH) == 0) {
+                state = boxSetFlag(nikname, BoxFlagsEnums::FLAG_SHOWED_MSG_NO_MONEY_FOR_SPEECH, 1);
+                if (state) {
+                    emit sendChatMessage(QString("%1, к сожалению Ваш баланс $%2 не позволяет говорить голосом 🥺")
+                                         .arg(nikname)
+                                         .arg(prevBalanceIn));
+                }
+            }
+        }
+
+        return true;
     }
     isEmptyMoney = false;
 
@@ -1194,22 +1258,61 @@ void CCBotPrivate::analyseNewMessages(const QList<MessageData> &msgsl)
 {
     for (int i = 0; i < msgsl.size(); i++) {
         MessageData msg = msgsl.at(i);
+        if (msg.msg.length() == 0)
+            continue;
         QString text = "";
+        if (msg.msg.at(0) == '!' && msg.msg.length() > 1) {
+            if (msg.msg.at(1).isLetter()) {
+                m_consoleInput->exec(msg.sender, msg.msg);
+            }
+        } else {
+            continue;
+        }
         if (checkAutoVoiceMessage(msg, text)) {
-            m_pCore->addTask(CCBotTaskEnums::VoiceLoad, text);
+            // get options
+            SpeakOptions options;
+            QString voiceIn = "";
+            QString speedIn = "";
+            QString emotionIn = "";
+            boxGetUserVoice(msg.sender, voiceIn);
+            boxGetUserSpeedVoice(msg.sender, speedIn);
+            boxGetUserEmotionVoice(msg.sender, emotionIn);
+            options.voice = voiceIn;
+            options.speed = speedIn;
+            options.emotion = emotionIn;
+            m_pCore->addTask(CCBotTaskEnums::VoiceLoad, text, options);
         }
     }
 }
 
 bool CCBotPrivate::checkAutoVoiceMessage(const MessageData &msg, QString &text)
 {
-    if (msg.msg.isEmpty()) {
+    if (msg.msg.isEmpty() || msg.type == 1) {
         return false;
     }
-    if ((m_params->flagAnalyseVoiceAllMsgType2() && msg.type == 2)
-            || (m_params->flagAnalyseVoiceAllMsgType0() && msg.type == 0)
-            )
-    {
+
+    bool enableVoiceMsg = false;
+    bool balanceSpending = false;
+
+    switch (m_params->speakOptionReasonType()) {
+    case SpeakReasonEnums::DisableAll:
+        break;
+    case SpeakReasonEnums::EnableAll:
+        enableVoiceMsg = true;
+        break;
+    case SpeakReasonEnums::Donation:
+        if (msg.type == 2)
+            enableVoiceMsg = true;
+        break;
+    case SpeakReasonEnums::BalanceSpending:
+        enableVoiceMsg = true;
+        balanceSpending = true;
+        break;
+    default:
+        break;
+    }
+
+    if (enableVoiceMsg) {
         QString analyseText = msg.msg;
 
         QJsonArray jarr = m_dataToReplaceTextForVoice.array();
@@ -1227,11 +1330,25 @@ bool CCBotPrivate::checkAutoVoiceMessage(const MessageData &msg, QString &text)
         // check on empty message
         bool emptyMsg = true;
         for (int i = 0; i < analyseText.length(); i++) {
-            if(analyseText.at(i).isLetterOrNumber()) {
+            if (analyseText.at(i).isLetterOrNumber()) {
                 emptyMsg = false;
                 text = analyseText;
                 break;
             }
+        }
+        if (!emptyMsg && balanceSpending && msg.type != 1) {
+            bool state = false;
+            double cashSpending = 0.0;
+            bool isNotEnoughMoney = false;
+            state = boxCalculatePriceForSpeech(msg.sender, text.length(), cashSpending);
+
+            if (!state)
+                return false;
+
+            state = boxSpendBalace(msg.sender, cashSpending, isNotEnoughMoney);
+
+            if (!state || isNotEnoughMoney)
+                return false;
         }
         return !emptyMsg;
     }
