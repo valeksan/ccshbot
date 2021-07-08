@@ -849,7 +849,8 @@ void CCBot::action(int type, QVariantList args)
         {
             QString text = args.value(0,"").toString();
             if(!text.isEmpty()) {
-                m_pCore->addTask(type, text);
+                SpeakOptions options;
+                m_pCore->addTask(type, text, options);
             }
         }
         break;

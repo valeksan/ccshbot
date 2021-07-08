@@ -1264,11 +1264,11 @@ void CCBotPrivate::analyseNewMessages(const QList<MessageData> &msgsl)
         if (msg.msg.at(0) == '!' && msg.msg.length() > 1) {
             if (msg.msg.at(1).isLetter()) {
                 m_consoleInput->exec(msg.sender, msg.msg);
+                return;
             }
-        } else {
-            continue;
         }
-        if (checkAutoVoiceMessage(msg, text)) {
+        bool state = checkAutoVoiceMessage(msg, text);
+        if (state) {
             // get options
             SpeakOptions options;
             QString voiceIn = "";
@@ -1315,6 +1315,8 @@ bool CCBotPrivate::checkAutoVoiceMessage(const MessageData &msg, QString &text)
     if (enableVoiceMsg) {
         QString analyseText = msg.msg;
 
+        qDebug() << "___1";
+
         QJsonArray jarr = m_dataToReplaceTextForVoice.array();
         for (int i = 0; i < jarr.size(); i++) {
             QJsonValue value = jarr.at(i);
@@ -1336,7 +1338,10 @@ bool CCBotPrivate::checkAutoVoiceMessage(const MessageData &msg, QString &text)
                 break;
             }
         }
-        if (!emptyMsg && balanceSpending && msg.type != 1) {
+        if (!emptyMsg && balanceSpending) {
+
+            qDebug() << "___2";
+
             bool state = false;
             double cashSpending = 0.0;
             bool isNotEnoughMoney = false;
@@ -1345,10 +1350,15 @@ bool CCBotPrivate::checkAutoVoiceMessage(const MessageData &msg, QString &text)
             if (!state)
                 return false;
 
+            qDebug() << "___3";
+
             state = boxSpendBalace(msg.sender, cashSpending, isNotEnoughMoney);
 
             if (!state || isNotEnoughMoney)
                 return false;
+
+            qDebug() << "___4" << text;
+            return true;
         }
         return !emptyMsg;
     }
