@@ -1314,9 +1314,6 @@ bool CCBotPrivate::checkAutoVoiceMessage(const MessageData &msg, QString &text)
 
     if (enableVoiceMsg) {
         QString analyseText = msg.msg;
-
-        qDebug() << "___1";
-
         QJsonArray jarr = m_dataToReplaceTextForVoice.array();
         for (int i = 0; i < jarr.size(); i++) {
             QJsonValue value = jarr.at(i);
@@ -1340,8 +1337,6 @@ bool CCBotPrivate::checkAutoVoiceMessage(const MessageData &msg, QString &text)
         }
         if (!emptyMsg && balanceSpending) {
 
-            qDebug() << "___2";
-
             bool state = false;
             double cashSpending = 0.0;
             bool isNotEnoughMoney = false;
@@ -1350,14 +1345,11 @@ bool CCBotPrivate::checkAutoVoiceMessage(const MessageData &msg, QString &text)
             if (!state)
                 return false;
 
-            qDebug() << "___3";
-
             state = boxSpendBalace(msg.sender, cashSpending, isNotEnoughMoney);
 
             if (!state || isNotEnoughMoney)
                 return false;
 
-            qDebug() << "___4" << text;
             return true;
         }
         return !emptyMsg;
