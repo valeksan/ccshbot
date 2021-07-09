@@ -1045,6 +1045,87 @@ void CCBotPrivate::boxUpdate(const QList<MessageData> &newMsgs)
     }
 }
 
+bool CCBotPrivate::boxGetReservKeyValue(QString nikname, QString key, QString &value, bool all)
+{
+    QSqlQuery qry;
+    QString sql;
+
+    sql = "SELECT rezerv FROM box WHERE nikname=:nikname;";
+    qry.prepare(sql);
+    qry.bindValue(":nikname", nikname);
+
+    bool state = qry.exec();
+
+    if (m_params->flagLogging() && !state) {
+        QString info = QString("Sql query-select error(%1): ")
+                .arg(qry.lastError().type()) + qry.lastError().text()
+                + QString("\nQuery: %1").arg(qry.lastQuery());
+        addToLog(info);
+        return false;
+    }
+
+    if (qry.next()) {
+        QByteArray reserv = qry.value(0).toByteArray();
+        if (!all) {
+            QJsonDocument reservDoc = QJsonDocument::fromJson(reserv);
+            if (!reservDoc.isEmpty()) {
+                QJsonObject obj = reservDoc.object();
+                if (obj.contains(key)) {
+                    value = obj.value(key).toString();
+                    return true;
+                }
+            }
+            value = "";
+        } else {
+            value = QString::fromUtf8(qry.value(0).toByteArray());
+        }
+        return true;
+    }
+
+    return state;
+}
+
+bool CCBotPrivate::boxSetReservKeyValue(QString nikname, QString key, QString value)
+{
+    QSqlQuery qry;
+    QString sql;
+    bool state = false;
+
+    // get rezerv
+    QString reservIn;
+    state = boxGetReservKeyValue(nikname, key, reservIn, true);
+
+    if (!state)
+        return false;
+
+    // update rezerv
+    QJsonDocument rezDoc = QJsonDocument::fromJson(reservIn.toUtf8());
+    QJsonObject obj;
+    if (!rezDoc.isEmpty()) {
+        obj = rezDoc.object();
+    }
+    obj.insert(key, QJsonValue(value));
+    rezDoc.setObject(obj);
+    QByteArray reservUpdated = rezDoc.toJson(QJsonDocument::Compact);
+
+    sql = QString("UPDATE box SET "
+            "rezerv = \"%1\" "
+            "WHERE nikname = \"%2\";")
+            .arg(QString::fromUtf8(reservUpdated))
+            .arg(nikname);
+
+    state = qry.exec(sql);
+
+    if (m_params->flagLogging() && !state) {
+        QString info = QString("Sql query-update error(%1): ")
+                .arg(qry.lastError().type()) + qry.lastError().text()
+                + QString("\nQuery: %1").arg(qry.lastQuery());
+        addToLog(info);
+    }
+
+    return state;
+}
+
 void CCBotPrivate::mergeMessages(QList<MessageData> oldMsgList,
                                  QList<MessageData> newMsgList,
                                  QList<MessageData> &mergedMsgList)

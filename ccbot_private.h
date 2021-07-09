@@ -110,6 +110,8 @@ protected:
     bool boxGetFlags(QString nikname, quint32 &flags);
     bool boxSetFlag(QString nikname, int flag, int st);
     void boxUpdate(const QList<MessageData> &newMsgs);
+    bool boxGetReservKeyValue(QString nikname, QString key, QString &value, bool all = false);
+    bool boxSetReservKeyValue(QString nikname, QString key, QString value);
 
 public:
     explicit CCBotPrivate(QObject *parent = nullptr);

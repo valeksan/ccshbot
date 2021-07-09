@@ -238,6 +238,37 @@ void CCBot::initConnections()
         if (!target.isEmpty()) {
             switch (type) {
             case CCBotTaskEnums::SysCmdDrink:
+                {
+                    double donationIn = 0.0;
+                    double balanceIn = 0.0;
+                    bool state = boxGetBalanceInfo(target, donationIn, balanceIn);
+                    if (state) {
+                        double delta = 0.0;
+                        double cash = 0.0;
+                        for (const auto &arg : args) {
+                            QString option = arg.section('=', 0, 0);
+                            if (option == "beer") {
+                                delta += -0.1;
+                                cash += 0.5;
+                            } else if (option == "wine") {
+                                delta += -0.2;
+                                cash += 2.0;
+                            } else if (option == "rum") {
+                                delta += -0.3;
+                                cash += 5.0;
+                            } else if (option == "coffe") {
+                                delta += 0.1;
+                                cash += 1.0;
+                            } else if (option == "redbull") {
+                                delta += 0.5;
+                                cash += 2.0;
+                            }
+                        }
+                        if ((balanceIn - cash) < 0.0) {
+                            //
+                        }
+                    }
+                }
                 break;
             case CCBotTaskEnums::SysCmdSetVoice:
                 for (const auto &arg : args) {
@@ -275,6 +306,13 @@ void CCBot::initConnections()
                                 isValidCommand = true;
                             }
                         }
+                    } else if (option == "names") {
+                        QString info = _clr_("oksana(ж,рус),filipp(м,рус),alena(ж,рус),jane(ж,рус),omazh(ж,рус),zahar(м,рус),ermil(м,рус),alyss(ж,анг),nick(м,анг)", "yellow");
+                        if (isStreamer) {
+                            emit showChatNotification(info);
+                        } else {
+                            emit sendChatMessage(info);
+                        }
                     }
                 }
                 break;
@@ -293,6 +331,7 @@ void CCBot::initSysCommands()
 {
     m_consoleInput->registerTaskTypeAlias("!voice", CCBotTaskEnums::SysCmdSetVoice); // установка голоса
     m_consoleInput->registerTaskTypeAlias("!drink", CCBotTaskEnums::SysCmdDrink);    // установка темпа голоса на время
+    m_consoleInput->registerTaskTypeAlias("!balance", CCBotTaskEnums::SysCmdBalance); // вывести баланс собеседника
 }
 
 void CCBot::initTasks()

@@ -13,6 +13,7 @@ namespace CCBotTaskEnums {
         CloseBase,
         SysCmdSetVoice,
         SysCmdDrink,
+        SysCmdBalance,
     };
     Q_ENUMS(CCBotTaskEnum)
 }
