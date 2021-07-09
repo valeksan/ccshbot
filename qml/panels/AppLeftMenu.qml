@@ -71,7 +71,7 @@ Drawer {
             width: parent.width
             onClicked: {
                 drawer.close();
-                Qt.quit();
+                window.close();
             }
         }
     }

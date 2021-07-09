@@ -1,4 +1,5 @@
 import QtQuick 2.15
+import QtQuick.Controls 2.15
 import QtWebSockets 1.15
 
 import ccbot.enums 1.0
@@ -29,6 +30,7 @@ ViewChatForm {
 
     function chatAddText(msg) {
         var moveToBottom = flickChat.atYEnd;
+        //if (chatRepeater)
         chatRepeater.append(msg);
         if (moveToBottom) {
             if (flickChat.contentHeight > flickChat.height) {
@@ -37,15 +39,60 @@ ViewChatForm {
         }
     }
 
+//    Component {
+//        id: contextMenuComponent1
+//        Menu {
+//            id: editmenu
+//            function showPopup(x, y) {
+//                editmenu.showPopup(x, y)
+//            }
+//            MenuItem {
+//                text: "Copy"
+//                enabled: chatRepeater.selectedText.length > 0
+//                onTriggered: {
+//                    chatRepeater.copy();
+//                }
+//            }
+//            onClosed: {
+//                contexMenuLoader1.sourceComponent = null;
+//            }
+//        }
+//    }
+
+//    chatRepeaterMA.onPressed: {
+//        const selectStart = chatRepeater.selectionStart;
+//        const selectEnd = chatRepeater.selectionEnd;
+//        const pos = mapToItem(null, chatRepeaterMA.mouseX, chatRepeaterMA.mouseY); //chatRepeater.cursorPosition;
+//        contexMenuLoader1.sourceComponent = contextMenuComponent1;
+//        contexMenuLoader1.visible = true/*showPopup(pos.x, pos.y)*/;
+//        chatRepeater.select(selectStart, selectEnd);
+////        chatRepeaterContextMenu.x = mouse.x;
+////        chatRepeaterContextMenu.y = mouse.y;
+////        chatRepeaterContextMenu.open();
+////        chatRepeater.cursorPosition = curPos;
+////        chatRepeater.select(selectStart, selectEnd);
+//    }
+
+    chatRepeater.onLinkActivated: {
+        if (inputMsg.length === 0) {
+            inputMsg.text = link + ", ";
+        } else {
+            inputMsg.text = inputMsg.text + " " + link;
+        }
+        inputMsg.cursorPosition = inputMsg.text.length;
+        inputMsg.forceActiveFocus();
+    }
+
     function idlCheck() {
         window.setTimeout(() => {
-                              ++page.idleCount;
-                              if(page.idleCount === 5) {
-                                  page.idleCount = 0;
-                                  client.active = false;
-                                  --connectCount;
+                              if (chatRepeater.text.length > 0)
+                                ++page.idleCount;
+                              if (page.idleCount === 5) {
+                                page.idleCount = 0;
+                                client.active = false;
+                                --connectCount;
                               } else {
-                                  if(properties.listenClients) {
+                                  if (properties.listenClients) {
                                     idlCheck();
                                   }
                               }
@@ -196,15 +243,29 @@ ViewChatForm {
         properties.speakOptionReasonType = SpeakReason.EnableAll;
     }
 
+    btTest.text: "test"
+    btTest.visible: false
+    btTest.enabled: chatRepeater.length > 0
+    btTest.onClicked: {
+        let text = chatRepeater.getFormattedText(0, 255)
+        console.log("text:", text)
+    }
+
     toolButtonStartServer.text: properties.listenClients ? qsTr("Отключиться") : qsTr("Читать чат")
     toolButtonStartServer.onClicked: {
         if (!properties.listenClients) {
             window.changeStatus("Запуск сервера ...",
-                                1500, "yellow")
-            properties.flagLoadingChat = true
+                                1500, "yellow");
+            properties.flagLoadingChat = true;
         } else {
             window.changeStatus("Остановка сервера ...",
-                                1500, "yellow")
+                                1500, "yellow");
+            chatRepeater.clear();
+            if (client.active) {
+                client.active = false;
+            }
+            properties.currentStreamId = "";
+            properties.currentStreamerNikname = "";
         }
         properties.listenClients = !properties.listenClients
     }
@@ -212,15 +273,17 @@ ViewChatForm {
     function sendMessage() {
         if (inputMsg.text.length === 0)
             return;
-        if (inputMsg.text.charAt(0) === '!') {
+        if (inputMsg.text[0] === '!') {
+            console.log("cmd:",inputMsg.text);
             ccbot.exec(inputMsg.text);
             inputMsg.clear();
             return;
         }
         if (client !== null) {
-            let sendObj = { "type":"message", "text":inputMsg.text };
-            client.sendTextMessage(JSON.stringify(sendObj));
-            inputMsg.clear();
+            console.log("####", inputMsg.text);
+//            let sendObj = { "type":"message", "text":inputMsg.text };
+//            client.sendTextMessage(JSON.stringify(sendObj));
+//            inputMsg.clear();
         }
     }
     function sendMessageAuto(text) {
@@ -235,15 +298,22 @@ ViewChatForm {
         sendMessage();
     }
 
+    inputMsg.selectByMouse: true
     inputMsg.onAccepted: {
         sendMessage();
     }
 
     Connections {
         target: ccbot
+
         function onShowChatMessage(message) {
             page.chatAddText(message);
         }
+
+        function onShowChatNotification(info) {
+            page.chatAddText(info);
+        }
+
         function onSendChatMessage(text) {
             sendMessageAuto(text);
         }

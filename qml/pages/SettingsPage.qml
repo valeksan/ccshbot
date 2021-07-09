@@ -410,7 +410,8 @@ SettingsPageForm {
                         text: modelData
                         color: "white"
                         onAccepted: {
-                            rootCompLvWordsDelegate.editWord(modelData, editWord.text);
+                            rootCompLvWordsDelegate.editWord(modelData,
+                                                             editWord.text);
                             editMode = false;
                             updateRepPairModels();
 
@@ -422,7 +423,8 @@ SettingsPageForm {
                                 event.accepted = true;
                             }
                             if (event.key === Qt.Key_Enter) {
-                                rootCompLvWordsDelegate.editWord(modelData, editWord.text);
+                                rootCompLvWordsDelegate.editWord(modelData,
+                                                                 editWord.text);
                                 editMode = false;
                                 event.accepted = true;
                             }
@@ -435,7 +437,8 @@ SettingsPageForm {
                     height: 30
                     width: 30
                     onClicked: {
-                        rootCompLvWordsDelegate.editWord(modelData, editWord.text);
+                        rootCompLvWordsDelegate.editWord(modelData,
+                                                         editWord.text);
                         editMode = false;
                         updateRepPairModels();
                     }
@@ -455,6 +458,11 @@ SettingsPageForm {
 
     cfgBoxUserByRegisterOnFlag0.onCheckedChanged: {
         properties.boxDefaultOnFlag0 = cfgBoxUserByRegisterOnFlag0.checked;
+    }
+
+    cfgBoxNotificationChatByEmptyUserBalanceForVoice.onCheckedChanged: {
+        properties.boxNotificationChatByEmptyUserBalanceForVoice =
+                cfgBoxNotificationChatByEmptyUserBalanceForVoice.checked;
     }
 
     Component.onCompleted: {
@@ -493,9 +501,8 @@ SettingsPageForm {
 
         // - for show format
         if (properties.speechkitFormat === "lpcm") {
-        console.log(properties.speechkitFormat)
-        console.log(cfgSpeechkitFormat.indexOfValue(properties.speechkitFormat))
-        cfgSpeechkitFormat.currentIndex = cfgSpeechkitFormat.indexOfValue(properties.speechkitFormat);
+        cfgSpeechkitFormat.currentIndex =
+            cfgSpeechkitFormat.indexOfValue(properties.speechkitFormat);
         } else {
             cfgSpeechkitFormat.currentIndex = 0;
         }
@@ -510,5 +517,7 @@ SettingsPageForm {
         updateRepPairModels();
 
         cfgBoxUserByRegisterOnFlag0.checked = properties.boxDefaultOnFlag0;
+        cfgBoxNotificationChatByEmptyUserBalanceForVoice.checked =
+                properties.boxNotificationChatByEmptyUserBalanceForVoice;
     }
 }

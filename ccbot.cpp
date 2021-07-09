@@ -37,6 +37,7 @@ void CCBot::start()
         }
     }
 
+    initSysCommands();
     initConnections();
     initTasks();
     initTimers();
@@ -118,6 +119,8 @@ void CCBot::loadSettings()
     cfg.beginGroup("Box");
     m_params->setBoxUserStartingBalance(cfg.value("UserStartingBalance", 0.0).toDouble());
     m_params->setBoxDefaultOnFlag0(cfg.value("DefaultOnFlag0", false).toBool());
+    m_params->setBoxNotificationChatByEmptyUserBalanceForVoice(
+                cfg.value("NotificationChatByEmptyUserBalanceForVoice", false).toBool());
     cfg.endGroup();
 
     // load saved command buffer stack
@@ -169,6 +172,8 @@ void CCBot::saveSettings()
     cfg.beginGroup("Box");
     cfg.setValue("UserStartingBalance", m_params->boxUserStartingBalance());
     cfg.setValue("DefaultOnFlag0", m_params->boxDefaultOnFlag0());
+    cfg.setValue("NotificationChatByEmptyUserBalanceForVoice",
+                 m_params->boxNotificationChatByEmptyUserBalanceForVoice());
     cfg.endGroup();
 
     //...
@@ -210,71 +215,84 @@ void CCBot::initConnections()
     // соединение: запуск комманд через консоль
     connect(m_consoleInput, &Console::runCommand, [=](QString sender, QString command, QStringList args) {
         int type = m_consoleInput->getType(command);
-        switch (type) {
-        case CCBotTaskEnums::SysCmdSetVoice:
-            {
-                bool isStreamer = sender.toUpper() == m_params->currentStreamerNikname();
-                QString target = "";
-                if (isStreamer) {
-                    for (const auto &arg : args) {
-                        QString option = arg.section('=', 0, 0);
-                        if (option == "target") {
-                            QString value = arg.section('=', -1, -1);
-                            target = value;
-                            break;
-                        }
-                    }
+        QString fullCommand = command + (args.isEmpty() ? "" : QString(" ") + args.join(" "));
+        bool isValidCommand = false;
+        bool isStreamer = sender.toUpper() == m_params->currentStreamerNikname();
+        QString target = "";
+        qDebug() << "type cmd:" << type;
+
+        if (isStreamer) {
+            for (int i = 0; i < args.size(); i++) {
+                QString option = args.at(i).section('=', 0, 0);
+                if (option == "target") {
+                    QString value = args.at(i).section('=', -1, -1);
+                    target = value;
+                    //qDebug() << sender << option << "=" << value;
+                    break;
                 }
+            }
+        } else {
+            target = sender;
+        }
+
+        if (!target.isEmpty()) {
+            switch (type) {
+            case CCBotTaskEnums::SysCmdDrink:
+                break;
+            case CCBotTaskEnums::SysCmdSetVoice:
                 for (const auto &arg : args) {
                     QString option = arg.section('=', 0, 0);
                     QString value = arg.section('=', -1, -1);
                     if (option == "on") {
-                        boxSetFlag(sender, BoxFlagsEnums::FLAG_SPEECH_ON, 1);
+                        boxSetFlag(target, BoxFlagsEnums::FLAG_SPEECH_ON, 1);
+                        isValidCommand = true;
                     } else if (option == "off") {
-                        boxSetFlag(sender, BoxFlagsEnums::FLAG_SPEECH_ON, 0);
+                        boxSetFlag(target, BoxFlagsEnums::FLAG_SPEECH_ON, 0);
+                        isValidCommand = true;
                     } else if (option == "name") {
                         if (isValidVoiceName(value)) {
-                            if (!isStreamer) {
-                                boxSetUserVoice(sender, value);
-                            } else {
-                                boxSetUserVoice(target, value);
-                            }
+                            boxSetUserVoice(target, value);
+                            isValidCommand = true;
                         }
                     } else if (option == "emotion") {
                         if (value == "evil"
-                                || "neutral"
-                                || "normal"
-                                || "good"
+                                || value == "neutral"
+                                || value == "normal"
+                                || value == "good"
                                 || value.isEmpty())
                         {
-                            if (value == "normal")
+                            if (value == "normal") {
                                 value = "neutral";
-                            if (!isStreamer) {
-                                boxSetUserEmotionVoice(sender, value);
-                            } else {
-                                boxSetUserEmotionVoice(target, value);
                             }
+                            boxSetUserEmotionVoice(target, value);
+                            isValidCommand = true;
                         }
                     } else if (option == "speed") {
                         if (isStreamer) {
                             double fvalue = value.toDouble();
-                            if (fvalue >= 0.3 && fvalue <= 3.0) {
+                            if (fvalue >= 0.4 && fvalue <= 3.0) {
                                 boxGetUserSpeedVoice(target, value);
+                                isValidCommand = true;
                             }
                         }
                     }
                 }
+                break;
+            default:
+                break;
             }
-            break;
-        default:
-            break;
         }
+        if (isValidCommand)
+            emit showChatNotification(_clr_(fullCommand, "green"));
+        else
+            emit showChatNotification(_clr_(fullCommand + " no valid command!", "red"));
     });
 }
 
 void CCBot::initSysCommands()
 {
     m_consoleInput->registerTaskTypeAlias("!voice", CCBotTaskEnums::SysCmdSetVoice); // установка голоса
+    m_consoleInput->registerTaskTypeAlias("!drink", CCBotTaskEnums::SysCmdDrink);    // установка темпа голоса на время
 }
 
 void CCBot::initTasks()
@@ -871,6 +889,7 @@ void CCBot::action(int type, QVariantList args)
 
 void CCBot::exec(QString command)
 {
+//    qDebug() << "###";
     m_consoleInput->exec(m_params->currentStreamerNikname(), command);
 }
 

@@ -34,6 +34,7 @@ Page {
     property alias cfgBoxUserStartBonusBalance: cfgBoxUserStartBonusBalance
     property alias cfgBoxUserByRegisterOnFlag0: cfgBoxUserByRegisterOnFlag0
     property alias cfgSpeechkitSymbolPrice: cfgSpeechkitSymbolPrice
+    property alias cfgBoxNotificationChatByEmptyUserBalanceForVoice: cfgBoxNotificationChatByEmptyUserBalanceForVoice
 
     Pane {
         anchors.fill: parent
@@ -432,6 +433,12 @@ Page {
                     CheckBox {
                         id: cfgBoxUserByRegisterOnFlag0
                         text: qsTr("Включить озвучку сообщений сразу")
+                    }
+                }
+                RowLayout {
+                    CheckBox {
+                        id: cfgBoxNotificationChatByEmptyUserBalanceForVoice
+                        text: qsTr("Оповещать чат если у собеседника недостаточно средств на озвучку")
                     }
                 }
             }

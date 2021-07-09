@@ -58,6 +58,7 @@ class Properties : public QObject
     // Box settings (for chat interlocutors)
     Q_PROPERTY(double boxUserStartingBalance READ boxUserStartingBalance WRITE setBoxUserStartingBalance NOTIFY boxUserStartingBalanceChanged)
     Q_PROPERTY(bool boxDefaultOnFlag0 READ boxDefaultOnFlag0 WRITE setBoxDefaultOnFlag0 NOTIFY boxDefaultOnFlag0Changed)
+    Q_PROPERTY(bool boxNotificationChatByEmptyUserBalanceForVoice READ boxNotificationChatByEmptyUserBalanceForVoice WRITE setBoxNotificationChatByEmptyUserBalanceForVoice NOTIFY boxNotificationChatByEmptyUserBalanceForVoiceChanged)
 
     bool m_flagLoadingChat = true;
     QString m_currentStreamId;
@@ -93,8 +94,8 @@ class Properties : public QObject
     double m_boxUserStartingBalance = 0.0;
     bool m_boxDefaultOnFlag0 = false;
     double m_speechKitPriceBySymbol = 0.0;
-
-    int m_speakOptionReasonType;
+    int m_speakOptionReasonType = 0;
+    bool m_boxNotificationChatByEmptyUserBalanceForVoice = false;
 
 public:
     explicit Properties(QObject *parent = nullptr) : QObject(parent),
@@ -203,6 +204,9 @@ public:
     int speakOptionReasonType() const;
     void setSpeakOptionReasonType(int newSpeakOptionReasonType);
 
+    bool boxNotificationChatByEmptyUserBalanceForVoice() const;
+    void setBoxNotificationChatByEmptyUserBalanceForVoice(bool newBoxNotificationChatByEmptyUserBalanceForVoice);
+
 public slots:
 
 signals:
@@ -241,7 +245,21 @@ signals:
     void boxDefaultOnFlag0Changed();
     void speechKitPriceBySymbolChanged();
     void speakOptionReasonTypeChanged();
+    void boxNotificationChatByEmptyUserBalanceForVoiceChanged();
 };
+
+inline bool Properties::boxNotificationChatByEmptyUserBalanceForVoice() const
+{
+    return m_boxNotificationChatByEmptyUserBalanceForVoice;
+}
+
+inline void Properties::setBoxNotificationChatByEmptyUserBalanceForVoice(bool newBoxNotificationChatByEmptyUserBalanceForVoice)
+{
+    if (m_boxNotificationChatByEmptyUserBalanceForVoice == newBoxNotificationChatByEmptyUserBalanceForVoice)
+        return;
+    m_boxNotificationChatByEmptyUserBalanceForVoice = newBoxNotificationChatByEmptyUserBalanceForVoice;
+    emit boxNotificationChatByEmptyUserBalanceForVoiceChanged();
+}
 
 inline int Properties::speakOptionReasonType() const
 {

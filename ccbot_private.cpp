@@ -32,6 +32,7 @@ QString CCBotPrivate::generateErrMsg(int type, int errCode, QString info)
 
 bool CCBotPrivate::isValidVoiceName(const QString name)
 {
+    qDebug() << "selected name:" << name;
     if (name == "oksana"
             || name == "filipp"
             || name == "alena"
@@ -332,7 +333,7 @@ bool CCBotPrivate::boxRegisterNewUser(QString nikname)
     quint32 flags = 0;
 
     if (m_params->boxDefaultOnFlag0()) {
-        macro_qBitOn(flags, 0);
+        macro_qBitOn(flags, BoxFlagsEnums::FLAG_SPEECH_ON);
     }
 
     sql = "INSERT INTO box "
@@ -525,6 +526,8 @@ bool CCBotPrivate::boxSpendBalace(QString nikname, double cash, bool &isEmptyMon
 
     double balanceUpdated = prevBalanceIn - cash;
 
+    qDebug() << nikname << "balanceUpdated:" << balanceUpdated;
+
     if (balanceUpdated <= 0.0) {
         isEmptyMoney = true;
         quint32 flags = 0;
@@ -533,13 +536,20 @@ bool CCBotPrivate::boxSpendBalace(QString nikname, double cash, bool &isEmptyMon
             if (macro_qReadBit(flags, BoxFlagsEnums::FLAG_SHOWED_MSG_NO_MONEY_FOR_SPEECH) == 0) {
                 state = boxSetFlag(nikname, BoxFlagsEnums::FLAG_SHOWED_MSG_NO_MONEY_FOR_SPEECH, 1);
                 if (state) {
-                    emit sendChatMessage(QString("%1, к сожалению Ваш баланс $%2 не позволяет говорить голосом 🥺")
-                                         .arg(nikname)
-                                         .arg(prevBalanceIn));
+                    if (m_params->boxNotificationChatByEmptyUserBalanceForVoice()) {
+                        QString msg = QString("%1, к сожалению Ваш баланс $%2 не позволяет Вам озвучивать сообщения в чате голосом 🥺")
+                                .arg(nikname)
+                                .arg(prevBalanceIn);
+                        emit sendChatMessage(msg);
+                    } else {
+                        QString info = QString("Баланс собеседника %1 составляет %2 и не позволяет ему озвучивать сообщения в чате голосом 🥺")
+                                .arg(nikname)
+                                .arg(prevBalanceIn);
+                        emit showChatNotification(_clr_(info, "gray"));
+                    }
                 }
             }
         }
-
         return true;
     }
     isEmptyMoney = false;
@@ -1219,7 +1229,7 @@ void CCBotPrivate::updateChat(const QList<MessageData> &msgsl,
         QString fmtFragment1 = msg.nik_color.isEmpty() ?
                     fragment1
                     :
-                    _clr_(fragment1, msg.nik_color);
+                    "<a href=\"" + msg.sender+"\" style=\"text-decoration:none;color:" + msg.nik_color + "\">" + fragment1 + "</a>"; //, msg.nik_color);
         QString fragment2 = msg.msg;
         QString fmtFragment2 = fragment2.isEmpty() ?
                     (
@@ -1270,6 +1280,7 @@ void CCBotPrivate::analyseNewMessages(const QList<MessageData> &msgsl)
         bool state = checkAutoVoiceMessage(msg, text);
         if (state) {
             // get options
+            qDebug() << "#4";
             SpeakOptions options;
             QString voiceIn = "";
             QString speedIn = "";
@@ -1294,6 +1305,8 @@ bool CCBotPrivate::checkAutoVoiceMessage(const MessageData &msg, QString &text)
     bool enableVoiceMsg = false;
     bool balanceSpending = false;
 
+    qDebug() << "#1";
+
     switch (m_params->speakOptionReasonType()) {
     case SpeakReasonEnums::DisableAll:
         break;
@@ -1305,14 +1318,27 @@ bool CCBotPrivate::checkAutoVoiceMessage(const MessageData &msg, QString &text)
             enableVoiceMsg = true;
         break;
     case SpeakReasonEnums::BalanceSpending:
-        enableVoiceMsg = true;
         balanceSpending = true;
         break;
     default:
         break;
     }
 
+    if (balanceSpending) {
+        qDebug() << "#2";
+        quint32 flags = 0;
+        bool state = boxGetFlags(msg.sender, flags);
+        if (!state) {
+            qDebug() << "fail get flags!";
+            return false;
+        }
+        if (macro_qReadBit(flags, BoxFlagsEnums::FLAG_SPEECH_ON) == 1) {
+            enableVoiceMsg = true;
+        }
+    }
+
     if (enableVoiceMsg) {
+        qDebug() << "#3";
         QString analyseText = msg.msg;
         QJsonArray jarr = m_dataToReplaceTextForVoice.array();
         for (int i = 0; i < jarr.size(); i++) {
@@ -1336,12 +1362,10 @@ bool CCBotPrivate::checkAutoVoiceMessage(const MessageData &msg, QString &text)
             }
         }
         if (!emptyMsg && balanceSpending) {
-
             bool state = false;
             double cashSpending = 0.0;
             bool isNotEnoughMoney = false;
             state = boxCalculatePriceForSpeech(msg.sender, text.length(), cashSpending);
-
             if (!state)
                 return false;
 

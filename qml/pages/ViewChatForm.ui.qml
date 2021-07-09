@@ -14,6 +14,9 @@ Page {
     property alias btSendMsg: btSendMsg
     property alias btVoiceBalanceSpending: btVoiceBalanceSpending
     property alias rowLayout: rowLayout
+    property alias btTest: btTest
+    property alias chatRepeaterMA: chatRepeaterMA
+    property alias contexMenuLoader1: contexMenuLoader1
     antialiasing: true
 
     ToolBar {
@@ -36,6 +39,9 @@ Page {
                 id: toolButtonStartServer
                 Material.foreground: properties.listenClients ? "red" : "lightgreen"
                 Layout.leftMargin: 10
+            }
+            ToolButton {
+                id: btTest
             }
             GroupBox {
                 Layout.fillHeight: true
@@ -97,6 +103,15 @@ Page {
                 selectByMouse: true
                 readOnly: true
                 textFormat: TextEdit.RichText
+                MouseArea {
+                    id: chatRepeaterMA
+                    anchors.fill: parent
+                    acceptedButtons: Qt.RightButton
+                    hoverEnabled: true
+                    Loader {
+                        id: contexMenuLoader1
+                    }
+                }
             }
 
             ScrollBar.vertical: ScrollBar {

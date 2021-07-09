@@ -199,6 +199,7 @@ void Console::exec(QString sender, QString text)
     if(m_lastCommandsBufferMaxSize != 0) {
         _addCommandToBuffer(text);
     }
+    qDebug() << sender << cmd << args;
     emit runCommand(sender, cmd, args);
 }
 

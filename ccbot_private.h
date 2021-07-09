@@ -150,6 +150,7 @@ public slots:
 
 signals:
     void showChatMessage(QString message);
+    void showChatNotification(QString info);
     void showHistoryMessage(QString message);
     void sendChatMessage(QString text);
 };
