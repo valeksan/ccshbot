@@ -111,4 +111,8 @@ SettingsViewPageForm {
     Component.onCompleted: {
         fontSelector.currentIndex = fontSelector.find(properties.fontNameForChat);
     }
+
+    Component.onDestruction: {
+        ccbot.saveSettings();
+    }
 }

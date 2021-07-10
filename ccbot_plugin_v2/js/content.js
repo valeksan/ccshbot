@@ -299,9 +299,9 @@ function getChatContentCC() {
 
                 try {
                     if (type === 3 && isBan) {
-                        sender = msgFull.substr(msgFull.indexOf(':') + 2).split(' ')[0];
+                        sender = msgFull.substr(msgFull.indexOf(':') + 2).split(' ')[0].replace(/\s+/g, '');
                     } else {
-                        sender = obj.firstChild.innerText.split(':')[0] || "";
+                        sender = obj.firstChild.innerText.split(':')[0].replace(/\s+/g, '') || "";
                     }
                 } catch(e) { 
                     sender = ""; 

@@ -37,6 +37,7 @@ namespace BoxFlagsEnums {
     enum BoxFlagsEnum {
         FLAG_SPEECH_ON = 0,
         FLAG_SHOWED_MSG_NO_MONEY_FOR_SPEECH = 1,
+        FLAG_DRUNK = 2,
     };
     Q_ENUMS(BoxFlagsEnum)
 }

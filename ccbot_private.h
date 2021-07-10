@@ -65,7 +65,7 @@ protected:
     void updateChat(const QList<MessageData> &msgsl, bool withTime = true, QString timeFormat = "hh:mm", bool history = false);
     void analyseNewMessages(const QList<MessageData> &msgsl);
 
-    bool checkAutoVoiceMessage(const MessageData &msg, QString &text);
+    bool checkAutoVoiceMessage(const MessageData &msg, QString &text, bool drunked = false);
     QString getReplaceWordForVoice(QString keyword);
     bool checkCmdMessage(const MessageData &msg, QString &cmd, QStringList &args);
 

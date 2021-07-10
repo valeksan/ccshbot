@@ -227,7 +227,6 @@ void CCBot::initConnections()
                 if (option == "target") {
                     QString value = args.at(i).section('=', -1, -1);
                     target = value;
-                    //qDebug() << sender << option << "=" << value;
                     break;
                 }
             }
@@ -235,95 +234,254 @@ void CCBot::initConnections()
             target = sender;
         }
 
-        if (!target.isEmpty()) {
-            switch (type) {
-            case CCBotTaskEnums::SysCmdDrink:
-                {
-                    double donationIn = 0.0;
-                    double balanceIn = 0.0;
-                    bool state = boxGetBalanceInfo(target, donationIn, balanceIn);
-                    if (state) {
-                        double delta = 0.0;
-                        double cash = 0.0;
-                        for (const auto &arg : args) {
-                            QString option = arg.section('=', 0, 0);
-                            if (option == "beer") {
-                                delta += -0.1;
-                                cash += 0.5;
-                            } else if (option == "wine") {
-                                delta += -0.2;
-                                cash += 2.0;
-                            } else if (option == "rum") {
-                                delta += -0.3;
-                                cash += 5.0;
-                            } else if (option == "coffe") {
-                                delta += 0.1;
-                                cash += 1.0;
-                            } else if (option == "redbull") {
-                                delta += 0.5;
-                                cash += 2.0;
+        switch (type) {
+        case CCBotTaskEnums::SysCmdDrink:
+            {
+                double donationIn = 0.0;
+                double balanceIn = 0.0;
+                bool state = false;
+                bool isList = false;
+                if (!args.isEmpty())
+                    state = boxGetBalanceInfo(target, donationIn, balanceIn);
+                else if (args.contains("list") || args.contains("help"))
+                    isList = true;
+                if (state || isList) {
+                    double delta = 0.0;
+                    double cash = 0.0;
+                    int durationEffect = 0;
+                    int alcohol = 0;
+                    QStringList drinkList;
+                    for (const auto &arg : args) {
+                        QString option = arg.section('=', 0, 0);
+                        if (option == "beer") {
+                            if (target.isEmpty() || isList)
+                                continue;
+                            drinkList.append("beer");
+                            delta += -0.1;
+                            cash += 0.5;
+                            alcohol += 4;
+                            durationEffect += 5;
+                            isValidCommand = true;
+                        } else if (option == "wine") {
+                            if (target.isEmpty() || isList)
+                                continue;
+                            drinkList.append("wine");
+                            delta += -0.2;
+                            cash += 2.0;
+                            alcohol += 10;
+                            durationEffect += 20;
+                            isValidCommand = true;
+                        } else if (option == "rum") {
+                            if (target.isEmpty() || isList)
+                                continue;
+                            drinkList.append("wine");
+                            delta += -0.3;
+                            cash += 5.0;
+                            alcohol += 35;
+                            durationEffect += 60;
+                            isValidCommand = true;
+                        } else if (option == "coffe") {
+                            if (target.isEmpty() || isList)
+                                continue;
+                            drinkList.append("coffe");
+                            delta += 0.1;
+                            cash += 1.0;
+                            isValidCommand = true;
+                        } else if (option == "redbull") {
+                            if (target.isEmpty() || isList)
+                                continue;
+                            drinkList.append("redbull");
+                            delta += 0.5;
+                            cash += 2.0;
+                            isValidCommand = true;
+                        } else if (option == "list") {
+                            QString info = "drinkables: beer - $0.5, wine - $2, rum - $5, coffe - $1, redbull - $2";
+                            isValidCommand = true;
+                            if (isStreamer) {
+                                QString infoFmt = _clr_(info, "yellow");
+                                emit showChatNotification(infoFmt);
+                            } else {
+                                emit sendChatMessage(info);
                             }
-                        }
-                        if ((balanceIn - cash) < 0.0) {
-                            //
+                            break;
+                        } else if (option == "help") {
+                            QString info = "drinkables: beer - $0.5, wine - $2, rum - $5, coffe - $1, redbull - $2";
+                            isValidCommand = true;
+                            if (isStreamer) {
+                                QString info = "syntax: !drink [target=?|beer|wine|rum|coffe|redbool|list|help]";
+                                QString infoFmt = _clr_(info, "yellow");
+                                emit showChatNotification(infoFmt);
+                            } else {
+                                QString info = "syntax: !drink [beer|wine|rum|coffe|redbool|list|help]";
+                                emit sendChatMessage(info);
+                            }
+                            break;
                         }
                     }
-                }
-                break;
-            case CCBotTaskEnums::SysCmdSetVoice:
-                for (const auto &arg : args) {
-                    QString option = arg.section('=', 0, 0);
-                    QString value = arg.section('=', -1, -1);
-                    if (option == "on") {
-                        boxSetFlag(target, BoxFlagsEnums::FLAG_SPEECH_ON, 1);
-                        isValidCommand = true;
-                    } else if (option == "off") {
-                        boxSetFlag(target, BoxFlagsEnums::FLAG_SPEECH_ON, 0);
-                        isValidCommand = true;
-                    } else if (option == "name") {
-                        if (isValidVoiceName(value)) {
-                            boxSetUserVoice(target, value);
-                            isValidCommand = true;
+                    if (isList)
+                        break;
+                    if (!isStreamer) {
+                        if (qFuzzyCompare(delta, 0.0)) {
+                            QString info = QString("%1, Вы не выбрали напиток, будьте решительнее!").arg(target);
+                            emit sendChatMessage(info);
+                            break;
                         }
-                    } else if (option == "emotion") {
-                        if (value == "evil"
-                                || value == "neutral"
-                                || value == "normal"
-                                || value == "good"
-                                || value.isEmpty())
-                        {
-                            if (value == "normal") {
-                                value = "neutral";
+                        // spend balance
+                        bool isEmptyMoney = false;
+                        state = boxSpendBalace(target, cash, isEmptyMoney);
+                        if (!state)
+                            break;
+                        if (isEmptyMoney) {
+                            QString info = QString("%1, Ваш баланс $%2 не позволяет приобрести сей напиток!").arg(target).arg(balanceIn);
+                            emit sendChatMessage(info);
+                            break;
+                        }
+                        // get speed
+                        QString speedIn;
+                        state = boxGetUserSpeedVoice(target, speedIn);
+                        if (!state)
+                            break;
+                        // update speed
+                        double speedUpdated = speedIn.isEmpty() ? 1.0 : speedIn.toDouble();
+                        speedUpdated += delta;
+                        if (speedUpdated < 0.4)
+                            speedUpdated = 0.4;
+                        else if (speedUpdated > 2.0)
+                            speedUpdated = 2.0;
+
+                        state = boxSetUserSpeedVoice(target, QString::number(speedUpdated, 'f', 1));
+                        if (!state)
+                            break;
+
+                        // update rezerv
+                        if (durationEffect > 0) {
+                            QDateTime expire_timestamp = QDateTime::currentDateTime().addSecs(60 * durationEffect);
+                            state = boxSetReservKeyValue(target, "drink_expire", expire_timestamp.toString(Qt::ISODate));
+                            if (!state)
+                                break;
+
+                            QString oldAlcValue = "";
+                            state = boxGetReservKeyValue(target, "alcohol", oldAlcValue);
+                            if (!state)
+                                break;
+                            int alcoholUpdated = 0;
+                            if (!oldAlcValue.isEmpty()) {
+                                alcoholUpdated = oldAlcValue.toInt();
                             }
-                            boxSetUserEmotionVoice(target, value);
-                            isValidCommand = true;
-                        }
-                    } else if (option == "speed") {
-                        if (isStreamer) {
-                            double fvalue = value.toDouble();
-                            if (fvalue >= 0.4 && fvalue <= 3.0) {
-                                boxGetUserSpeedVoice(target, value);
-                                isValidCommand = true;
+                            alcoholUpdated += alcohol;
+                            if (alcoholUpdated >= 50) {
+                                alcoholUpdated = 50;
                             }
-                        }
-                    } else if (option == "names") {
-                        QString info = _clr_("oksana(ж,рус),filipp(м,рус),alena(ж,рус),jane(ж,рус),omazh(ж,рус),zahar(м,рус),ermil(м,рус),alyss(ж,анг),nick(м,анг)", "yellow");
-                        if (isStreamer) {
-                            emit showChatNotification(info);
-                        } else {
+
+                            state = boxSetReservKeyValue(target, "alcohol", QString::number(alcoholUpdated));
+                            if (!state)
+                                break;
+
+                            state = boxSetReservKeyValue(target, "sv_speed_voice", speedIn);
+                            if (!state)
+                                break;
+
+                            QString info = QString("%1 выпил %2, потратив у стойки бармена $%3, приятного бухича! Уровень опьянения %4 на %5 минут.")
+                                    .arg(target)
+                                    .arg(drinkList.join(" "))
+                                    .arg(cash)
+                                    .arg(alcoholUpdated)
+                                    .arg(durationEffect);
+
                             emit sendChatMessage(info);
                         }
                     }
                 }
-                break;
-            default:
-                break;
+            }
+            break;
+        case CCBotTaskEnums::SysCmdSetVoice:
+            for (const auto &arg : args) {
+                QString option = arg.section('=', 0, 0);
+                QString value = arg.section('=', -1, -1);
+                if (option == "on") {
+                    if (target.isEmpty())
+                        continue;
+                    boxSetFlag(target, BoxFlagsEnums::FLAG_SPEECH_ON, 1);
+                    isValidCommand = true;
+                } else if (option == "off") {
+                    if (target.isEmpty())
+                        continue;
+                    boxSetFlag(target, BoxFlagsEnums::FLAG_SPEECH_ON, 0);
+                    isValidCommand = true;
+                } else if (option == "name") {
+                    if (target.isEmpty())
+                        continue;
+                    if (isValidVoiceName(value)) {
+                        boxSetUserVoice(target, value);
+                        isValidCommand = true;
+                    }
+                } else if (option == "emotion") {
+                    if (target.isEmpty())
+                        continue;
+                    if (value == "evil"
+                            || value == "neutral"
+                            || value == "normal"
+                            || value == "good"
+                            || value.isEmpty())
+                    {
+                        if (value == "normal") {
+                            value = "neutral";
+                        }
+                        boxSetUserEmotionVoice(target, value);
+                        isValidCommand = true;
+                    }
+                } else if (option == "speed") {
+                    if (target.isEmpty())
+                        continue;
+                    if (isStreamer) {
+                        double fvalue = value.toDouble();
+                        if (fvalue >= 0.4 && fvalue <= 3.0) {
+                            boxSetUserSpeedVoice(target, value);
+                            isValidCommand = true;
+                        }
+                    }
+                } else if (option == "names") {
+                    QString info = "names(ru): oksana, filipp, alena, jane, omazh, zahar, ermil; names(en): alyss, nick.";
+                    isValidCommand = true;
+                    if (isStreamer) {
+                        QString infoFmt = _clr_(info, "yellow");
+                        emit showChatNotification(infoFmt);
+                    } else {
+                        emit sendChatMessage(info);
+                    }
+                } else if (option == "emotions") {
+                    QString info = "emotions: evil, neutral, good.";
+                    isValidCommand = true;
+                    if (isStreamer) {
+                        QString infoFmt = _clr_(info, "yellow");
+                        emit showChatNotification(infoFmt);
+                    } else {
+                        emit sendChatMessage(info);
+                    }
+                } else if (option == "help") {
+                    isValidCommand = true;
+                    if (isStreamer) {
+                        QString info = "syntax: !voice [on|off|names|emotions|emotion=?|name=?|target=?|speed={0.4..3.0}]";
+                        QString infoFmt = _clr_(info, "yellow");
+                        emit showChatNotification(infoFmt);
+                    } else {
+                        QString info = "syntax: !voice [on|off|names|emotions|emotion=?|name=?]";
+                        emit sendChatMessage(info);
+                    }
+                }
+            }
+            break;
+        default:
+            break;
+        }
+        if (!isValidCommand) {
+            QString notifyMsg = fullCommand + " - no valid command!";
+            if (isStreamer) {
+                emit showChatNotification(_clr_(notifyMsg, "red"));
+            } else {
+                emit sendChatMessage(notifyMsg);
             }
         }
-        if (isValidCommand)
-            emit showChatNotification(_clr_(fullCommand, "green"));
-        else
-            emit showChatNotification(_clr_(fullCommand + " no valid command!", "red"));
     });
 }
 
@@ -928,7 +1086,6 @@ void CCBot::action(int type, QVariantList args)
 
 void CCBot::exec(QString command)
 {
-//    qDebug() << "###";
     m_consoleInput->exec(m_params->currentStreamerNikname(), command);
 }
 
@@ -943,8 +1100,7 @@ void CCBot::slotFinishedTask(long id, int type, QVariantList argsList, QVariant 
 
     if (errCode != CCBotErrEnums::Ok) {
         emit showMessage(tr("Ошибка"), generateErrMsg(type, errCode, errInfo), true);
-    }
-    else
+    } else {
         switch (type) {
         case CCBotTaskEnums::MergeChat:
             {
@@ -957,4 +1113,5 @@ void CCBot::slotFinishedTask(long id, int type, QVariantList argsList, QVariant 
         default:
             break;
         }
+    }
 }

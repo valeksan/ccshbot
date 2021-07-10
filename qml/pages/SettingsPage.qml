@@ -520,4 +520,8 @@ SettingsPageForm {
         cfgBoxNotificationChatByEmptyUserBalanceForVoice.checked =
                 properties.boxNotificationChatByEmptyUserBalanceForVoice;
     }
+
+    Component.onDestruction: {
+        ccbot.saveSettings();
+    }
 }

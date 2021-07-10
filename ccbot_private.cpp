@@ -268,8 +268,7 @@ bool CCBotPrivate::createBoxTableInDB()
 {
     QSqlQuery qry;
 
-    const QString values =  "id INTEGER PRIMARY KEY AUTOINCREMENT, "
-                            "nikname TEXT, "
+    const QString values =  "nikname TEXT PRIMARY KEY, "
                             "info TEXT DEFAULT NULL, "
                             "achieves TEXT DEFAULT NULL, "
                             "flags INTEGER DEFAULT 0, "
@@ -283,8 +282,9 @@ bool CCBotPrivate::createBoxTableInDB()
                             "tts_voice TEXT DEFAULT NULL, "
                             "tts_speed_voice TEXT DEFAULT NULL, "
                             "tts_voice_emotion TEXT DEFAULT NULL, "
-                            "rezerv TEXT DEFAULT NULL";
-    const QString sql = QString("CREATE TABLE IF NOT EXISTS 'box' (%1)").arg(values);
+                            "rezerv TEXT DEFAULT NULL,"
+                            "UNIQUE(nikname)";
+    const QString sql = QString("CREATE TABLE IF NOT EXISTS 'box' (%1);").arg(values);
 
     bool state = qry.exec(sql);
 
@@ -303,11 +303,11 @@ bool CCBotPrivate::boxContainUser(QString nikname, bool &contain)
     QSqlQuery qry;
     QString sql;
 
-    sql = "SELECT id FROM box WHERE nikname = :user LIMIT 1;";
-    qry.prepare(sql);
-    qry.bindValue(":user", nikname);
+    sql = QString("SELECT * FROM box WHERE nikname=\"%1\"").arg(nikname);
 
-    bool state = qry.exec();
+    bool state = qry.exec(sql);
+
+    contain = false;
 
     if (m_params->flagLogging() && !state) {
         QString info = QString("Sql query-select error(%1): ")
@@ -336,9 +336,9 @@ bool CCBotPrivate::boxRegisterNewUser(QString nikname)
         macro_qBitOn(flags, BoxFlagsEnums::FLAG_SPEECH_ON);
     }
 
-    sql = "INSERT INTO box "
+    sql = QString("INSERT OR IGNORE INTO box "
             "(nikname, registration_date, last_activity_date, balance, tts_voice, tts_speed_voice, tts_voice_emotion, flags) "
-            "VALUES (:nikname, :reg_date, :reg_date, :balance, :voice, :speed, :emotion, :flags);";
+            "VALUES (:nikname, :reg_date, :reg_date, :balance, :voice, :speed, :emotion, :flags)");
     qry.prepare(sql);
     qry.bindValue(":reg_date", timestamp.toString("yyyy-MM-dd hh:mm:ss"));
     qry.bindValue(":nikname", nikname);
@@ -480,16 +480,16 @@ bool CCBotPrivate::boxAddBalance(QString nikname, double cash, bool bonus)
     if (!bonus) {
         double donationUpdated = prevDonationIn + cash;
         sql = QString("UPDATE box SET "
-                "donation = \"%1\", "
-                "balance = \"%2\" "
-                "WHERE nikname = \"%3\"")
+                "donation=%1, "
+                "balance=%2 "
+                "WHERE nikname=\"%3\"")
                 .arg(donationUpdated)
                 .arg(balanceUpdated)
                 .arg(nikname);
     } else {
         sql = QString("UPDATE box SET "
-                "balance = \"%1\" "
-                "WHERE nikname = \"%2\";")
+                "balance=%1 "
+                "WHERE nikname=\"%2\"")
                 .arg(balanceUpdated)
                 .arg(nikname);
     }
@@ -1022,9 +1022,13 @@ void CCBotPrivate::boxUpdate(const QList<MessageData> &newMsgs)
             return;
     }
 
+//    qDebug() << "##";
+
     for (int i = 0; i < newMsgs.size(); i++) {
         if (newMsgs.at(i).type == 1)
             continue;
+
+//        qDebug() << "###";
         MessageData msg = newMsgs.at(i);
         bool userIsRegistred = false;
         bool state = boxContainUser(msg.sender, userIsRegistred);
@@ -1043,6 +1047,64 @@ void CCBotPrivate::boxUpdate(const QList<MessageData> &newMsgs)
             boxAddNumSpeechSymbolsInStatistics(msg.sender, textForSpeek.length());
         }
     }
+    /*
+    bool boxTableCreated = m_db.tables().contains("box");
+
+    if (!boxTableCreated) {
+        boxTableCreated = createBoxTableInDB();
+        if (!boxTableCreated)
+            return;
+    }
+
+    QMap<QString, bool> regMap;
+
+    // register new users
+    for (int i = 0; i < newMsgs.size(); i++) {
+        if (newMsgs.at(i).type == 1
+                || newMsgs.at(i).type == 3
+                || newMsgs.at(i).type == 4)
+            continue;
+        MessageData msg = newMsgs.at(i);
+        bool userIsRegistred = false;
+        bool state = boxContainUser(msg.sender, userIsRegistred);
+//        qDebug() << msg.sender << "reg" << userIsRegistred;
+//        if (!state) {
+//            qDebug() << "fail boxContainUser!" << userIsRegistred;
+//        }
+        if (!userIsRegistred && state) {
+            state = boxRegisterNewUser(msg.sender);
+//            qDebug() << msg.sender << "reg_new" << state;
+            if (!state) {
+//                qDebug() << "fail boxRegisterNewUser!" << userIsRegistred;
+                userIsRegistred = false;
+            } else {
+                userIsRegistred = true;
+            }
+        }
+        if (userIsRegistred)
+            regMap.insert(msg.sender, userIsRegistred);
+    }
+
+    // update box
+    for (int i = 0; i < newMsgs.size(); i++) {
+        if (newMsgs.at(i).type == 1
+                || newMsgs.at(i).type == 3
+                || newMsgs.at(i).type == 4)
+            continue;
+        MessageData msg = newMsgs.at(i);
+        bool userIsRegistred = regMap.value(msg.sender, false);
+        if (userIsRegistred) {
+            if (msg.type == 2) {
+                boxAddBalance(msg.sender, static_cast<double>(msg.pay));
+            }
+            boxAddStatisticsOfMessage(msg.sender, msg.msg.length());
+            QString textForSpeek = "";
+            if (checkAutoVoiceMessage(msg, textForSpeek)) {
+                boxAddNumSpeechSymbolsInStatistics(msg.sender, textForSpeek.length());
+            }
+        }
+    }
+    */
 }
 
 bool CCBotPrivate::boxGetReservKeyValue(QString nikname, QString key, QString &value, bool all)
@@ -1139,38 +1201,38 @@ void CCBotPrivate::mergeMessages(QList<MessageData> oldMsgList,
     int weight = 0;
     int spaceMsgCount = 0;
     bool flagEnterInterval = false;
-    bool isBanState = false;
+//    bool isBanState = false;
 
-    QStringList allNiknames;
+//    QStringList allNiknames;
 
-    for (auto msg : oldMsgList) {
-        if(msg.type != 1) {
-            if (!allNiknames.contains(msg.sender)) {
-                allNiknames.append(msg.sender);
-            }
-        }
-    }
+//    for (const auto &msg : oldMsgList) {
+//        if(msg.type != 1) {
+//            if (!allNiknames.contains(msg.sender)) {
+//                allNiknames.append(msg.sender);
+//            }
+//        }
+//    }
 
-    int currentNikIndexIfBanState = -1;
+//    int currentNikIndexIfBanState = -1;
 
     QList<MessageData> oldMsgListTmp;
     QList<MessageData> newMsgListTmp;
 
-    QPair<int,int> savedMaxInterval;
-    QList<MessageData> savedOldMsgListTmp = oldMsgList;
+//    QPair<int,int> savedMaxInterval;
+//    QList<MessageData> savedOldMsgListTmp = oldMsgList;
 
-    fixBanState:
+//    fixBanState:
 
-    oldMsgListTmp = savedOldMsgListTmp;
+    oldMsgListTmp = oldMsgList;//savedOldMsgListTmp;
     newMsgListTmp = newMsgList;
 
-    if (isBanState) {
-        for (int i = 0; i < oldMsgListTmp.size(); i++) {
-            if (oldMsgListTmp.at(i).sender == allNiknames.at(currentNikIndexIfBanState)) {
-                oldMsgListTmp.removeAt(i--);
-            }
-        }
-    }
+//    if (isBanState) {
+//        for (int i = 0; i < oldMsgListTmp.size(); i++) {
+//            if (oldMsgListTmp.at(i).sender == allNiknames.at(currentNikIndexIfBanState)) {
+//                oldMsgListTmp.removeAt(i--);
+//            }
+//        }
+//    }
 
     if (!newMsgListTmp.isEmpty() && !oldMsgListTmp.isEmpty()) {
         for (iNewMsgs = newMsgListTmp.crbegin(), iOldMsgs = oldMsgListTmp.crbegin();
@@ -1228,27 +1290,27 @@ void CCBotPrivate::mergeMessages(QList<MessageData> oldMsgList,
         }
     }
 
-    if (maxInterval.second < oldMsgListTmp.size()/2
-            && allNiknames.size() > 1
-            && oldMsgListTmp.size() > 1)
-    {
-        if (!isBanState || savedMaxInterval.second < maxInterval.second) {
-            savedMaxInterval = maxInterval;
-            savedOldMsgListTmp = oldMsgListTmp;
-        }
-        isBanState = true;
-        if (currentNikIndexIfBanState != allNiknames.size()-1) {
-            ++currentNikIndexIfBanState;
-            goto fixBanState;
-        }
-    } else {
-        isBanState = false;
-    }
+//    if (maxInterval.second < oldMsgListTmp.size()/2
+//            && allNiknames.size() > 1
+//            && oldMsgListTmp.size() > 1)
+//    {
+//        if (!isBanState || savedMaxInterval.second < maxInterval.second) {
+//            savedMaxInterval = maxInterval;
+//            savedOldMsgListTmp = oldMsgListTmp;
+//        }
+//        isBanState = true;
+//        if (currentNikIndexIfBanState != allNiknames.size()-1) {
+//            ++currentNikIndexIfBanState;
+//            goto fixBanState;
+//        }
+//    } else {
+//        isBanState = false;
+//    }
 
-    if (isBanState) {
-        maxInterval = savedMaxInterval;
-        oldMsgListTmp = savedOldMsgListTmp;
-    }
+//    if (isBanState) {
+//        maxInterval = savedMaxInterval;
+//        oldMsgListTmp = savedOldMsgListTmp;
+//    }
 
     // Спам-пакет из пачки сообщений т.к. не найдено совпадений вообще!
     // (если такое возможно) -> передаем его сразу в запись
@@ -1347,6 +1409,7 @@ void CCBotPrivate::updateChat(const QList<MessageData> &msgsl,
 
 void CCBotPrivate::analyseNewMessages(const QList<MessageData> &msgsl)
 {
+    QDateTime currentDT = QDateTime::currentDateTime();
     for (int i = 0; i < msgsl.size(); i++) {
         MessageData msg = msgsl.at(i);
         if (msg.msg.length() == 0)
@@ -1358,14 +1421,70 @@ void CCBotPrivate::analyseNewMessages(const QList<MessageData> &msgsl)
                 return;
             }
         }
-        bool state = checkAutoVoiceMessage(msg, text);
+        quint32 flagsIn = 0;
+        boxGetFlags(msg.sender, flagsIn);
+        bool isDrunked = (macro_qReadBit(flagsIn, BoxFlagsEnums::FLAG_DRUNK) == 1);
+
+        bool state = checkAutoVoiceMessage(msg, text, isDrunked);
+
+        qDebug() << "#" << state;
+
         if (state) {
             // get options
-            qDebug() << "#4";
             SpeakOptions options;
             QString voiceIn = "";
             QString speedIn = "";
             QString emotionIn = "";
+            QString expireDrinkIn = "";
+            QString alcoholIn = "";
+
+            bool isExpire = false;
+
+            if (isDrunked) {
+                boxGetReservKeyValue(msg.sender, "alcohol", alcoholIn);
+                boxGetReservKeyValue(msg.sender, "drink_expire", expireDrinkIn);
+                if (!alcoholIn.isEmpty() && !expireDrinkIn.isEmpty()) {
+                    int alc = alcoholIn.toInt();
+                    isExpire = (QDateTime::fromString(expireDrinkIn, Qt::ISODate) <= currentDT);
+                    if (!isExpire) {
+                        QRandomGenerator *rg = QRandomGenerator::global();
+                        int max = 0;
+                        if (alc >= 10 && alc < 20) {
+                            max = 5;
+                        } else if (alc >= 20 && alc < 30) {
+                            max = 4;
+                        } else if (alc >= 30 && alc < 40) {
+                            max = 3;
+                        } else if (alc >= 40 && alc < 50) {
+                            max = 2;
+                        } else if (alc == 50) {
+                            max = 1;
+                        }
+                        if (max != 0) {
+                            int dash = rg->bounded(0, max);
+                            if (dash == 0) {
+                                dash = rg->bounded(0, 1);
+                                if (dash == 0)
+                                    text = QString("Иик! ") + text;
+                                else
+                                    text = text + QString(" Иик!");
+                            }
+                        }
+                    } else {
+                        boxSetFlag(msg.sender, BoxFlagsEnums::FLAG_DRUNK, 0);
+                    }
+                } else {
+                    isExpire = true;
+                    boxSetFlag(msg.sender, BoxFlagsEnums::FLAG_DRUNK, 0);
+                }
+            }
+
+            if (isExpire) {
+                QString prevSpeedIn = "";
+                boxGetReservKeyValue(msg.sender, "sv_speed_voice", prevSpeedIn);
+                speedIn = prevSpeedIn;
+            }
+
             boxGetUserVoice(msg.sender, voiceIn);
             boxGetUserSpeedVoice(msg.sender, speedIn);
             boxGetUserEmotionVoice(msg.sender, emotionIn);
@@ -1377,7 +1496,7 @@ void CCBotPrivate::analyseNewMessages(const QList<MessageData> &msgsl)
     }
 }
 
-bool CCBotPrivate::checkAutoVoiceMessage(const MessageData &msg, QString &text)
+bool CCBotPrivate::checkAutoVoiceMessage(const MessageData &msg, QString &text, bool drunked)
 {
     if (msg.msg.isEmpty() || msg.type == 1) {
         return false;
@@ -1385,8 +1504,6 @@ bool CCBotPrivate::checkAutoVoiceMessage(const MessageData &msg, QString &text)
 
     bool enableVoiceMsg = false;
     bool balanceSpending = false;
-
-    qDebug() << "#1";
 
     switch (m_params->speakOptionReasonType()) {
     case SpeakReasonEnums::DisableAll:
@@ -1406,7 +1523,6 @@ bool CCBotPrivate::checkAutoVoiceMessage(const MessageData &msg, QString &text)
     }
 
     if (balanceSpending) {
-        qDebug() << "#2";
         quint32 flags = 0;
         bool state = boxGetFlags(msg.sender, flags);
         if (!state) {
@@ -1419,7 +1535,6 @@ bool CCBotPrivate::checkAutoVoiceMessage(const MessageData &msg, QString &text)
     }
 
     if (enableVoiceMsg) {
-        qDebug() << "#3";
         QString analyseText = msg.msg;
         QJsonArray jarr = m_dataToReplaceTextForVoice.array();
         for (int i = 0; i < jarr.size(); i++) {
@@ -1442,6 +1557,8 @@ bool CCBotPrivate::checkAutoVoiceMessage(const MessageData &msg, QString &text)
                 break;
             }
         }
+        if (!emptyMsg && drunked)
+            return true;
         if (!emptyMsg && balanceSpending) {
             bool state = false;
             double cashSpending = 0.0;

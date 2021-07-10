@@ -3,7 +3,7 @@
 #-------------------------------------------------
 TEMPLATE = app
 TARGET  = ccshbot
-VERSION = 0.5.7-1
+VERSION = 0.5.7-2
 
 QT += core gui
 QT += qml
