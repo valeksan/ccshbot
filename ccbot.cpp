@@ -241,10 +241,11 @@ void CCBot::initConnections()
                 double balanceIn = 0.0;
                 bool state = false;
                 bool isList = false;
-                if (!args.isEmpty())
+                if (!args.isEmpty()) {
                     state = boxGetBalanceInfo(target, donationIn, balanceIn);
-                else if (args.contains("list") || args.contains("help"))
-                    isList = true;
+                    if (args.contains("list") || args.contains("help"))
+                        isList = true;
+                }
                 if (state || isList) {
                     double delta = 0.0;
                     double cash = 0.0;
@@ -305,7 +306,6 @@ void CCBot::initConnections()
                             }
                             break;
                         } else if (option == "help") {
-                            QString info = "drinkables: beer - $0.5, wine - $2, rum - $5, coffe - $1, redbull - $2";
                             isValidCommand = true;
                             if (isStreamer) {
                                 QString info = "syntax: !drink [target=?|beer|wine|rum|coffe|redbool|list|help]";

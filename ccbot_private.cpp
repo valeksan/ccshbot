@@ -1022,13 +1022,10 @@ void CCBotPrivate::boxUpdate(const QList<MessageData> &newMsgs)
             return;
     }
 
-//    qDebug() << "##";
-
     for (int i = 0; i < newMsgs.size(); i++) {
         if (newMsgs.at(i).type == 1)
             continue;
 
-//        qDebug() << "###";
         MessageData msg = newMsgs.at(i);
         bool userIsRegistred = false;
         bool state = boxContainUser(msg.sender, userIsRegistred);
@@ -1047,64 +1044,6 @@ void CCBotPrivate::boxUpdate(const QList<MessageData> &newMsgs)
             boxAddNumSpeechSymbolsInStatistics(msg.sender, textForSpeek.length());
         }
     }
-    /*
-    bool boxTableCreated = m_db.tables().contains("box");
-
-    if (!boxTableCreated) {
-        boxTableCreated = createBoxTableInDB();
-        if (!boxTableCreated)
-            return;
-    }
-
-    QMap<QString, bool> regMap;
-
-    // register new users
-    for (int i = 0; i < newMsgs.size(); i++) {
-        if (newMsgs.at(i).type == 1
-                || newMsgs.at(i).type == 3
-                || newMsgs.at(i).type == 4)
-            continue;
-        MessageData msg = newMsgs.at(i);
-        bool userIsRegistred = false;
-        bool state = boxContainUser(msg.sender, userIsRegistred);
-//        qDebug() << msg.sender << "reg" << userIsRegistred;
-//        if (!state) {
-//            qDebug() << "fail boxContainUser!" << userIsRegistred;
-//        }
-        if (!userIsRegistred && state) {
-            state = boxRegisterNewUser(msg.sender);
-//            qDebug() << msg.sender << "reg_new" << state;
-            if (!state) {
-//                qDebug() << "fail boxRegisterNewUser!" << userIsRegistred;
-                userIsRegistred = false;
-            } else {
-                userIsRegistred = true;
-            }
-        }
-        if (userIsRegistred)
-            regMap.insert(msg.sender, userIsRegistred);
-    }
-
-    // update box
-    for (int i = 0; i < newMsgs.size(); i++) {
-        if (newMsgs.at(i).type == 1
-                || newMsgs.at(i).type == 3
-                || newMsgs.at(i).type == 4)
-            continue;
-        MessageData msg = newMsgs.at(i);
-        bool userIsRegistred = regMap.value(msg.sender, false);
-        if (userIsRegistred) {
-            if (msg.type == 2) {
-                boxAddBalance(msg.sender, static_cast<double>(msg.pay));
-            }
-            boxAddStatisticsOfMessage(msg.sender, msg.msg.length());
-            QString textForSpeek = "";
-            if (checkAutoVoiceMessage(msg, textForSpeek)) {
-                boxAddNumSpeechSymbolsInStatistics(msg.sender, textForSpeek.length());
-            }
-        }
-    }
-    */
 }
 
 bool CCBotPrivate::boxGetReservKeyValue(QString nikname, QString key, QString &value, bool all)
@@ -1426,8 +1365,6 @@ void CCBotPrivate::analyseNewMessages(const QList<MessageData> &msgsl)
         bool isDrunked = (macro_qReadBit(flagsIn, BoxFlagsEnums::FLAG_DRUNK) == 1);
 
         bool state = checkAutoVoiceMessage(msg, text, isDrunked);
-
-        qDebug() << "#" << state;
 
         if (state) {
             // get options

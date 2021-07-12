@@ -39,40 +39,6 @@ ViewChatForm {
         }
     }
 
-//    Component {
-//        id: contextMenuComponent1
-//        Menu {
-//            id: editmenu
-//            function showPopup(x, y) {
-//                editmenu.showPopup(x, y)
-//            }
-//            MenuItem {
-//                text: "Copy"
-//                enabled: chatRepeater.selectedText.length > 0
-//                onTriggered: {
-//                    chatRepeater.copy();
-//                }
-//            }
-//            onClosed: {
-//                contexMenuLoader1.sourceComponent = null;
-//            }
-//        }
-//    }
-
-//    chatRepeaterMA.onPressed: {
-//        const selectStart = chatRepeater.selectionStart;
-//        const selectEnd = chatRepeater.selectionEnd;
-//        const pos = mapToItem(null, chatRepeaterMA.mouseX, chatRepeaterMA.mouseY); //chatRepeater.cursorPosition;
-//        contexMenuLoader1.sourceComponent = contextMenuComponent1;
-//        contexMenuLoader1.visible = true/*showPopup(pos.x, pos.y)*/;
-//        chatRepeater.select(selectStart, selectEnd);
-////        chatRepeaterContextMenu.x = mouse.x;
-////        chatRepeaterContextMenu.y = mouse.y;
-////        chatRepeaterContextMenu.open();
-////        chatRepeater.cursorPosition = curPos;
-////        chatRepeater.select(selectStart, selectEnd);
-//    }
-
     chatRepeater.onLinkActivated: {
         if (inputMsg.length === 0) {
             inputMsg.text = link + ", ";
@@ -87,7 +53,7 @@ ViewChatForm {
         window.setTimeout(() => {
                               if (chatRepeater.text.length > 0)
                                 ++page.idleCount;
-                              if (page.idleCount === 5) {
+                              if (page.idleCount === 10) {
                                 page.idleCount = 0;
                                 client.active = false;
                                 --connectCount;
@@ -274,26 +240,25 @@ ViewChatForm {
         if (inputMsg.text.length === 0)
             return;
         if (inputMsg.text[0] === '!') {
-            console.log("cmd:",inputMsg.text);
+            console.log("cmd:", inputMsg.text);
             ccbot.exec(inputMsg.text);
             inputMsg.clear();
             return;
         }
-        if (client !== null) {
-            console.log("####", inputMsg.text);
-//            let sendObj = { "type":"message", "text":inputMsg.text };
-//            client.sendTextMessage(JSON.stringify(sendObj));
-//            inputMsg.clear();
+        if (client != null) {
+            let sendObj = { "type":"message", "text":inputMsg.text };
+            client.sendTextMessage(JSON.stringify(sendObj));
+            inputMsg.clear();
         }
     }
     function sendMessageAuto(text) {
-        if (client !== null) {
+        if (client != null) {
             let sendObj = { "type":"message", "text":text };
             client.sendTextMessage(JSON.stringify(sendObj));
         }
     }
 
-    btSendMsg.enabled: client !== null && inputMsg.text.length > 0
+    btSendMsg.enabled: client != null && inputMsg.text.length > 0
     btSendMsg.onClicked: {
         sendMessage();
     }

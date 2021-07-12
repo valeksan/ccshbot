@@ -1,32 +1,13 @@
 "use strict";
+
 console.log('__CONTENT PLUGIN IS RUNNING')
 
 const DEF_TIMEOUT_REPEAT = 1500;
 const DEF_HOST = 'localhost';
 const DEF_PORT = 3000;
 
-//let chatVoiceEnableCfgObj = localStorage.getItem('ChatVoiceEnableCfg') | null;
-let chatVoiceEnableCfg = JSON.parse(localStorage.getItem('ChatVoiceEnableCfg'));
-
-console.log("__test1", chatVoiceEnableCfg)
-
-if (chatVoiceEnableCfg) {
-    //chatVoiceEnableCfg = JSON.parse(chatVoiceEnableCfgObj);
-    console.log("__test2", chatVoiceEnableCfg)
-} else {
-    chatVoiceEnableCfg = new Map();
-}
-
-console.log("__chatVoiceEnableCfg", chatVoiceEnableCfg);
-let lastStreamId = localStorage.getItem('lastStreamId') | null;
 let chatVoiceEnable = false;
 let flagConnection = false;
-
-if (lastStreamId) {
-    if (chatVoiceEnableCfg[lastStreamId]) {
-        chatVoiceEnable = chatVoiceEnableCfg[lastStreamId];
-    }
-}
 
 let cfgTimeoutRepeat = DEF_TIMEOUT_REPEAT;
 let cfgHost = DEF_HOST;
@@ -36,7 +17,6 @@ let server = null;
 
 let debug = true;
 
-//debugSetCfg();
 initCfg();
 
 function trim(x) {
@@ -101,7 +81,6 @@ async function connect(host, port) {
 
         server.onclose = function(evt) {
             flagConnection = false;
-            //server = null;
             ledConnect.style = "color:red";
             ledConnect.innerHTML = "Offline";
         };
@@ -118,9 +97,8 @@ function disconnectBot() {
     if(flagConnection) {
         try {
             server.close();
-            //server = null;
         } catch(e) {
-            //server = null;
+            console.log("__fail_close_server", e);
         }
         flagConnection = false;
         ledConnect.style = "color:red";
@@ -147,8 +125,6 @@ function initCfg() {
 }
 
 function clickBtChatVoice() {
-    //chatVoiceEnable = !chatVoiceEnable;
-
     const currentPageUrl = window.location.href;
     const selectorStreamId = RegExp(/https:\/\/crazycash.tv\/view-stream\/(\d{1,})/).exec(currentPageUrl);
     const streamId = ((selectorStreamId !== null) ? String(selectorStreamId[1]) : "");
@@ -157,28 +133,8 @@ function clickBtChatVoice() {
     if (!flagIsCorrectPage)
         return;
     
-    chatVoiceEnable = chatVoiceEnableCfg[streamId];
     chatVoiceEnable = !chatVoiceEnable;
-    chatVoiceEnableCfg[streamId] = chatVoiceEnable;
 
-    // let chatVoiceEnableFoundIndex = -1;
-    // for (let i = 0; i < chatVoiceEnableCfg.length; i++) {
-    //     if (chatVoiceEnableCfg[i]["id"] === streamId) {
-    //         chatVoiceEnableFoundIndex = i;
-    //         chatVoiceEnable = chatVoiceEnableCfg[i]["chatVoiceEnable"];
-    //         chatVoiceEnable = !chatVoiceEnable;
-    //         chatVoiceEnableCfg[i]["chatVoiceEnable"] = chatVoiceEnable;
-    //         break;
-    //     }
-    // }
-    // if (chatVoiceEnableFoundIndex === -1) {
-    //     chatVoiceEnable = !chatVoiceEnable;
-    //     let btChatVoiceObj = {"id":streamId,"chatVoiceEnable":chatVoiceEnable};
-    //     chatVoiceEnableCfg.push(btChatVoiceObj);
-    // }
-
-    localStorage.setItem('ChatVoiceEnableCfg', JSON.stringify(chatVoiceEnableCfg));
-    localStorage.setItem('lastStreamId', streamId);
     if (chatVoiceEnable) {
         doRepeatGetDataCC();
         buttonChatVoiceEnable.className = buttonChatVoiceEnable.className.replace(/\bbtn--light-gray\b/g, "btn--yellow");
@@ -248,8 +204,6 @@ function getChatContentCC() {
         const chatDomArray = document.querySelectorAll('div.msg') || [];
 
         const streamerNameDomElement = document.querySelector("div.stream__header__info__user__nickname");
-
-        //console.log('__streamerNameDomElement:', streamerNameDomElement.innerText)
         
         if (chatDomArray.length > 0) {
             //... Parse ...
@@ -348,7 +302,6 @@ function getChatContentCC() {
                     "pay": pay
                 }
             });
-            //console.log('__CHAT_OBJ_ARR:', chatObjArray);
 
             // Pack to Set
             let lastTimestamp = Math.floor(Date.now() / 1000);
