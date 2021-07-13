@@ -409,8 +409,9 @@ void CCBot::initConnections()
                         if (durationEffect > 0) {
                             QDateTime expire_timestamp = QDateTime::currentDateTime().addSecs(60 * durationEffect);
                             state = boxSetReservKeyValue(target, "drink_expire", expire_timestamp.toString(Qt::ISODate));
-                            if (!state)
+                            if (!state) {
                                 break;
+                            }
 
                             QString oldAlcValue = "";
                             state = boxGetReservKeyValue(target, "alcohol", oldAlcValue);
