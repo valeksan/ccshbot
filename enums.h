@@ -18,6 +18,22 @@ namespace CCBotTaskEnums {
     Q_ENUMS(CCBotTaskEnum)
 }
 
+namespace SaveSectionEnums {
+    Q_NAMESPACE
+    enum SaveSectionEnum {
+        All = -1,
+        Window = 1,
+        View = 2,
+        Server = 4,
+        SpeechKit = 8,
+        ToReplaceForVoice = 16,
+        Box = 32,
+        Optimise = 64,
+        CommandBuffer = 128
+    };
+    Q_ENUMS(SaveSectionEnum)
+}
+
 namespace CCBotErrEnums {
     Q_NAMESPACE
 

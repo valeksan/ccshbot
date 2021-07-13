@@ -5,6 +5,7 @@
 #include <QTimer>
 #include <QFile>
 #include <QFileInfo>
+#include <QJsonArray>
 
 // Formatting for Rich Text
 inline const QString _clr_(const QString &str, const QString &color) {
@@ -18,6 +19,14 @@ template<typename T>
 QList<T> listRight(const QList<T> &list, int n) {
     int startIndex = list.size() - n;
     return list.mid(startIndex < 0 ? 0 : list.size() - n);
+}
+
+inline const QStringList jsonArrToStringList(const QJsonArray& jarr) {
+    QStringList list;
+    for (const auto& item : jarr) {
+        list.append(item.toString());
+    }
+    return list;
 }
 
 template<typename Func>

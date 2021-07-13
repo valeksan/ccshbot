@@ -72,6 +72,11 @@ int main(int argc, char *argv[])
                                      1, 0,
                                      "SpeakReason",
                                      "Access to enums & flags only");
+    qmlRegisterUncreatableMetaObject(SaveSectionEnums::staticMetaObject,
+                                     "ccbot.enums",
+                                     1, 0,
+                                     "SaveSection",
+                                     "Access to enums & flags only");
 
     // Loading the interface
     engine.load(QUrl(QStringLiteral("qrc:/qml/main.qml")));

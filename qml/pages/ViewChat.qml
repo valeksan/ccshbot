@@ -43,7 +43,7 @@ ViewChatForm {
         if (inputMsg.length === 0) {
             inputMsg.text = link + ", ";
         } else {
-            inputMsg.text = inputMsg.text + " " + link;
+            inputMsg.text = inputMsg.text + link;
         }
         inputMsg.cursorPosition = inputMsg.text.length;
         inputMsg.forceActiveFocus();
@@ -266,6 +266,16 @@ ViewChatForm {
     inputMsg.selectByMouse: true
     inputMsg.onAccepted: {
         sendMessage();
+    }
+
+    focus: true
+    Keys.onUpPressed: {
+        let cmd = ccbot.keyUpCommand();
+        inputMsg.text = cmd;
+    }
+    Keys.onDownPressed: {
+        let cmd = ccbot.keyDownCommand();
+        inputMsg.text = cmd;
     }
 
     Connections {

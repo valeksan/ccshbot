@@ -57,6 +57,8 @@ protected:
     LogMaker m_log;
     QJsonDocument m_dataToReplaceTextForVoice;
     QMap<QString, QStringList> m_mapListType3SendersOld;
+    QMap<QString, QString> m_mapListType3SendersOldExpire;
+    QMap<QString, bool> m_mapSubscribeUserNotified;
     Console *m_consoleInput;
 
     mutable QMutex m_mutex;

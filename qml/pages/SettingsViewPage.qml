@@ -1,5 +1,7 @@
 import QtQuick 2.12
 
+import ccbot.enums 1.0
+
 SettingsViewPageForm {
     id: page
 
@@ -113,6 +115,6 @@ SettingsViewPageForm {
     }
 
     Component.onDestruction: {
-        ccbot.saveSettings();
+        ccbot.saveSettings(SaveSection.View);
     }
 }

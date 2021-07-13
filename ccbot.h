@@ -6,6 +6,8 @@
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QtMultimedia/QMediaPlayer>
+#include <QJsonObject>
+#include <QJsonDocument>
 
 #include "ccbot_private.h"
 
@@ -54,11 +56,13 @@ public slots:
     void closeDB();
     void action(int type, QVariantList args = QVariantList()) override;
     void exec(QString command);
+    QString keyUpCommand();
+    QString keyDownCommand();
     void slotFinishedTask(long id, int type, QVariantList argsList, QVariant result) override;
 
     // save \ load settings
     void loadSettings();
-    void saveSettings();
+    void saveSettings(quint32 section = SaveSectionEnums::All);
 
 signals:
     void showMessage(QString title, QString text, bool alert);

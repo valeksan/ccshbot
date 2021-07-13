@@ -50,9 +50,6 @@ void CCBot::start()
     } else {
         initDB();
     }
-
-//    qDebug() << getModelAvaibleHistoryNiknames().join(",");
-//    qDebug() << getModelAvaibleHistoryStreamsByNikname("TANIST").join(",");
 }
 
 void CCBot::initDB()
@@ -123,58 +120,107 @@ void CCBot::loadSettings()
                 cfg.value("NotificationChatByEmptyUserBalanceForVoice", false).toBool());
     cfg.endGroup();
 
+    cfg.beginGroup("Optimise");
+    {
+        // list Type3 Senders fo remove
+        QJsonObject jsonSenders = QJsonDocument::fromJson(cfg.value("listType3Senders").toByteArray()).object();
+        QJsonObject jsonExpire = QJsonDocument::fromJson(cfg.value("listType3SendersExpire").toByteArray()).object();
+        QStringList keys = jsonSenders.keys();
+        QDateTime currentDT = QDateTime::currentDateTime();
+        for (int i = 0; i < keys.size(); i++) {
+            QString key = keys.at(i);
+            QDateTime expire = QDateTime::fromString(jsonExpire.value(key).toString(), Qt::ISODate);
+            if (expire > currentDT) {
+                m_mapListType3SendersOld.insert(key, jsonArrToStringList(jsonSenders.value(key).toArray()));
+                m_mapListType3SendersOldExpire.insert(key, jsonExpire.value(key).toString());
+            }
+        }
+    }
+    cfg.endGroup();
+
     // load saved command buffer stack
     m_consoleInput->loadCommandBufferStackSaves();
 }
 
-void CCBot::saveSettings()
+void CCBot::saveSettings(quint32 section)
 {
     QSettings cfg;
 
-    cfg.beginGroup("Window");
-    cfg.setValue("X", m_params->windowX());
-    cfg.setValue("Y", m_params->windowY());
-    cfg.setValue("HEIGHT", m_params->windowHeight());
-    cfg.setValue("WIDTH", m_params->windowWidth());
-    cfg.endGroup();
-
-    cfg.beginGroup("View");
-    cfg.setValue("FontNameForChat", m_params->fontNameForChat());
-    cfg.setValue("FontPointSizeForChat", m_params->fontPointSizeForChat());
-    cfg.setValue("TextColorForChat", m_params->textColorForChat());
-    cfg.endGroup();
-
-    cfg.beginGroup("Server");
-    cfg.setValue("MaxTDiff", m_params->maxTimestampDiff());
-    cfg.setValue("Host", m_params->listenHost());
-    cfg.setValue("Port", m_params->listenPort());
-    cfg.endGroup();
-
-    cfg.beginGroup("SpeechKit");
-    cfg.setValue("PriceSymbol", m_params->speechKitPriceBySymbol());
-    cfg.setValue("FolderID", m_params->speechkitFolderId());
-    cfg.setValue("OAuthToken", m_params->speechkitOAuthToken());
-    cfg.setValue("Host", m_params->speechkitHost());
-    cfg.setValue("IamTokenHost", m_params->speechkitGetIamTokenHost());
-    cfg.setValue("Lang", m_params->speechkitLang());
-    cfg.setValue("Format", m_params->speechkitFormat());
-    cfg.setValue("Voice", m_params->speechkitVoice());
-    cfg.setValue("Emotion", m_params->speechkitEmotion());
-    cfg.setValue("Speed", m_params->speechkitSpeed());
-    cfg.setValue("SampleRateHertz", m_params->speechkitSampleRateHertz());
-    cfg.setValue("OptionSpeakReasonType", m_params->speakOptionReasonType());
-    cfg.endGroup();
-
-    cfg.beginGroup("ToReplaceForVoice");
-    cfg.setValue("data", m_dataToReplaceTextForVoice.toJson(QJsonDocument::Compact));
-    cfg.endGroup();
-
-    cfg.beginGroup("Box");
-    cfg.setValue("UserStartingBalance", m_params->boxUserStartingBalance());
-    cfg.setValue("DefaultOnFlag0", m_params->boxDefaultOnFlag0());
-    cfg.setValue("NotificationChatByEmptyUserBalanceForVoice",
-                 m_params->boxNotificationChatByEmptyUserBalanceForVoice());
-    cfg.endGroup();
+    if ((section & SaveSectionEnums::Window) == SaveSectionEnums::Window) {
+        cfg.beginGroup("Window");
+        cfg.setValue("X", m_params->windowX());
+        cfg.setValue("Y", m_params->windowY());
+        cfg.setValue("HEIGHT", m_params->windowHeight());
+        cfg.setValue("WIDTH", m_params->windowWidth());
+        cfg.endGroup();
+    }
+    if ((section & SaveSectionEnums::View) == SaveSectionEnums::View) {
+        cfg.beginGroup("View");
+        cfg.setValue("FontNameForChat", m_params->fontNameForChat());
+        cfg.setValue("FontPointSizeForChat", m_params->fontPointSizeForChat());
+        cfg.setValue("TextColorForChat", m_params->textColorForChat());
+        cfg.endGroup();
+    }
+    if ((section & SaveSectionEnums::Server) == SaveSectionEnums::Server) {
+        cfg.beginGroup("Server");
+        cfg.setValue("MaxTDiff", m_params->maxTimestampDiff());
+        cfg.setValue("Host", m_params->listenHost());
+        cfg.setValue("Port", m_params->listenPort());
+        cfg.endGroup();
+    }
+    if ((section & SaveSectionEnums::SpeechKit) == SaveSectionEnums::SpeechKit) {
+        cfg.beginGroup("SpeechKit");
+        cfg.setValue("PriceSymbol", m_params->speechKitPriceBySymbol());
+        cfg.setValue("FolderID", m_params->speechkitFolderId());
+        cfg.setValue("OAuthToken", m_params->speechkitOAuthToken());
+        cfg.setValue("Host", m_params->speechkitHost());
+        cfg.setValue("IamTokenHost", m_params->speechkitGetIamTokenHost());
+        cfg.setValue("Lang", m_params->speechkitLang());
+        cfg.setValue("Format", m_params->speechkitFormat());
+        cfg.setValue("Voice", m_params->speechkitVoice());
+        cfg.setValue("Emotion", m_params->speechkitEmotion());
+        cfg.setValue("Speed", m_params->speechkitSpeed());
+        cfg.setValue("SampleRateHertz", m_params->speechkitSampleRateHertz());
+        cfg.setValue("OptionSpeakReasonType", m_params->speakOptionReasonType());
+        cfg.endGroup();
+    }
+    if ((section & SaveSectionEnums::ToReplaceForVoice) == SaveSectionEnums::ToReplaceForVoice) {
+        cfg.beginGroup("ToReplaceForVoice");
+        cfg.setValue("data", m_dataToReplaceTextForVoice.toJson(QJsonDocument::Compact));
+        cfg.endGroup();
+    }
+    if ((section & SaveSectionEnums::Box) == SaveSectionEnums::Box) {
+        cfg.beginGroup("Box");
+        cfg.setValue("UserStartingBalance", m_params->boxUserStartingBalance());
+        cfg.setValue("DefaultOnFlag0", m_params->boxDefaultOnFlag0());
+        cfg.setValue("NotificationChatByEmptyUserBalanceForVoice",
+                     m_params->boxNotificationChatByEmptyUserBalanceForVoice());
+        cfg.endGroup();
+    }
+    if ((section & SaveSectionEnums::Optimise) == SaveSectionEnums::Optimise) {
+        cfg.beginGroup("Optimise");
+        {
+            // list Type3 Senders fo remove
+            QJsonObject json;
+            QJsonObject jsonExpire;
+            QJsonObject jsonExpireOld = QJsonDocument::fromJson(cfg.value("listType3SendersExpire").toByteArray()).object();
+            QString expireStrDate = QDateTime::currentDateTime().addDays(2).toString(Qt::ISODate);
+            QMapIterator<QString, QStringList> i(m_mapListType3SendersOld);
+            while (i.hasNext()) {
+                i.next();
+                json.insert(i.key(), QJsonArray::fromStringList(i.value()));
+                if (!jsonExpireOld.contains(i.key()))
+                        jsonExpire.insert(i.key(), expireStrDate);
+            }
+            QJsonDocument doc;
+            QJsonDocument docExpire;
+            doc.setObject(json);
+            docExpire.setObject(jsonExpire);
+            cfg.setValue("listType3Senders", doc.toJson());
+            cfg.setValue("listType3SendersExpire", docExpire.toJson());
+        }
+        cfg.endGroup();
+    }
 
     //...
 
@@ -182,8 +228,10 @@ void CCBot::saveSettings()
         m_log.endLogSession();
     }
 
-    // save command buffer stack
-    m_consoleInput->saveCommandBufferStack();
+    if ((section & SaveSectionEnums::CommandBuffer) == SaveSectionEnums::CommandBuffer) {
+        // save command buffer stack
+        m_consoleInput->saveCommandBufferStack();
+    }
 }
 
 void CCBot::initTimers()
@@ -193,6 +241,10 @@ void CCBot::initTimers()
 
 void CCBot::initConnections()
 {
+    // номер стрима был изменен
+    connect(m_params, &Properties::currentStreamIdChanged, [=](){
+        m_mapSubscribeUserNotified.clear();
+    });
     // соединение: конец проигрывания файла
     connect(m_player,
             &QMediaPlayer::stateChanged,
@@ -475,7 +527,7 @@ void CCBot::initConnections()
             break;
         }
         if (!isValidCommand) {
-            QString notifyMsg = fullCommand + " - no valid command!";
+            QString notifyMsg = QString("#") + fullCommand + " - no valid command!";
             if (isStreamer) {
                 emit showChatNotification(_clr_(notifyMsg, "red"));
             } else {
@@ -566,8 +618,6 @@ void CCBot::initTasks()
                                 responseObj.value("expiresAt").toString(),
                                 Qt::ISODateWithMs)
                             );
-                //qDebug() << "IamToken: " << m_params->speechkitIamToken();
-                //qDebug() << "expiresAt: " << m_params->speechkitIamTokenExpiryDate().toString();
                 emit completeRequestGetIamToken();
             });
 
@@ -654,7 +704,8 @@ void CCBot::initTasks()
                                          .arg(m_params->speechkitIamToken())
                                          .toUtf8());
             // * add data
-            postDataEncoded.addQueryItem("text", text);
+            text.replace(';', "%3B");
+            postDataEncoded.addQueryItem("text", text.replace(' ', '+'));
 
             postDataEncoded.addQueryItem("folderId",
                                          m_params->speechkitFolderId());
@@ -689,8 +740,11 @@ void CCBot::initTasks()
             requestGetAudio.setUrl(url);
             QNetworkReply *reply = manager->post(requestGetAudio,
                                                  postDataEncoded
-                                                 .toString(QUrl::FullyEncoded)
-                                                 .toUtf8());
+                                                  .toString(QUrl::FullyEncoded)
+                                                  .toUtf8());
+            qDebug() << postDataEncoded
+                        .toString(QUrl::FullyEncoded)
+                        .toUtf8();
             QNetworkReply::NetworkError errType = QNetworkReply::NoError;
             QList<QSslError> errorsSsl;
             connect(reply, &QNetworkReply::finished, this, [&reply,this]() {
@@ -987,6 +1041,10 @@ int CCBot::insertNewMessagesInTable(QString streamId, QByteArray jsonData, bool 
     QStringList listType3Senders;
     for (int i = 0; i < rowsFromServer.size(); i++) {
         if (rowsFromServer.at(i).type == 4) {
+            if (!m_mapSubscribeUserNotified.contains(rowsFromServer.at(i).sender)) {
+                m_mapSubscribeUserNotified.insert(rowsFromServer.at(i).sender, true);
+                showChatNotification(_clr_(rowsFromServer.at(i).msg, "gray"));
+            }
             rowsFromServer.removeAt(i--);
         } else if (rowsFromServer.at(i).type == 3) {
             const QString bannedUser = rowsFromServer.at(i).sender;
@@ -1087,6 +1145,16 @@ void CCBot::action(int type, QVariantList args)
 void CCBot::exec(QString command)
 {
     m_consoleInput->exec(m_params->currentStreamerNikname(), command);
+}
+
+QString CCBot::keyUpCommand()
+{
+    return m_consoleInput->upCommandInBuffer();
+}
+
+QString CCBot::keyDownCommand()
+{
+    return m_consoleInput->downCommandInBuffer();
 }
 
 void CCBot::slotFinishedTask(long id, int type, QVariantList argsList, QVariant result)
