@@ -327,7 +327,7 @@ void CCBot::initConnections()
                         } else if (option == "rum") {
                             if (target.isEmpty() || isList)
                                 continue;
-                            drinkList.append("wine");
+                            drinkList.append("rum");
                             delta += -0.3;
                             cash += 5.0;
                             alcohol += 35;
@@ -402,37 +402,56 @@ void CCBot::initConnections()
                             speedUpdated = 2.0;
 
                         state = boxSetUserSpeedVoice(target, QString::number(speedUpdated, 'f', 1));
-                        if (!state)
+                        if (!state) {
+                            qDebug() << "fail boxSetUserSpeedVoice" << speedUpdated;
                             break;
+                        }
 
                         // update rezerv
                         if (durationEffect > 0) {
                             QDateTime expire_timestamp = QDateTime::currentDateTime().addSecs(60 * durationEffect);
-                            state = boxSetReservKeyValue(target, "drink_expire", expire_timestamp.toString(Qt::ISODate));
+                            QString expireValue = expire_timestamp.toString(Qt::ISODate);
+                            state = boxSetReservKeyValue(target, "drink_expire", expireValue);
                             if (!state) {
+                                qDebug() << "fail boxSetReservKeyValue, drink_expire:" << expireValue;
                                 break;
                             }
 
                             QString oldAlcValue = "";
                             state = boxGetReservKeyValue(target, "alcohol", oldAlcValue);
-                            if (!state)
+                            if (!state) {
+                                qDebug() << "fail boxGetReservKeyValue, alcohol:" << oldAlcValue;
                                 break;
+                            }
+
                             int alcoholUpdated = 0;
                             if (!oldAlcValue.isEmpty()) {
                                 alcoholUpdated = oldAlcValue.toInt();
                             }
+
                             alcoholUpdated += alcohol;
                             if (alcoholUpdated >= 50) {
                                 alcoholUpdated = 50;
                             }
 
-                            state = boxSetReservKeyValue(target, "alcohol", QString::number(alcoholUpdated));
-                            if (!state)
+                            QString alcoholValue = QString::number(alcoholUpdated);
+                            state = boxSetReservKeyValue(target, "alcohol", alcoholValue);
+                            if (!state) {
+                                qDebug() << "fail boxSetReservKeyValue, alcohol:" << alcoholValue;
                                 break;
+                            }
 
                             state = boxSetReservKeyValue(target, "sv_speed_voice", speedIn);
-                            if (!state)
+                            if (!state) {
+                                qDebug() << "fail boxSetReservKeyValue, sv_speed_voice:" << speedIn;
                                 break;
+                            }
+
+                            state = boxSetFlag(target, BoxFlagsEnums::FLAG_DRUNK, 1);
+                            if (!state) {
+                                qDebug() << "fail boxSetFlag DRUNK";
+                                break;
+                            }
 
                             QString info = QString("%1 выпил %2, потратив у стойки бармена $%3, приятного бухича! Уровень опьянения %4 на %5 минут.")
                                     .arg(target)
@@ -442,6 +461,8 @@ void CCBot::initConnections()
                                     .arg(durationEffect);
 
                             emit sendChatMessage(info);
+                        } else {
+                            qDebug() << "fail set rezerv, durationEffect <= 0 :" << durationEffect;
                         }
                     }
                 }
@@ -580,8 +601,7 @@ void CCBot::initTasks()
         QNetworkAccessManager *manager = new QNetworkAccessManager();
 
         // 1. Проверка что токен истек
-        bool tokenExpiry =
-                QDateTime::currentDateTime() >= m_params->speechkitIamTokenExpiryDate();
+        bool tokenExpiry = (QDateTime::currentDateTime() >= m_params->speechkitIamTokenExpiryDate());
         if (tokenExpiry) {
             // 1.1 Если токен уже не действителен то:
             // получаем новый и обновляем дату
@@ -691,7 +711,7 @@ void CCBot::initTasks()
 
         // 2. Запрос звукового файла с сервера на текст
         // повторная проверка даты токена
-        tokenExpiry = QDateTime::currentDateTime() >= m_params->speechkitIamTokenExpiryDate();
+        tokenExpiry = (QDateTime::currentDateTime() >= m_params->speechkitIamTokenExpiryDate());
         if (!tokenExpiry) {
             QNetworkRequest requestGetAudio;
             QUrl url(m_params->speechkitHost());
@@ -711,9 +731,12 @@ void CCBot::initTasks()
             postDataEncoded.addQueryItem("folderId",
                                          m_params->speechkitFolderId());
 
-            QString voice = options.voice.isEmpty() ? m_params->speechkitVoice() : options.voice;
-            QString emotion = options.emotion.isEmpty() ? m_params->speechkitEmotion() : options.emotion;
-            QString speed = options.speed.isEmpty() ? m_params->speechkitSpeed() : options.speed;
+            QString voice = options.voice.isEmpty() ?
+                        m_params->speechkitVoice() : options.voice;
+            QString emotion = options.emotion.isEmpty() ?
+                        m_params->speechkitEmotion() : options.emotion;
+            QString speed = options.speed.isEmpty() ?
+                        m_params->speechkitSpeed() : options.speed;
 
             if (!voice.isEmpty()) {
                 postDataEncoded.addQueryItem("lang", getLangByVoiceName(voice));
@@ -743,9 +766,7 @@ void CCBot::initTasks()
                                                  postDataEncoded
                                                   .toString(QUrl::FullyEncoded)
                                                   .toUtf8());
-            qDebug() << postDataEncoded
-                        .toString(QUrl::FullyEncoded)
-                        .toUtf8();
+
             QNetworkReply::NetworkError errType = QNetworkReply::NoError;
             QList<QSslError> errorsSsl;
             connect(reply, &QNetworkReply::finished, this, [&reply,this]() {

@@ -1108,14 +1108,17 @@ bool CCBotPrivate::boxSetReservKeyValue(QString nikname, QString key, QString va
     obj.insert(key, QJsonValue(value));
     rezDoc.setObject(obj);
     QByteArray reservUpdated = rezDoc.toJson(QJsonDocument::Compact);
+    qDebug() << reservUpdated;
 
     sql = QString("UPDATE box SET "
-            "rezerv = \"%1\" "
-            "WHERE nikname = \"%2\";")
-            .arg(QString::fromUtf8(reservUpdated))
+            "rezerv = :json "
+            "WHERE nikname = \"%1\";")
+            //.arg(QString::fromUtf8(reservUpdated))
             .arg(nikname);
 
-    state = qry.exec(sql);
+    qry.prepare(sql);
+    qry.bindValue(":json", reservUpdated);
+    state = qry.exec();
 
     if (m_params->flagLogging() && !state) {
         QString info = QString("Sql query-update error(%1): ")
@@ -1364,64 +1367,63 @@ void CCBotPrivate::analyseNewMessages(const QList<MessageData> &msgsl)
         boxGetFlags(msg.sender, flagsIn);
         bool isDrunked = (macro_qReadBit(flagsIn, BoxFlagsEnums::FLAG_DRUNK) == 1);
 
+        QString expireDrinkIn = "";
+        QString alcoholIn = "";
+        QString voiceIn = "";
+        QString speedIn = "";
+        QString emotionIn = "";
+        bool isExpire = false;
+        if (isDrunked) {
+            boxGetReservKeyValue(msg.sender, "alcohol", alcoholIn);
+            boxGetReservKeyValue(msg.sender, "drink_expire", expireDrinkIn);
+            if (!alcoholIn.isEmpty() && !expireDrinkIn.isEmpty()) {
+                int alc = alcoholIn.toInt();
+                isExpire = (QDateTime::fromString(expireDrinkIn, Qt::ISODate) <= currentDT);
+                if (!isExpire) {
+                    QRandomGenerator *rg = QRandomGenerator::global();
+                    int max = 0;
+                    if (alc >= 10 && alc < 20) {
+                        max = 5;
+                    } else if (alc >= 20 && alc < 30) {
+                        max = 4;
+                    } else if (alc >= 30 && alc < 40) {
+                        max = 3;
+                    } else if (alc >= 40 && alc < 50) {
+                        max = 2;
+                    } else if (alc == 50) {
+                        max = 1;
+                    }
+                    if (max != 0) {
+                        int dash = rg->bounded(0, max);
+                        if (dash == 0) {
+                            dash = rg->bounded(0, 1);
+                            if (dash == 0)
+                                text = QString("Иик! ") + text;
+                            else
+                                text = text + QString(" Иик!");
+                        }
+                    }
+                    qDebug() << "is not expire:" << expireDrinkIn;
+                } else {
+                    boxSetFlag(msg.sender, BoxFlagsEnums::FLAG_DRUNK, 0);
+                    boxSetReservKeyValue(msg.sender, "alcohol", "0");
+                    QString prevSpeedIn = "";
+                    boxGetReservKeyValue(msg.sender, "sv_speed_voice", prevSpeedIn);
+                    boxSetUserSpeedVoice(msg.sender, prevSpeedIn);
+                    qDebug() << "is expire:" << expireDrinkIn;
+                }
+            } else {
+                isExpire = true;
+                boxSetFlag(msg.sender, BoxFlagsEnums::FLAG_DRUNK, 0);
+                qDebug() << "is expire:" << expireDrinkIn;
+            }
+        }
+
         bool state = checkAutoVoiceMessage(msg, text, isDrunked);
 
         if (state) {
             // get options
             SpeakOptions options;
-            QString voiceIn = "";
-            QString speedIn = "";
-            QString emotionIn = "";
-            QString expireDrinkIn = "";
-            QString alcoholIn = "";
-
-            bool isExpire = false;
-
-            if (isDrunked) {
-                boxGetReservKeyValue(msg.sender, "alcohol", alcoholIn);
-                boxGetReservKeyValue(msg.sender, "drink_expire", expireDrinkIn);
-                if (!alcoholIn.isEmpty() && !expireDrinkIn.isEmpty()) {
-                    int alc = alcoholIn.toInt();
-                    isExpire = (QDateTime::fromString(expireDrinkIn, Qt::ISODate) <= currentDT);
-                    if (!isExpire) {
-                        QRandomGenerator *rg = QRandomGenerator::global();
-                        int max = 0;
-                        if (alc >= 10 && alc < 20) {
-                            max = 5;
-                        } else if (alc >= 20 && alc < 30) {
-                            max = 4;
-                        } else if (alc >= 30 && alc < 40) {
-                            max = 3;
-                        } else if (alc >= 40 && alc < 50) {
-                            max = 2;
-                        } else if (alc == 50) {
-                            max = 1;
-                        }
-                        if (max != 0) {
-                            int dash = rg->bounded(0, max);
-                            if (dash == 0) {
-                                dash = rg->bounded(0, 1);
-                                if (dash == 0)
-                                    text = QString("Иик! ") + text;
-                                else
-                                    text = text + QString(" Иик!");
-                            }
-                        }
-                    } else {
-                        boxSetFlag(msg.sender, BoxFlagsEnums::FLAG_DRUNK, 0);
-                    }
-                } else {
-                    isExpire = true;
-                    boxSetFlag(msg.sender, BoxFlagsEnums::FLAG_DRUNK, 0);
-                }
-            }
-
-            if (isExpire) {
-                QString prevSpeedIn = "";
-                boxGetReservKeyValue(msg.sender, "sv_speed_voice", prevSpeedIn);
-                speedIn = prevSpeedIn;
-            }
-
             boxGetUserVoice(msg.sender, voiceIn);
             boxGetUserSpeedVoice(msg.sender, speedIn);
             boxGetUserEmotionVoice(msg.sender, emotionIn);
