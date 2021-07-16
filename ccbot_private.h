@@ -115,6 +115,10 @@ protected:
     bool boxGetReservKeyValue(QString nikname, QString key, QString &value, bool all = false);
     bool boxSetReservKeyValue(QString nikname, QString key, QString value);
 
+    //cmds
+    bool commandDrink(QStringList &args, const QString target, bool isStreamer = false);
+    bool commandVoice(QStringList &args, const QString target, bool isStreamer = false);
+
 public:
     explicit CCBotPrivate(QObject *parent = nullptr);
 

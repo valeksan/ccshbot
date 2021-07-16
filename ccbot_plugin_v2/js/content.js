@@ -51,16 +51,23 @@ function convertNikColorFormat(text) {
     return `#${r_hex}${g_hex}${b_hex}`;
 }
 
+document.addEventListener("autosend", () => {
+    const submit = document.querySelector("#app > div.viewport > div.content > div > div > div > div.stream__layout__left.stream__layout__left--no-padding > div.stream__layout__chat.stream__layout__chat--rtl > div > form > button");
+    sleep(50).then(() => {
+        if (submit) {
+            submit.click();
+        }
+    });
+});
+
 function sendMessageToChat(text) {
     const input = document.querySelector("#app > div.viewport > div.content > div > div > div > div.stream__layout__left.stream__layout__left--no-padding > div.stream__layout__chat.stream__layout__chat--rtl > div > form > div > div > input");
-    const submit = document.querySelector("#app > div.viewport > div.content > div > div > div > div.stream__layout__left.stream__layout__left--no-padding > div.stream__layout__chat.stream__layout__chat--rtl > div > form > button");
-    input.value = text;
-    
-    input.dispatchEvent(new Event('input', { bubbles: true }));
-
-    sleep(200).then(() => {
-        submit.click();
-    })
+    if (input) {
+        input.value = text;
+        let autoSendEvent = new CustomEvent("autosend");
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+        document.dispatchEvent(autoSendEvent);
+    }
 }
 
 function processingMessagesFromServer(message) {
