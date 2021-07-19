@@ -36,8 +36,6 @@ class Properties : public QObject
 
     // Options
     Q_PROPERTY(int speakOptionReasonType READ speakOptionReasonType WRITE setSpeakOptionReasonType NOTIFY speakOptionReasonTypeChanged)
-    Q_PROPERTY(bool flagAnalyseVoiceAllMsgType2 READ flagAnalyseVoiceAllMsgType2 WRITE setFlagAnalyseVoiceAllMsgType2 NOTIFY flagAnalyseVoiceAllMsgType2Changed)
-    Q_PROPERTY(bool flagAnalyseVoiceAllMsgType0 READ flagAnalyseVoiceAllMsgType0 WRITE setFlagAnalyseVoiceAllMsgType0 NOTIFY flagAnalyseVoiceAllMsgType0Changed)
     Q_PROPERTY(bool flagLogging READ flagLogging WRITE setFlagLogging NOTIFY flagLoggingChanged)
 
     // Speechkit
@@ -63,8 +61,6 @@ class Properties : public QObject
     bool m_flagLoadingChat = true;
     QString m_currentStreamId;
     bool m_listenClients = false;
-    bool m_flagAnalyseVoiceAllMsgType2 = false;
-    bool m_flagAnalyseVoiceAllMsgType0 = false;
     QString m_speechkitLang;
     QString m_speechkitFormat;
     QString m_speechkitVoice;
@@ -214,8 +210,6 @@ signals:
     void flagLoadingChatChanged();
     void currentStreamIdChanged();
     void listenClientsChanged();
-    void flagAnalyseVoiceAllMsgType2Changed();
-    void flagAnalyseVoiceAllMsgType0Changed();
     void speechkitLangChanged();
     void speechkitFormatChanged();
     void speechkitVoiceChanged();
@@ -372,7 +366,7 @@ inline float Properties::fontPointSizeForChat() const
 
 inline void Properties::setFontPointSizeForChat(float newFontPointSizeForChat)
 {
-    if (m_fontPointSizeForChat == newFontPointSizeForChat)
+    if (qFuzzyCompare(m_fontPointSizeForChat, newFontPointSizeForChat))
         return;
     m_fontPointSizeForChat = newFontPointSizeForChat;
     emit fontPointSizeForChatChanged();
@@ -636,32 +630,6 @@ inline void Properties::setSpeechkitLang(const QString &newSpeechkitLang)
         return;
     m_speechkitLang = newSpeechkitLang;
     emit speechkitLangChanged();
-}
-
-inline bool Properties::flagAnalyseVoiceAllMsgType0() const
-{
-    return m_flagAnalyseVoiceAllMsgType0;
-}
-
-inline void Properties::setFlagAnalyseVoiceAllMsgType0(bool newFlagAnalyseVoiceAllMsgType0)
-{
-    if (m_flagAnalyseVoiceAllMsgType0 == newFlagAnalyseVoiceAllMsgType0)
-        return;
-    m_flagAnalyseVoiceAllMsgType0 = newFlagAnalyseVoiceAllMsgType0;
-    emit flagAnalyseVoiceAllMsgType0Changed();
-}
-
-inline bool Properties::flagAnalyseVoiceAllMsgType2() const
-{
-    return m_flagAnalyseVoiceAllMsgType2;
-}
-
-inline void Properties::setFlagAnalyseVoiceAllMsgType2(bool newFlagAnalyseVoiceAllMsgType2)
-{
-    if (m_flagAnalyseVoiceAllMsgType2 == newFlagAnalyseVoiceAllMsgType2)
-        return;
-    m_flagAnalyseVoiceAllMsgType2 = newFlagAnalyseVoiceAllMsgType2;
-    emit flagAnalyseVoiceAllMsgType2Changed();
 }
 
 inline bool Properties::listenClients() const

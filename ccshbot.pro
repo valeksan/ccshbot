@@ -35,7 +35,8 @@ SOURCES += \
         ccbot_private.cpp \
         console.cpp \
         logmaker.cpp \
-        main.cpp
+        main.cpp \
+        speechkit_tts.cpp
 
 HEADERS += \
     ccbot.h \
@@ -47,7 +48,8 @@ HEADERS += \
     messagedata.h \
     metadata.h \
     misc.h \
-    properties.h
+    properties.h \
+    speechkit_tts.h
 
 RESOURCES += \
     qml.qrc

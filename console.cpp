@@ -17,16 +17,15 @@ QString Console::getProgressLine(double value,
 {
     QString strProgressLine = "";
     QString result = "";
-    double percent = value * 100.0/size;
-    double percentStepSize = 100.0/progressSize;
-    int numSteps = static_cast<int>(percent/percentStepSize);
-    for (int i=0; i<numSteps; i++)
+    double percent = value * 100.0 / size;
+    double percentStepSize = 100.0 / progressSize;
+    int numSteps = static_cast<int>(percent / percentStepSize);
+    for (int i = 0; i < numSteps; i++)
         strProgressLine += stepSym;
-    for (int i=numSteps; i<progressSize; i++)
+    for (int i = numSteps; i < progressSize; i++)
         strProgressLine += spaceSym;
     result = QString("[%2][%3]")
-            .arg(strProgressLine)
-            .arg(QString::number(percent, 'f', 2));
+            .arg(strProgressLine, QString::number(percent, 'f', 2));
     return result;
 }
 
@@ -39,7 +38,9 @@ void Console::_addCommandToBuffer(QString text)
     m_currentIndexCommandsBuffer = m_lastCommandsBuffer.size()-1;
 }
 
-bool Console::_takeInlineStringInCommandString(QString& text, QString& findStr, int& n)
+bool Console::_takeInlineStringInCommandString(QString &text,
+                                               QString &findStr,
+                                               int &n)
 {
     int indexSearchAA = -1;
     int indexSearchA = -1;

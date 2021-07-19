@@ -14,12 +14,7 @@
 #include "messagedata.h"
 #include "logmaker.h"
 #include "console.h"
-
-struct SpeakOptions {
-    QString voice = "";
-    QString speed = "";
-    QString emotion = "";
-};
+#include "speechkit_tts.h"
 
 class TaskResult {
 public:
@@ -60,6 +55,8 @@ protected:
     QMap<QString, QString> m_mapListType3SendersOldExpire;
     QMap<QString, bool> m_mapSubscribeUserNotified;
     Console *m_consoleInput;
+    QNetworkReply::NetworkError m_errType = QNetworkReply::NoError;
+    QList<QSslError> m_errorsSsl;
 
     mutable QMutex m_mutex;
 
@@ -164,6 +161,5 @@ signals:
 };
 
 Q_DECLARE_METATYPE(TaskResult)
-Q_DECLARE_METATYPE(SpeakOptions)
 
 #endif // CCBOT_PRIVATE_H

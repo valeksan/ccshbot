@@ -416,10 +416,10 @@ bool CCBotPrivate::boxAddStatisticsOfMessage(QString nikname,
             "count_symbols=%2,"
             "last_activity_date=\"%3\" "
             "WHERE nikname=\"%4\";")
-            .arg(countMsgUpdated)
-            .arg(countSymbolsUpdated)
-            .arg(timestamp.toString("yyyy-MM-dd hh:mm:ss"))
-            .arg(nikname);
+            .arg(QString::number(countMsgUpdated),
+                 QString::number(countSymbolsUpdated),
+                 timestamp.toString(Qt::ISODate),
+                 nikname);
 
     state = qry.exec(sql);
 
@@ -526,8 +526,6 @@ bool CCBotPrivate::boxSpendBalace(QString nikname, double cash, bool &isEmptyMon
 
     double balanceUpdated = prevBalanceIn - cash;
 
-    qDebug() << nikname << "balanceUpdated:" << balanceUpdated;
-
     if (balanceUpdated <= 0.0) {
         isEmptyMoney = true;
         quint32 flags = 0;
@@ -557,7 +555,7 @@ bool CCBotPrivate::boxSpendBalace(QString nikname, double cash, bool &isEmptyMon
     // update place
     sql = QString("UPDATE box SET "
             "balance = %1 "
-            "WHERE nikname = \"%2\";")
+            "WHERE nikname = \"%2\"")
             .arg(balanceUpdated)
             .arg(nikname);
 
@@ -578,7 +576,7 @@ bool CCBotPrivate::boxGetStatisticsOfSpeech(QString nikname, quint64 &numSpeechS
     QSqlQuery qry;
     QString sql;
 
-    sql = "SELECT count_speech_symbols FROM box WHERE nikname=:nikname;";
+    sql = "SELECT count_speech_symbols FROM box WHERE nikname=:nikname";
     qry.prepare(sql);
     qry.bindValue(":nikname", nikname);
 
@@ -619,7 +617,7 @@ bool CCBotPrivate::boxAddNumSpeechSymbolsInStatistics(QString nikname, int numSy
     // update places
     sql = QString("UPDATE box SET "
             "count_speech_symbols = %1 "
-            "WHERE nikname = \"%2\";")
+            "WHERE nikname = \"%2\"")
             .arg(speechSymbolsUpdated)
             .arg(nikname);
 
@@ -645,7 +643,7 @@ bool CCBotPrivate::boxCalculatePriceForSpeech(QString nikname, int numSpeechSymb
         return true;
     }
 
-    sql = "SELECT tts_voice FROM box WHERE nikname=:nikname;";
+    sql = "SELECT tts_voice FROM box WHERE nikname=:nikname";
     qry.prepare(sql);
     qry.bindValue(":nikname", nikname);
 
@@ -684,9 +682,8 @@ bool CCBotPrivate::boxSetUserVoice(QString nikname, QString voice)
     // update places
     sql = QString("UPDATE box SET "
             "tts_voice = \"%1\" "
-            "WHERE nikname = \"%2\";")
-            .arg(voice)
-            .arg(nikname);
+            "WHERE nikname = \"%2\"")
+            .arg(voice, nikname);
 
     bool state = qry.exec(sql);
 
@@ -705,7 +702,7 @@ bool CCBotPrivate::boxGetUserVoice(QString nikname, QString &voice)
     QSqlQuery qry;
     QString sql;
 
-    sql = "SELECT tts_voice FROM box WHERE nikname=:nikname;";
+    sql = "SELECT tts_voice FROM box WHERE nikname=:nikname";
     qry.prepare(sql);
     qry.bindValue(":nikname", nikname);
 
@@ -734,9 +731,8 @@ bool CCBotPrivate::boxSetUserSpeedVoice(QString nikname, QString speed)
 
     sql = QString("UPDATE box SET "
             "tts_speed_voice = \"%1\" "
-            "WHERE nikname = \"%2\";")
-            .arg(speed)
-            .arg(nikname);
+            "WHERE nikname = \"%2\"")
+            .arg(speed, nikname);
 
     bool state = qry.exec(sql);
 
@@ -755,7 +751,7 @@ bool CCBotPrivate::boxGetUserSpeedVoice(QString nikname, QString &speed)
     QSqlQuery qry;
     QString sql;
 
-    sql = "SELECT tts_speed_voice FROM box WHERE nikname=:nikname;";
+    sql = "SELECT tts_speed_voice FROM box WHERE nikname=:nikname";
     qry.prepare(sql);
     qry.bindValue(":nikname", nikname);
 
@@ -784,9 +780,8 @@ bool CCBotPrivate::boxSetUserEmotionVoice(QString nikname, QString emotion)
 
     sql = QString("UPDATE box SET "
             "tts_voice_emotion = \"%1\" "
-            "WHERE nikname = \"%2\";")
-            .arg(emotion)
-            .arg(nikname);
+            "WHERE nikname = \"%2\"")
+            .arg(emotion, nikname);
 
     bool state = qry.exec(sql);
 
@@ -805,7 +800,7 @@ bool CCBotPrivate::boxGetUserEmotionVoice(QString nikname, QString &emotion)
     QSqlQuery qry;
     QString sql;
 
-    sql = "SELECT tts_voice_emotion FROM box WHERE nikname=:nikname;";
+    sql = "SELECT tts_voice_emotion FROM box WHERE nikname=:nikname";
     qry.prepare(sql);
     qry.bindValue(":nikname", nikname);
 
@@ -832,7 +827,7 @@ bool CCBotPrivate::boxGetAchieveList(QString nikname, QStringList &achieves)
     QSqlQuery qry;
     QString sql;
 
-    sql = "SELECT achieves FROM box WHERE nikname=:nikname;";
+    sql = "SELECT achieves FROM box WHERE nikname=:nikname";
     qry.prepare(sql);
     qry.bindValue(":nikname", nikname);
 
@@ -878,9 +873,8 @@ bool CCBotPrivate::boxAddAchieve(QString nikname, QString achieve)
 
     sql = QString("UPDATE box SET "
             "achieves = \"%1\" "
-            "WHERE nikname = \"%2\";")
-            .arg(achieves)
-            .arg(nikname);
+            "WHERE nikname = \"%2\"")
+            .arg(achieves, nikname);
 
     state = qry.exec(sql);
 
@@ -901,9 +895,8 @@ bool CCBotPrivate::boxSetUserInfo(QString nikname, QString info)
 
     sql = QString("UPDATE box SET "
             "info = \"%1\" "
-            "WHERE nikname = \"%2\";")
-            .arg(info)
-            .arg(nikname);
+            "WHERE nikname = \"%2\"")
+            .arg(info, nikname);
 
     bool state = qry.exec(sql);
 
@@ -1342,36 +1335,36 @@ bool CCBotPrivate::commandDrink(QStringList &args, const QString target, bool is
 
         if (!isStreamer) {
             QString info = QString("%1 выпил %2, потратив у стойки бармена $%3, приятного бухича! Уровень опьянения %4 на %5 минут.")
-                    .arg(target)
-                    .arg(drinkList.join(" "))
-                    .arg(cash)
-                    .arg(alcoholUpdated)
-                    .arg(durationEffect);
+                    .arg(target,
+                         drinkList.join(" "),
+                         QString::number(cash, 'f', 1),
+                         QString::number(alcoholUpdated),
+                         QString::number(durationEffect));
 
             emit sendChatMessage(info);
         } else {
             QString info = QString("%1 угостил %2 напитком %3, приятного бухича! Уровень опьянения %4 на %5 минут.")
-                    .arg(m_params->currentStreamerNikname())
-                    .arg(target)
-                    .arg(drinkList.join(" "))
-                    .arg(alcoholUpdated)
-                    .arg(durationEffect);
+                    .arg(m_params->currentStreamerNikname(),
+                         target,
+                         drinkList.join(" "),
+                         QString::number(alcoholUpdated),
+                         QString::number(durationEffect));
 
             emit sendChatMessage(info);
         }
     } else if (!drinkList.isEmpty()) {
         if (!isStreamer) {
             QString info = QString("%1 выпил %2, потратив у стойки бармена $%3.")
-                    .arg(target)
-                    .arg(drinkList.join(" "))
-                    .arg(cash);
+                    .arg(target,
+                         drinkList.join(" "),
+                         QString::number(cash, 'f', 1));
 
             emit sendChatMessage(info);
         } else {
             QString info = QString("%1 угостил %2 напитком %3.")
-                    .arg(m_params->currentStreamerNikname())
-                    .arg(target)
-                    .arg(drinkList.join(" "));
+                    .arg(m_params->currentStreamerNikname(),
+                         target,
+                         drinkList.join(" "));
 
             emit sendChatMessage(info);
         }
@@ -1489,6 +1482,7 @@ void CCBotPrivate::mergeMessages(QList<MessageData> oldMsgList,
     int weight = 0;
     int spaceMsgCount = 0;
     bool flagEnterInterval = false;
+
 //    bool isBanState = false;
 
 //    QStringList allNiknames;
@@ -1698,6 +1692,7 @@ void CCBotPrivate::updateChat(const QList<MessageData> &msgsl,
 void CCBotPrivate::analyseNewMessages(const QList<MessageData> &msgsl)
 {
     QDateTime currentDT = QDateTime::currentDateTime();
+
     for (int i = 0; i < msgsl.size(); i++) {
         MessageData msg = msgsl.at(i);
         if (msg.msg.length() == 0)
@@ -1719,6 +1714,7 @@ void CCBotPrivate::analyseNewMessages(const QList<MessageData> &msgsl)
         QString speedIn = "";
         QString emotionIn = "";
         bool isExpire = false;
+
         if (isDrunked) {
             boxGetReservKeyValue(msg.sender, "alcohol", alcoholIn);
             boxGetReservKeyValue(msg.sender, "drink_expire", expireDrinkIn);
@@ -1759,7 +1755,6 @@ void CCBotPrivate::analyseNewMessages(const QList<MessageData> &msgsl)
                     qDebug() << "is expire:" << expireDrinkIn;
                 }
             } else {
-                isExpire = true;
                 boxSetFlag(msg.sender, BoxFlagsEnums::FLAG_DRUNK, 0);
                 qDebug() << "is expire:" << expireDrinkIn;
             }

@@ -264,6 +264,7 @@ void CCBot::initConnections()
             addToLog(errStr);
         }
     });
+
     // соединение: запуск комманд через консоль
     connect(m_consoleInput, &Console::runCommand, [=](QString sender, QString command, QStringList args) {
         int type = m_consoleInput->getType(command);
@@ -347,13 +348,14 @@ void CCBot::initTasks()
                           [this](QString text, SpeakOptions options) -> TaskResult {
         TaskResult result;
         QNetworkAccessManager *manager = new QNetworkAccessManager();
+        m_errorsSsl.clear();
+        m_errType = QNetworkReply::NoError;
 
         // 1. Проверка что токен истек
         bool tokenExpiry = (QDateTime::currentDateTime() >= m_params->speechkitIamTokenExpiryDate());
         if (tokenExpiry) {
             // 1.1 Если токен уже не действителен то:
             // получаем новый и обновляем дату
-
             // * формируем запрос
             QNetworkRequest requestGetIamToken;
             requestGetIamToken.setUrl(
@@ -364,13 +366,11 @@ void CCBot::initTasks()
             QJsonObject obj;
             obj["yandexPassportOauthToken"] = m_params->speechkitOAuthToken();
             QJsonDocument doc(obj);
-            QByteArray data = doc.toJson();
+            QByteArray data = doc.toJson(QJsonDocument::Compact);
 
             // * делаем запрос
             manager->setTransferTimeout(constTimeoutGetIamToken);
             QNetworkReply *reply = manager->post(requestGetIamToken, data);
-            QNetworkReply::NetworkError errType = QNetworkReply::NoError;
-            QList<QSslError> errorsSsl;
 
             connect(reply,
                     &QNetworkReply::finished,
@@ -393,16 +393,12 @@ void CCBot::initTasks()
             connect(reply,
                     &QNetworkReply::errorOccurred,
                     this,
-                    [&](QNetworkReply::NetworkError error)
+                    [this](QNetworkReply::NetworkError error)
             {
-                errType = error;
+                m_errType = error;
                 if (m_params->flagLogging()) {
                     const QString errStr = QString("Error network reply(%1) - ")
-                            .arg(errType) + reply->errorString()
-                            + "\nUrl_reply: " + reply->url().toString()
-                            + "\nRawHeaders_reply: " + reply->rawHeaderList().join(";")
-                            + "\nUrl_request: " + reply->request().url().toString()
-                            + "\nRawHeaders_request: " + reply->request().rawHeaderList().join(";");
+                            .arg(error);
                     addToLog(errStr);
                 }
                 emit completeRequestGetIamToken();
@@ -411,20 +407,16 @@ void CCBot::initTasks()
             connect(reply,
                     &QNetworkReply::sslErrors,
                     this,
-                    [&](const QList<QSslError> &errors)
+                    [this](const QList<QSslError> &errors)
             {
-                errorsSsl = errors;
+                m_errorsSsl = errors;
                 if (m_params->flagLogging()) {
                     QString errorsText = "";
                     for (const auto &err: errors) {
                         errorsText.append(err.errorString()) + "; ";
                     }
                     QString errStr = QString("Error network reply ssl.")
-                            + "\nErrors: " + errorsText
-                            + "\nUrl_reply: " + reply->url().toString()
-                            + "\nRawHeaders_reply: " + reply->rawHeaderList().join(";")
-                            + "\nUrl_request: " + reply->request().url().toString()
-                            + "\nRawHeaders_request: " + reply->request().rawHeaderList().join(";");
+                            + "\nErrors: " + errorsText;
                     addToLog(errStr);
                 }
                 emit completeRequestGetIamToken();
@@ -442,14 +434,14 @@ void CCBot::initTasks()
                 return result;
             }
 
-            if (errType != QNetworkReply::NoError || !errorsSsl.isEmpty()) {
+            if (m_errType != QNetworkReply::NoError || !m_errorsSsl.isEmpty()) {
                 QString mainInfo = QString("Error request (")
-                        + QString::number(static_cast<int>(errType))
+                        + QString::number(static_cast<int>(m_errType))
                         + "), ";
                 QString secondInfo =
-                        errorsSsl.isEmpty() ?
+                        m_errorsSsl.isEmpty() ?
                             QString("no ssl errors") :
-                            QString("%1 ssl errors").arg(errorsSsl.size());
+                            QString("%1 ssl errors").arg(m_errorsSsl.size());
                 result = TaskResult(CCBotErrEnums::NetworkRequest,
                                     mainInfo + secondInfo);
                 delete manager;
@@ -515,9 +507,10 @@ void CCBot::initTasks()
                                                   .toString(QUrl::FullyEncoded)
                                                   .toUtf8());
 
-            QNetworkReply::NetworkError errType = QNetworkReply::NoError;
-            QList<QSslError> errorsSsl;
-            connect(reply, &QNetworkReply::finished, this, [&reply,this]() {
+            m_errType = QNetworkReply::NoError;
+            m_errorsSsl.clear();
+
+            connect(reply, &QNetworkReply::finished, this, [this, reply]() {
                 QByteArray response = reply->readAll();
                 if (QJsonDocument::fromJson(response).isObject()) {
                     if (m_params->flagLogging()) {
@@ -540,40 +533,34 @@ void CCBot::initTasks()
                 }
                 emit completeRequestGetAudio();
             });
+
             connect(reply,
                     &QNetworkReply::errorOccurred,
                     this,
-                    [&](QNetworkReply::NetworkError error)
+                    [this](QNetworkReply::NetworkError error)
             {
-                errType = error;
+                m_errType = error;
                 if (m_params->flagLogging()) {
                     const QString errStr = QString("Error network reply(%1) - ")
-                            .arg(errType) + reply->errorString()
-                            + "\nUrl_reply: " + reply->url().toString()
-                            + "\nRawHeaders_reply: " + reply->rawHeaderList().join(";")
-                            + "\nUrl_request: " + reply->request().url().toString()
-                            + "\nRawHeaders_request: " + reply->request().rawHeaderList().join(";");
+                            .arg(m_errType);
                     addToLog(errStr);
                 }
                 emit completeRequestGetAudio();
             });
+
             connect(reply,
                     &QNetworkReply::sslErrors,
                     this,
-                    [&](const QList<QSslError> &errors)
+                    [this](const QList<QSslError> &errors)
             {
-                errorsSsl = errors;
+                m_errorsSsl = errors;
                 if (m_params->flagLogging()) {
                     QString errorsText = "";
                     for (const auto &err: errors) {
                         errorsText.append(err.errorString()) + "; ";
                     }
                     QString errStr = QString("Error network reply ssl.")
-                            + "\nErrors: " + errorsText
-                            + "\nUrl_reply: " + reply->url().toString()
-                            + "\nRawHeaders_reply: " + reply->rawHeaderList().join(";")
-                            + "\nUrl_request: " + reply->request().url().toString()
-                            + "\nRawHeaders_request: " + reply->request().rawHeaderList().join(";");
+                            + "\nErrors: " + errorsText;
                     addToLog(errStr);
                 }
                 emit completeRequestGetAudio();
@@ -591,17 +578,17 @@ void CCBot::initTasks()
                 delete manager;
                 return result;
             }
-            if (errType != QNetworkReply::NoError ||
-                    !errorsSsl.isEmpty())
+            if (m_errType != QNetworkReply::NoError ||
+                    !m_errorsSsl.isEmpty())
             {
                 QString mainInfo =
                         QString("Error request (")
-                        + QString::number(static_cast<int>(errType))
+                        + QString::number(static_cast<int>(m_errType))
                         + "), ";
                 QString secondInfo =
-                        errorsSsl.isEmpty() ?
+                        m_errorsSsl.isEmpty() ?
                             QString("no ssl errors") :
-                            QString("%1 ssl errors").arg(errorsSsl.size());
+                            QString("%1 ssl errors").arg(m_errorsSsl.size());
                 result = TaskResult(CCBotErrEnums::NetworkRequest,
                                     mainInfo + secondInfo);
                 delete manager;
@@ -651,8 +638,6 @@ bool CCBot::openDB(QString name)
     QString path = QStandardPaths::writableLocation(
                 QStandardPaths::AppDataLocation);
 
-//    qDebug() << path;
-
     if (path.isEmpty()) {
         qDebug() << "Cannot determine settings storage location";
         path = QDir::homePath() + QDir::separator() + ".ccbot";
@@ -672,7 +657,6 @@ bool CCBot::openDB(QString name)
     m_db.setDatabaseName(filePath);
     if (!m_db.open()) {
         emit showMessage("Ошибка", QString("Не удалось открыть базу.\n") + m_db.lastError().text(), true);
-        //qDebug() << "Error, missing database or opened from another program!";
         return false;
     }
 
@@ -710,8 +694,7 @@ QStringList CCBot::getModelAvaibleHistoryStreamsByNikname(QString nikname)
 
     if (m_params->flagLogging() && !state) {
         QString info = QString("Error open history base (%1). Can't open %2 database!")
-                .arg(m_db.lastError().nativeErrorCode())
-                .arg(baseName);
+                .arg(m_db.lastError().nativeErrorCode(), baseName);
         addToLog(info);
     }
 
@@ -750,8 +733,7 @@ void CCBot::displayChatHistory(QString nikname, QString streamId)
 
     if (m_params->flagLogging() && !state) {
         QString info = QString("Error open history base (%1). Can't open %2 database!")
-                .arg(m_db.lastError().nativeErrorCode())
-                .arg(baseName);
+                .arg(m_db.lastError().nativeErrorCode(), baseName);
         addToLog(info);
     }
 
@@ -813,7 +795,7 @@ int CCBot::insertNewMessagesInTable(QString streamId, QByteArray jsonData, bool 
         if (rowsFromServer.at(i).type == 4) {
             if (!m_mapSubscribeUserNotified.contains(rowsFromServer.at(i).sender)) {
                 m_mapSubscribeUserNotified.insert(rowsFromServer.at(i).sender, true);
-                showChatNotification(_clr_(rowsFromServer.at(i).msg, "gray"));
+                emit showChatNotification(_clr_(rowsFromServer.at(i).msg, "gray"));
             }
             rowsFromServer.removeAt(i--);
         } else if (rowsFromServer.at(i).type == 3) {
