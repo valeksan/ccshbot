@@ -37,7 +37,17 @@ private:
     int m_errCode = CCBotErrEnums::Ok;
     QString m_errInfo = "";
     QVariant m_data;
+};
 
+struct SpeakOptions {
+    QString voice = "";
+    QString lang = "";
+    QString speed = "";
+    QString emotion = "";
+    QString rate = "";
+    QString format = "";
+    QString folderId = "";
+    QString tokenOAuth = "";
 };
 
 class CCBotPrivate : public QObject
@@ -161,5 +171,6 @@ signals:
 };
 
 Q_DECLARE_METATYPE(TaskResult)
+Q_DECLARE_METATYPE(SpeakOptions)
 
 #endif // CCBOT_PRIVATE_H
