@@ -5,15 +5,15 @@ TEMPLATE = app
 TARGET  = ccshbot
 VERSION = 0.5.7-2
 
-QT += core gui
-QT += qml
-QT += quick
-QT += quickcontrols2
-QT += network
-QT += websockets
-QT += sql
-QT += multimedia
-QT += svg
+QT += core gui          # + LGPLv3
+QT += qml               # + LGPLv3
+QT += quick             # + LGPLv3
+QT += quickcontrols2    # + LGPLv3
+QT += network           # + LGPLv3
+QT += websockets        # + LGPLv3
+QT += sql               # + LGPLv3
+QT += multimedia        # + LGPLv3
+QT += svg               # + LGPLv3
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
