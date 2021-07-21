@@ -7,7 +7,6 @@
 #include <QDateTime>
 #include <QMetaObject>
 
-#include "metadata.h"
 #include "properties.h"
 #include "ccbot.h"
 
@@ -21,9 +20,9 @@ int main(int argc, char *argv[])
     QApplication app(argc, argv);
     QQmlApplicationEngine engine;
 
-    app.setOrganizationName(ORGANIZATION_STRING);
-    app.setOrganizationDomain(DOMAIN_STRING);
-    app.setApplicationName(APP_NAME);
+    app.setOrganizationName(ORGANIZATION);
+    app.setOrganizationDomain(DOMAIN);
+    app.setApplicationName(APPLICATION_NAME);
     app.setApplicationVersion(VERSION_STRING);
     app.setWindowIcon(QIcon(":/app.svg"));
 

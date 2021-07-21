@@ -4,6 +4,8 @@
 TEMPLATE = app
 TARGET  = ccshbot
 VERSION = 0.5.8-0
+ORGANIZATION = valeksan-soft
+DOMAIN = ru.valeksan-soft.ccshbot
 
 QT += core gui          # + LGPLv3
 QT += qml               # + LGPLv3
@@ -29,6 +31,9 @@ CONFIG += c++17
 # In order to do so, uncomment the following line.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 DEFINES += 'VERSION_STRING=\\\"$$VERSION\\\"'
+DEFINES += 'APPLICATION_NAME=\\\"$$TARGET\\\"'
+DEFINES += 'ORGANIZATION=\\\"$$ORGANIZATION\\\"'
+DEFINES += 'DOMAIN=\\\"$$DOMAIN\\\"'
 
 SOURCES += \
         ccbot.cpp \
@@ -46,7 +51,6 @@ HEADERS += \
     enums.h \
     logmaker.h \
     messagedata.h \
-    metadata.h \
     misc.h \
     properties.h \
     speechkit_tts.h
