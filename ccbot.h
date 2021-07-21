@@ -31,13 +31,14 @@ class CCBot : public CCBotPrivate
 
 public:
     explicit CCBot(Properties *params, QObject *parent = nullptr);
-    ~CCBot() override;
     void start();                   // Beginning of work
 
 private:
     // initialization methods
-    void initDB();                  // database initialization
-    void initTimers();              // initializing timers
+
+    void initComponents();          // init inline components
+    void initDatabase();            // -- database sqlite3
+    void initSpeechkitTts();        // -- SpeechKit TTS
     void initConnections();         // initialization of connections
     void initSysCommands();         // registration system commands
     void initTasks();               // initialization of tasks
@@ -62,7 +63,7 @@ public slots:
 
     // save \ load settings
     void loadSettings();
-    void saveSettings(quint32 section = SaveSectionEnums::All);
+    void saveSettings(quint32 section = SaveSectionEnums::All, bool beforeExit = true);
 
 signals:
     void showMessage(QString title, QString text, bool alert);

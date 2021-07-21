@@ -88,10 +88,14 @@ public:
     void setTokenIm(const QString &newTokenIm);
 
     Format format() const;
+    const QString format();
     void setFormat(SpeechkitTTS::Format newFormat);
+    void setFormat(const QString newFormat);
 
     SampleRateHertz sampleRateHertz() const;
+    const QString sampleRateHertz();
     void setSampleRateHertz(SpeechkitTTS::SampleRateHertz newSampleRateHertz);
+    void setSampleRateHertz(const QString newSampleRateHertz);
 
 public slots:
     void voiceText(const QString text, const SpeechkitTTS::Options &options);
@@ -114,10 +118,9 @@ private:
     void updateImTokenRequest(const SpeechkitTTS::Options &options);
     void voiceLoadRequest(const QString text, const SpeechkitTTS::Options &options);
     bool completeUpdateImTokenRequest(QNetworkReply *reply);
-    void loadVoiceRequest(const QString text, const SpeechkitTTS::Options &options);
     bool completeLoadVoiceRequest(QNetworkReply *reply);
 
-    QString getFormatOption();
+    const QString getFormatOption();
     QString getSampleRateHertzOption();
 
     inline static bool isValidOption(int type, QString value);

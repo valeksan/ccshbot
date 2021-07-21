@@ -1764,14 +1764,29 @@ void CCBotPrivate::analyseNewMessages(const QList<MessageData> &msgsl)
 
         if (state) {
             // get options
-            SpeakOptions options;
+//            SpeakOptions options; // OLD
             boxGetUserVoice(msg.sender, voiceIn);
             boxGetUserSpeedVoice(msg.sender, speedIn);
             boxGetUserEmotionVoice(msg.sender, emotionIn);
+//            options.voice = voiceIn; // OLD
+//            options.speed = speedIn; // OLD
+//            options.emotion = emotionIn; // OLD
+            //options.lang
+            //m_pCore->addTask(CCBotTaskEnums::VoiceLoad, text, options); // OLD
+            if (voiceIn.isEmpty()) {
+                voiceIn = m_params->speechkitVoice();
+            }
+            if (speedIn.isEmpty()) {
+                speedIn = m_params->speechkitSpeed();
+            }
+            if (emotionIn.isEmpty()) {
+                emotionIn = m_params->speechkitEmotion();
+            }
+            SpeechkitTTS::Options options;
             options.voice = voiceIn;
             options.speed = speedIn;
             options.emotion = emotionIn;
-            m_pCore->addTask(CCBotTaskEnums::VoiceLoad, text, options);
+            m_pSpeechKitTTS->voiceText(text, options);
         }
     }
 }

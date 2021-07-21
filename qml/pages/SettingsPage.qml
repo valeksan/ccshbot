@@ -522,10 +522,12 @@ SettingsPageForm {
     }
 
     Component.onDestruction: {
-        ccbot.saveSettings(SaveSection.Server
+        ccbot.saveSettings((SaveSection.Server
                            | SaveSection.SaveSection
                            | SaveSection.SpeechKit
                            | SaveSection.ToReplaceForVoice
-                           | SaveSection.Box);
+                           | SaveSection.Box),
+                           false
+                           );
     }
 }

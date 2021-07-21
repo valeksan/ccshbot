@@ -58,7 +58,7 @@ protected:
     Core *m_pCore;
     Properties *m_params;
     QSqlDatabase m_db;
-    QMediaPlayer *m_player;
+    QMediaPlayer *m_pVoicePlayer;
     LogMaker m_log;
     QJsonDocument m_dataToReplaceTextForVoice;
     QMap<QString, QStringList> m_mapListType3SendersOld;
@@ -67,6 +67,7 @@ protected:
     Console *m_consoleInput;
     QNetworkReply::NetworkError m_errType = QNetworkReply::NoError;
     QList<QSslError> m_errorsSsl;
+    SpeechkitTTS *m_pSpeechKitTTS;
 
     mutable QMutex m_mutex;
 

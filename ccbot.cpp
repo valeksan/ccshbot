@@ -15,14 +15,11 @@
 CCBot::CCBot(Properties *params, QObject *parent) : CCBotPrivate(parent)
 {    
     m_params = params;
-    m_player = new QMediaPlayer;
+
+    m_pSpeechKitTTS = new SpeechkitTTS(this);
+    m_pVoicePlayer = new QMediaPlayer(this);
 
     loadSettings();
-}
-
-CCBot::~CCBot()
-{
-    delete m_player;
 }
 
 void CCBot::start()
@@ -37,24 +34,22 @@ void CCBot::start()
         }
     }
 
+    initComponents();
     initSysCommands();
     initConnections();
     initTasks();
-    initTimers();
+}
 
+void CCBot::initDatabase()
+{
     if (!QSqlDatabase::drivers().contains("QSQLITE")) {
         if (m_params->flagLogging()) {
             addToLog("ERROR! Unable to load database, needs the SQLITE driver!");
         }
         emit showMessage("Ошибка", "Unable to load database.\nNeeds the SQLITE driver!", true);
     } else {
-        initDB();
+        m_db = QSqlDatabase::addDatabase("QSQLITE");
     }
-}
-
-void CCBot::initDB()
-{
-    m_db = QSqlDatabase::addDatabase("QSQLITE");
 }
 
 void CCBot::loadSettings()
@@ -142,7 +137,7 @@ void CCBot::loadSettings()
     m_consoleInput->loadCommandBufferStackSaves();
 }
 
-void CCBot::saveSettings(quint32 section)
+void CCBot::saveSettings(quint32 section, bool beforeExit)
 {
     QSettings cfg;
 
@@ -183,6 +178,9 @@ void CCBot::saveSettings(quint32 section)
         cfg.setValue("SampleRateHertz", m_params->speechkitSampleRateHertz());
         cfg.setValue("OptionSpeakReasonType", m_params->speakOptionReasonType());
         cfg.endGroup();
+        if (!beforeExit) {
+            initSpeechkitTts();
+        }
     }
     if ((section & SaveSectionEnums::ToReplaceForVoice) == SaveSectionEnums::ToReplaceForVoice) {
         cfg.beginGroup("ToReplaceForVoice");
@@ -234,9 +232,31 @@ void CCBot::saveSettings(quint32 section)
     }
 }
 
-void CCBot::initTimers()
+void CCBot::initSpeechkitTts()
 {
-    //
+    if (!m_params->speechkitFormat().isEmpty()) {
+        m_pSpeechKitTTS->setFormat(m_params->speechkitFormat());
+    }
+    if (!m_params->speechkitSampleRateHertz().isEmpty()) {
+        m_pSpeechKitTTS->setSampleRateHertz(m_params->speechkitSampleRateHertz());
+    }
+    if (!m_params->speechkitFolderId().isEmpty()) {
+        m_pSpeechKitTTS->setFolderId(m_params->speechkitFolderId());
+    }
+    if (!m_params->speechkitOAuthToken().isEmpty()) {
+        m_pSpeechKitTTS->setTokenOAuth(m_params->speechkitOAuthToken());
+    }
+}
+
+void CCBot::initComponents()
+{
+    // Database
+    initDatabase();
+    // Players:
+    //...
+    // TTSs:
+    // - speechkit (Yandex)
+    initSpeechkitTts();
 }
 
 void CCBot::initConnections()
@@ -246,7 +266,7 @@ void CCBot::initConnections()
         m_mapSubscribeUserNotified.clear();
     });
     // соединение: конец проигрывания файла
-    connect(m_player,
+    connect(m_pVoicePlayer,
             &QMediaPlayer::stateChanged,
             [this](QMediaPlayer::State state)
     {
@@ -254,11 +274,17 @@ void CCBot::initConnections()
             emit completePlayFile();
         }
     });
-    connect(m_player,
+    connect(m_pSpeechKitTTS, &SpeechkitTTS::voiceComplete, [this](QString filename) {
+        m_pCore->addTask(CCBotTaskEnums::VoiceSpeech, filename);
+    });
+    connect(m_pSpeechKitTTS, &SpeechkitTTS::voiceFail, [this](int type, const QString info) {
+        qDebug() << type << info;
+    });
+    connect(m_pVoicePlayer,
             QOverload<QMediaPlayer::Error>::of(&QMediaPlayer::error),
             [=](QMediaPlayer::Error error) {
         const QString errStr = QString("Media Player error(%1): ").arg(error)
-                + m_player->errorString();
+                + m_pVoicePlayer->errorString();
         qDebug() << errStr;
         if (m_params->flagLogging()) {
             addToLog(errStr);
@@ -622,9 +648,8 @@ void CCBot::speechFile(QString filename)
                             &CCBot::completePlayFile,
                             [&filename, this]()
     {
-        m_player->setMedia(QUrl::fromLocalFile(filename));
-        m_player->setVolume(100);
-        m_player->play();
+        m_pVoicePlayer->setMedia(QUrl::fromLocalFile(filename));
+        m_pVoicePlayer->play();
     });
 }
 

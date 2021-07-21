@@ -26,7 +26,7 @@ void SpeechkitTTS::voiceText(const QString text, const SpeechkitTTS::Options &op
         return;
     } else {
         // Requesting a sound file from the server to text
-        loadVoiceRequest(text, options);
+        voiceLoadRequest(text, options);
     }
 }
 
@@ -41,16 +41,7 @@ void SpeechkitTTS::replyFinished(QNetworkReply *reply)
         return;
     }
 
-    QVariant userAttr = reply->attribute(QNetworkRequest::User);
-
-    if (userAttr.isNull()) {
-        qDebug() << "Task is NULL!";
-        return;
-    }
-    if (!userAttr.isValid()) {
-        qDebug() << "Task is NOT VALID!";
-        return;
-    }
+    QVariant userAttr = reply->request().attribute(QNetworkRequest::User);
 
     SpeechkitTTS::Task task = userAttr.value<SpeechkitTTS::Task>();
 
@@ -77,9 +68,27 @@ SpeechkitTTS::SampleRateHertz SpeechkitTTS::sampleRateHertz() const
     return static_cast<SpeechkitTTS::SampleRateHertz>(m_sampleRateHertz);
 }
 
+const QString SpeechkitTTS::sampleRateHertz()
+{
+    return getSampleRateHertzOption();
+}
+
 void SpeechkitTTS::setSampleRateHertz(SpeechkitTTS::SampleRateHertz newSampleRateHertz)
 {
     m_sampleRateHertz = newSampleRateHertz;
+}
+
+void SpeechkitTTS::setSampleRateHertz(const QString newSampleRateHertz)
+{
+    if (newSampleRateHertz == "48000") {
+        m_format = SpeechkitTTS::sr48000hz;
+    } else if (newSampleRateHertz == "16000") {
+        m_format = SpeechkitTTS::sr16000hz;
+    } else if (newSampleRateHertz == "8000") {
+        m_format = SpeechkitTTS::sr8000hz;
+    } else {
+        m_format = SpeechkitTTS::DefaultSampleRateHertz;
+    }
 }
 
 SpeechkitTTS::Format SpeechkitTTS::format() const
@@ -87,9 +96,25 @@ SpeechkitTTS::Format SpeechkitTTS::format() const
     return static_cast<SpeechkitTTS::Format>(m_format);
 }
 
+const QString SpeechkitTTS::format()
+{
+    return getFormatOption();
+}
+
 void SpeechkitTTS::setFormat(SpeechkitTTS::Format newFormat)
 {
     m_format = newFormat;
+}
+
+void SpeechkitTTS::setFormat(const QString newFormat)
+{
+    if (newFormat == "oggopus") {
+        m_format = SpeechkitTTS::OggOpus;
+    } else if (newFormat == "lpcm") {
+        m_format = SpeechkitTTS::LPCM;
+    } else {
+        m_format = SpeechkitTTS::DefaultFormat;
+    }
 }
 
 const QString &SpeechkitTTS::tokenIm() const
@@ -310,7 +335,7 @@ bool SpeechkitTTS::completeLoadVoiceRequest(QNetworkReply *reply)
     return true;
 }
 
-QString SpeechkitTTS::getFormatOption()
+const QString SpeechkitTTS::getFormatOption()
 {
     switch (m_format) {
     case DefaultFormat:
