@@ -18,6 +18,7 @@ CCBot::CCBot(Properties *params, QObject *parent) : CCBotPrivate(parent)
 
     m_pSpeechKitTTS = new SpeechkitTTS(this);
     m_pVoicePlayer = new QMediaPlayer(this);
+    m_pManagerTTS = new TTSManager(this);
 
     loadSettings();
 }
@@ -265,21 +266,31 @@ void CCBot::initConnections()
     connect(m_params, &Properties::currentStreamIdChanged, [=](){
         m_mapSubscribeUserNotified.clear();
     });
-    // соединение: конец проигрывания файла
-    connect(m_pVoicePlayer,
-            &QMediaPlayer::stateChanged,
-            [this](QMediaPlayer::State state)
-    {
-        if (state == QMediaPlayer::StoppedState) {
-            emit completePlayFile();
-        }
-    });
+
+    // components
+    // -- tts speechkit
     connect(m_pSpeechKitTTS, &SpeechkitTTS::voiceComplete, [this](QString filename) {
         m_pCore->addTask(CCBotTaskEnums::VoiceSpeech, filename);
     });
     connect(m_pSpeechKitTTS, &SpeechkitTTS::voiceFail, [this](int type, const QString info) {
         qDebug() << type << info;
+        QString title;
+        switch (type) {
+        case SpeechkitTTS::NetworkError:
+            title = tr("Ошибка сети");
+            break;
+        case SpeechkitTTS::ServiceError:
+            title = tr("Ошибка сервиса SpeechKit TTS");
+            break;
+        case SpeechkitTTS::SystemError:
+            title = tr("Ошибка доступа");
+            break;
+        default:
+            break;
+        }
+        emit showMessage(title, info, true);
     });
+    // -- voice player
     connect(m_pVoicePlayer,
             QOverload<QMediaPlayer::Error>::of(&QMediaPlayer::error),
             [=](QMediaPlayer::Error error) {
@@ -288,6 +299,15 @@ void CCBot::initConnections()
         qDebug() << errStr;
         if (m_params->flagLogging()) {
             addToLog(errStr);
+        }
+    });
+    connect(m_pVoicePlayer,
+            &QMediaPlayer::stateChanged,
+            [this](QMediaPlayer::State state)
+    {
+        // соединение: конец проигрывания файла
+        if (state == QMediaPlayer::StoppedState) {
+            emit completePlayFile();
         }
     });
 

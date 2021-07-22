@@ -16,6 +16,7 @@ QT += websockets        # + LGPLv3
 QT += sql               # + LGPLv3
 QT += multimedia        # + LGPLv3
 QT += svg               # + LGPLv3
+QT += texttospeech      # ???
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -41,7 +42,8 @@ SOURCES += \
         console.cpp \
         logmaker.cpp \
         main.cpp \
-        speechkit_tts.cpp
+        speechkit_tts.cpp \
+        ttsmanager.cpp
 
 HEADERS += \
     ccbot.h \
@@ -53,19 +55,18 @@ HEADERS += \
     messagedata.h \
     misc.h \
     properties.h \
-    speechkit_tts.h
+    speechkit_tts.h \
+    ttsmanager.h
 
 RESOURCES += \
     qml.qrc
 
-TRANSLATIONS += \
-    ccshbot_en_US.ts
+#TRANSLATIONS += \
+#    ccshbot_en_US.ts
 
 DISTFILES += \
-    LICENSE \
+    LICENSE.md \
     README.md \
-    app.ico \
-    app.svg \
     qml/controls/NumBox.qml \
     qml/controls/NumBoxForm.ui.qml \
     qml/dialogs/About.qml \
@@ -82,7 +83,6 @@ DISTFILES += \
     qml/panels/AppLeftMenu.qml \
     qml/panels/AppStatusBar.qml \
     qml/panels/AppToolBar.qml \
-    qtquickcontrols2.conf
 
 win32: RC_ICONS += app.ico
 

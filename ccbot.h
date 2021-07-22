@@ -18,7 +18,7 @@
 #define defaultSpeechkitHost            "https://tts.api.cloud.yandex.net/speech/v1/tts:synthesize"
 #define defaultSpeechkitGetIamTokenHost "https://iam.api.cloud.yandex.net/iam/v1/tokens"
 
-#define defaultSpeechkitLang            "ru-RU"     // def "ru-RU" or: "en-US" or "tr-TR"
+#define defaultSpeechkitLang            ""          // def "ru-RU" or: "en-US" or "tr-TR"
 #define defaultSpeechkitFormat          ""          // def "oggopus" or: "lpcm" (wav)
 #define defaultSpeechkitVoice           "filipp"    // def "oksana" or: (https://cloud.yandex.ru/docs/speechkit/tts/voices)
 #define defaultSpeechkitEmotion         ""          // def "neutral" or: "good", "evil" (only RU: jane & omazh)
@@ -35,7 +35,6 @@ public:
 
 private:
     // initialization methods
-
     void initComponents();          // init inline components
     void initDatabase();            // -- database sqlite3
     void initSpeechkitTts();        // -- SpeechKit TTS

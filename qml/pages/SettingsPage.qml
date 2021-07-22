@@ -474,10 +474,7 @@ SettingsPageForm {
         // - spinbox - for show current language
         for (let i = 0; i < cfgSpeechkitVoice.model.length; i++) {
             const voiceValue = cfgSpeechkitVoice.model[i].voice;
-            const langValue = cfgSpeechkitVoice.model[i].lang;
-            if (langValue === properties.speechkitLang &&
-                    voiceValue === properties.speechkitVoice)
-            {
+            if (voiceValue === properties.speechkitVoice) {
                 cfgSpeechkitVoice.currentIndex = i;
                 break;
             }

@@ -97,19 +97,22 @@ ApplicationWindow {
     Connections {
         target: ccbot
         function onShowMessage(title, text, alert) {
-            messageDlg.show(title,text,alert);
+            messageDlg.show(title, text, alert);
         }
     }
 
     onHeightChanged: {
         properties.windowHeight = window.height;
     }
+
     onWidthChanged: {
         properties.windowWidth = window.width;
     }
+
     onXChanged: {
         properties.windowX = window.x;
     }
+
     onYChanged: {
         properties.windowY = window.y;
     }

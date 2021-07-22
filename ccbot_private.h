@@ -15,6 +15,7 @@
 #include "logmaker.h"
 #include "console.h"
 #include "speechkit_tts.h"
+#include "ttsmanager.h"
 
 class TaskResult {
 public:
@@ -68,6 +69,7 @@ protected:
     QNetworkReply::NetworkError m_errType = QNetworkReply::NoError;
     QList<QSslError> m_errorsSsl;
     SpeechkitTTS *m_pSpeechKitTTS;
+    TTSManager *m_pManagerTTS;
 
     mutable QMutex m_mutex;
 
