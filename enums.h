@@ -7,7 +7,7 @@ namespace CCBotTaskEnums {
     Q_NAMESPACE
     enum CCBotTaskEnum {
         MergeChat = 1,
-        VoiceLoad,
+        SpeechkitVoice,
         VoiceSpeech,
         OpenBase,
         CloseBase,

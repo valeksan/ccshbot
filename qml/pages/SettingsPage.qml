@@ -62,54 +62,54 @@ SettingsPageForm {
     cfgSpeechkitVoice.model: [{
             "title": "Оксана (Женский, Русский)",
             "lang": "ru-RU",
-            "voice": "oksana"
+            "voice": "ya:oksana"
         }, {
             "title": "Филипп PR (Мужской, Русский)",
             "lang": "ru-RU",
-            "voice": "filipp"
+            "voice": "ya:filipp"
         }, {
             "title": "Алена PR (Женский, Русский)",
             "lang": "ru-RU",
-            "voice": "alena"
+            "voice": "ya:alena"
         }, {
             "title": "Джейн (Женский, Русский)",
             "lang": "ru-RU",
-            "voice": "jane"
+            "voice": "ya:jane"
         }, {
             "title": "Омаж (Женский, Русский)",
             "lang": "ru-RU",
-            "voice": "omazh"
+            "voice": "ya:omazh"
         }, {
             "title": "Захар (Мужской, Русский)",
             "lang": "ru-RU",
-            "voice": "zahar"
+            "voice": "ya:zahar"
         }, {
             "title": "Ермил (Мужской, Русский)",
             "lang": "ru-RU",
-            "voice": "ermil"
+            "voice": "ya:ermil"
         }, {
             "title": "Silaerkan (Kadın, Türk)",
             "lang": "tr-TR",
-            "voice": "silaerkan"
+            "voice": "ya:silaerkan"
         }, {
             "title": "Erkanyavas (Erkek, Türk)",
             "lang": "tr-TR",
-            "voice": "erkanyavas"
+            "voice": "ya:erkanyavas"
         }, {
             "title": "Alyss (Female, English)",
             "lang": "en-US",
-            "voice": "alyss"
+            "voice": "ya:alyss"
         }, {
             "title": "Nick (Male, English)",
             "lang": "en-US",
-            "voice": "nick"
+            "voice": "ya:nick"
         }]
     cfgSpeechkitVoice.onActivated: {
         properties.speechkitLang = cfgSpeechkitVoice.model[index].lang;
         properties.speechkitVoice = cfgSpeechkitVoice.model[index].voice;
-        if (properties.speechkitVoice === "jane" ||
-                properties.speechkitVoice === "omazh" ||
-                properties.speechkitVoice === "alyss")
+        if (properties.speechkitVoice === "ya:jane" ||
+                properties.speechkitVoice === "ya:omazh" ||
+                properties.speechkitVoice === "ya:alyss")
         {
             panelSpeechkitEmotion.visible = true;
             if (properties.speechkitEmotion.length === 0) {
@@ -200,8 +200,7 @@ SettingsPageForm {
     cfgSpeechkitSpeed.enableSequenceGrid: true
     cfgSpeechkitSpeed.suffix: "x"
     cfgSpeechkitSpeed.onFinishEdit: {
-        properties.speechkitSpeed = (number === 1.0 ?
-                                         "" : number.toFixed(1));
+        properties.speechkitSpeed = ((number === 1.0) ? "" : number.toFixed(1));
     }
 
     cfgSpeechkitSymbolPrice.value: properties.speechKitPriceBySymbol
@@ -228,7 +227,7 @@ SettingsPageForm {
     testMsgTTS.selectByMouse: true
     btTestTextMsgTTS.enabled: testMsgTTS.text.length > 0
     btTestTextMsgTTS.onClicked: {
-        ccbot.action(Task.VoiceLoad, [testMsgTTS.text]);
+        ccbot.action(Task.SpeechkitVoice, [testMsgTTS.text]);
     }
 
     function addRepKeywordPair() {
@@ -281,19 +280,19 @@ SettingsPageForm {
                                 || lvRepWords.currentIndex !== -1
     btRemoveRepKeyword.onClicked: {
         if (lvRepWords.currentIndex !== -1) {
-            const keyword = lvRepKeywords.model[lvRepKeywords.currentIndex]["w"];
+            const keyword1 = lvRepKeywords.model[lvRepKeywords.currentIndex]["w"];
             if (lvRepWords.model.length === 1) {
-                ccbot.removeRepKeywordForVoice(keyword);
+                ccbot.removeRepKeywordForVoice(keyword1);
                 lvRepWords.model = [];
                 updateRepPairModels();
                 return;
             }
             const word = lvRepWords.model[lvRepWords.currentIndex];
-            ccbot.removeRepWordForVoice(keyword, word);
+            ccbot.removeRepWordForVoice(keyword1, word);
             updateRepPairModels();
         } else if (lvRepKeywords.currentIndex !== -1) {
-            const keyword = lvRepKeywords.model[lvRepKeywords.currentIndex]["w"];
-            ccbot.removeRepKeywordForVoice(keyword);
+            const keyword2 = lvRepKeywords.model[lvRepKeywords.currentIndex]["w"];
+            ccbot.removeRepKeywordForVoice(keyword2);
             lvRepWords.model = [];
             updateRepPairModels();
         }
@@ -481,9 +480,9 @@ SettingsPageForm {
         }
 
         // - for show current emotion
-        if (properties.speechkitVoice === "jane" ||
-                properties.speechkitVoice === "omazh" ||
-                properties.speechkitVoice === "alyss")
+        if (properties.speechkitVoice === "ya:jane" ||
+                properties.speechkitVoice === "ya:omazh" ||
+                properties.speechkitVoice === "ya:alyss")
         {
             panelSpeechkitEmotion.visible = true;
         } else {

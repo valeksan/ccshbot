@@ -5,57 +5,59 @@ int SpeechkitTTS::timeoutGetAudio = defaultTimeoutGetAudio;
 QString SpeechkitTTS::hostGetImToken = defaultSpeechkitGetIamTokenHost;
 QString SpeechkitTTS::hostSpeechKit = defaultSpeechkitHost;
 
-SpeechkitTTS::SpeechkitTTS(QObject *parent, QString folderId, QString tokenOAuth)
-    : QObject(parent), m_tokenOAuth(tokenOAuth), m_folderId(folderId),
-      m_format(DefaultFormat), m_sampleRateHertz(DefaultSampleRateHertz)
+SpeechkitTTS::SpeechkitTTS(QObject *parent)
+    : QObject(parent),
+      m_format(""), m_sampleRateHertz("")
 {
     m_pManager = new QNetworkAccessManager(this);
+
+    loadLastImToken();
 
     connect(m_pManager, &QNetworkAccessManager::finished,
             this, &SpeechkitTTS::replyFinished);
 }
 
-void SpeechkitTTS::voiceText(const QString text, const SpeechkitTTS::Options &options)
+void SpeechkitTTS::makeAudioFile(quint64 id, const QString text, const SpeechkitTTS::Options &options)
 {
     bool tokenExpiry = (QDateTime::currentDateTime() >= m_tokenExpiry);
 
     // checking that the token has expired
     if (tokenExpiry) {
         // Update token and Requesting a sound file from the server to text after
-        updateImTokenRequest(text, options);
+        updateImTokenRequest(id, text, options);
         return;
     } else {
         // Requesting a sound file from the server to text
-        voiceLoadRequest(text, options);
+        voiceLoadRequest(id, text, options);
     }
 }
 
 void SpeechkitTTS::replyFinished(QNetworkReply *reply)
 {
+    QVariant userAttr = reply->request().attribute(QNetworkRequest::User);
+    SpeechkitTTS::Task task = userAttr.value<SpeechkitTTS::Task>();
+
     auto err = reply->error();
     if (err) {
         const QString errInfo = QString("Error network reply(%1) - %2")
                 .arg(QString::number(err), reply->errorString());
-        emit voiceFail(err, errInfo);
+        emit fail(task.id, err, errInfo);
         reply->deleteLater();
         return;
     }
 
-    QVariant userAttr = reply->request().attribute(QNetworkRequest::User);
-
-    SpeechkitTTS::Task task = userAttr.value<SpeechkitTTS::Task>();
-
     switch (int type = task.type; type) {
     case SpeechkitTTS::UpdateToken:
-        if (completeUpdateImTokenRequest(reply)) {
+        if (completeUpdateImTokenRequest(reply, task)) {
+            saveLastImToken();
             if (!task.text.isEmpty()) {
-                voiceText(task.text, task.options);
+                makeAudioFile(task.id, task.text, task.options);
             }
         }
         break;
 
     case SpeechkitTTS::VoiceLoad:
-        completeLoadVoiceRequest(reply);
+        completeLoadVoiceRequest(reply, task);
         break;
 
     default:
@@ -63,57 +65,33 @@ void SpeechkitTTS::replyFinished(QNetworkReply *reply)
     }
 }
 
-SpeechkitTTS::SampleRateHertz SpeechkitTTS::sampleRateHertz() const
-{
-    return static_cast<SpeechkitTTS::SampleRateHertz>(m_sampleRateHertz);
-}
-
 const QString SpeechkitTTS::sampleRateHertz()
 {
-    return getSampleRateHertzOption();
-}
-
-void SpeechkitTTS::setSampleRateHertz(SpeechkitTTS::SampleRateHertz newSampleRateHertz)
-{
-    m_sampleRateHertz = newSampleRateHertz;
+    return m_sampleRateHertz;
 }
 
 void SpeechkitTTS::setSampleRateHertz(const QString newSampleRateHertz)
 {
-    if (newSampleRateHertz == "48000") {
-        m_format = SpeechkitTTS::sr48000hz;
-    } else if (newSampleRateHertz == "16000") {
-        m_format = SpeechkitTTS::sr16000hz;
-    } else if (newSampleRateHertz == "8000") {
-        m_format = SpeechkitTTS::sr8000hz;
-    } else {
-        m_format = SpeechkitTTS::DefaultSampleRateHertz;
+    if (isValidOption(SampleRateHertz, newSampleRateHertz)) {
+        m_sampleRateHertz = newSampleRateHertz;
     }
 }
 
-SpeechkitTTS::Format SpeechkitTTS::format() const
+SpeechkitTTS::Options SpeechkitTTS::makeOptions(const QString &voice, const QString &lang, const QString &speed, const QString &emotion, bool ssml)
 {
-    return static_cast<SpeechkitTTS::Format>(m_format);
+    Options options = {voice, lang, speed, emotion, ssml};
+    return options;
 }
 
 const QString SpeechkitTTS::format()
 {
-    return getFormatOption();
-}
-
-void SpeechkitTTS::setFormat(SpeechkitTTS::Format newFormat)
-{
-    m_format = newFormat;
+    return m_format;
 }
 
 void SpeechkitTTS::setFormat(const QString newFormat)
 {
-    if (newFormat == "oggopus") {
-        m_format = SpeechkitTTS::OggOpus;
-    } else if (newFormat == "lpcm") {
-        m_format = SpeechkitTTS::LPCM;
-    } else {
-        m_format = SpeechkitTTS::DefaultFormat;
+    if (isValidOption(Format, newFormat)) {
+        m_format = newFormat;
     }
 }
 
@@ -147,7 +125,7 @@ void SpeechkitTTS::setTokenOAuth(const QString &newTokenOAuth)
     m_tokenOAuth = newTokenOAuth;
 }
 
-void SpeechkitTTS::updateImTokenRequest(const QString text, const SpeechkitTTS::Options &options)
+void SpeechkitTTS::updateImTokenRequest(quint64 id, const QString text, const SpeechkitTTS::Options &options)
 {
     QNetworkRequest requestGetIamToken;
     requestGetIamToken.setUrl(QUrl(hostGetImToken));
@@ -161,18 +139,18 @@ void SpeechkitTTS::updateImTokenRequest(const QString text, const SpeechkitTTS::
     // * todo request
     m_pManager->setTransferTimeout(timeoutGetIamToken);
 
-    SpeechkitTTS::Task task = {UpdateToken, text, options};
+    SpeechkitTTS::Task task = {id, UpdateToken, text, options};
     requestGetIamToken.setAttribute(QNetworkRequest::User, QVariant::fromValue(task));
 
     m_pManager->post(requestGetIamToken, data);
 }
 
-void SpeechkitTTS::updateImTokenRequest(const SpeechkitTTS::Options &options)
+void SpeechkitTTS::updateImTokenRequest(quint64 id, const SpeechkitTTS::Options &options)
 {
-    updateImTokenRequest("", options);
+    updateImTokenRequest(id, "", options);
 }
 
-void SpeechkitTTS::voiceLoadRequest(const QString text, const Options &options)
+void SpeechkitTTS::voiceLoadRequest(quint64 id, const QString text, const Options &options)
 {
     QNetworkRequest requestGetAudio;
     QUrl url(hostSpeechKit);
@@ -188,14 +166,14 @@ void SpeechkitTTS::voiceLoadRequest(const QString text, const Options &options)
     QString safeTextValue = text;
     safeTextValue.replace(';', "%3B");
     safeTextValue.replace(' ', '+');
-    postDataEncoded.addQueryItem("text", safeTextValue);
+    postDataEncoded.addQueryItem(!options.ssml ? "text" : "ssml", safeTextValue);
     postDataEncoded.addQueryItem("folderId", m_folderId);
 
     if (isValidOption(SpeechkitTTS::Lang, options.lang)) {
         postDataEncoded.addQueryItem("lang", options.lang);
     }
     if (isValidOption(SpeechkitTTS::Voice, options.voice)) {
-        postDataEncoded.addQueryItem("voice", options.voice);
+        postDataEncoded.addQueryItem("voice", options.voice.section(":", -1, -1));
     }
     if (isValidOption(SpeechkitTTS::Emotion, options.emotion)) {
         postDataEncoded.addQueryItem("emotion", options.emotion);
@@ -204,35 +182,29 @@ void SpeechkitTTS::voiceLoadRequest(const QString text, const Options &options)
         float fspeed = options.speed.toFloat();
         postDataEncoded.addQueryItem("speed", QString::number(fspeed, 'f', 1));
     }
-    if (QString formatOption = getFormatOption();
-            !formatOption.isEmpty())
-    {
-        postDataEncoded.addQueryItem("format", formatOption);
+    if (!m_format.isEmpty()) {
+        postDataEncoded.addQueryItem("format", m_format);
     }
-    if (QString sampleRateHertzOption = getSampleRateHertzOption();
-            !sampleRateHertzOption.isEmpty())
-    {
-        postDataEncoded.addQueryItem("sampleRateHertz", sampleRateHertzOption);
+    if (!m_sampleRateHertz.isEmpty()) {
+        postDataEncoded.addQueryItem("sampleRateHertz", m_sampleRateHertz);
     }
-    SpeechkitTTS::Task task = {VoiceLoad, text, options};
+    SpeechkitTTS::Task task = {id, VoiceLoad, text, options};
     requestGetAudio.setAttribute(QNetworkRequest::User, QVariant::fromValue(task));
+
     // * request
     m_pManager->setTransferTimeout(timeoutGetAudio);
     requestGetAudio.setUrl(url);
-    m_pManager->post(requestGetAudio,
-                     postDataEncoded
-                     .toString(QUrl::FullyEncoded)
-                     .toUtf8());
+    m_pManager->post(requestGetAudio, postDataEncoded.toString(QUrl::FullyEncoded).toUtf8());
 }
 
-bool SpeechkitTTS::completeUpdateImTokenRequest(QNetworkReply *reply)
+bool SpeechkitTTS::completeUpdateImTokenRequest(QNetworkReply *reply, const SpeechkitTTS::Task &task)
 {
     QByteArray response = reply->readAll();
     QJsonDocument jsonResp =  QJsonDocument::fromJson(response);
 
     if (jsonResp.isNull()) {
         QString info = "Unknown error, the answer is not JSON type!";
-        emit voiceFail(SpeechkitTTS::ServiceError, info);
+        emit fail(task.id, SpeechkitTTS::ServiceError, info);
         reply->deleteLater();
         return false;
     }
@@ -265,7 +237,7 @@ bool SpeechkitTTS::completeUpdateImTokenRequest(QNetworkReply *reply)
                 }
                 break;
             }
-            emit voiceFail(SpeechkitTTS::ServiceError, info);
+            emit fail(task.id, SpeechkitTTS::ServiceError, info);
             reply->deleteLater();
             return false;
         }
@@ -280,7 +252,7 @@ bool SpeechkitTTS::completeUpdateImTokenRequest(QNetworkReply *reply)
     return true;
 }
 
-bool SpeechkitTTS::completeLoadVoiceRequest(QNetworkReply *reply)
+bool SpeechkitTTS::completeLoadVoiceRequest(QNetworkReply *reply, const Task &task)
 {
     QByteArray response = reply->readAll();
     QJsonDocument jsonResp =  QJsonDocument::fromJson(response);
@@ -311,7 +283,7 @@ bool SpeechkitTTS::completeLoadVoiceRequest(QNetworkReply *reply)
             }
             break;
         }
-        emit voiceFail(SpeechkitTTS::ServiceError, info);
+        emit fail(task.id, SpeechkitTTS::ServiceError, info);
         reply->deleteLater();
         return false;
     }
@@ -324,43 +296,15 @@ bool SpeechkitTTS::completeLoadVoiceRequest(QNetworkReply *reply)
         tmpfile.close();
     } else {
         QString info = "File write error, possibly there is no write access to the temporary directory!";
-        emit voiceFail(SpeechkitTTS::SystemError, info);
+        emit fail(task.id, SpeechkitTTS::SystemError, info);
         reply->deleteLater();
         return false;
     }
 
-    emit voiceComplete(tmpfile.fileName());
+    emit complete(task.id, tmpfile.fileName());
 
     reply->deleteLater();
     return true;
-}
-
-const QString SpeechkitTTS::getFormatOption()
-{
-    switch (m_format) {
-    case DefaultFormat:
-        return "";
-    case OggOpus:
-        return "oggopus";
-    case LPCM:
-        return "lpcm";
-    }
-    return "";
-}
-
-QString SpeechkitTTS::getSampleRateHertzOption()
-{
-    switch (m_sampleRateHertz) {
-    case DefaultSampleRateHertz:
-        return "";
-    case sr48000hz:
-        return "48000";
-    case sr16000hz:
-        return "16000";
-    case sr8000hz:
-        return "8000";
-    }
-    return "";
 }
 
 bool SpeechkitTTS::isValidOption(int type, QString value)
@@ -375,17 +319,17 @@ bool SpeechkitTTS::isValidOption(int type, QString value)
         }
         return false;
     case SpeechkitTTS::Voice:
-        if (value == "oksana"
-                || value == "filipp"
-                || value == "alena"
-                || value == "jane"
-                || value == "omazh"
-                || value == "zahar"
-                || value == "ermil"
-                || value == "silaerkan"
-                || value == "erkanyavas"
-                || value == "alyss"
-                || value == "nick")
+        if (value == "ya:oksana"
+                || value == "ya:filipp"
+                || value == "ya:alena"
+                || value == "ya:jane"
+                || value == "ya:omazh"
+                || value == "ya:zahar"
+                || value == "ya:ermil"
+                || value == "ya:silaerkan"
+                || value == "ya:erkanyavas"
+                || value == "ya:alyss"
+                || value == "ya:nick")
         {
             return true;
         }
@@ -405,35 +349,78 @@ bool SpeechkitTTS::isValidOption(int type, QString value)
             return true;
         }
         return false;
+    case SpeechkitTTS::Format:
+        if (value == "oggopus" || value == "lpcm") {
+            return true;
+        }
+        return false;
+    case SpeechkitTTS::SampleRateHertz:
+        if (value == "48000" || value == "16000" || value == "8000") {
+            return true;
+        }
+        return false;
     }
     return false;
 }
 
 QString SpeechkitTTS::getValidLangByVoice(QString voice)
 {
-    if (voice == "oksana")
+    if (voice == "ya:oksana")
         return "ru-RU";
-    if (voice == "filipp")
+    if (voice == "ya:filipp")
         return "ru-RU";
-    if (voice == "alena")
+    if (voice == "ya:alena")
         return "ru-RU";
-    if (voice == "jane")
+    if (voice == "ya:jane")
         return "ru-RU";
-    if (voice == "omazh")
+    if (voice == "ya:omazh")
         return "ru-RU";
-    if (voice == "zahar")
+    if (voice == "ya:zahar")
         return "ru-RU";
-    if (voice == "ermil")
+    if (voice == "ya:ermil")
         return "ru-RU";
-    if (voice == "silaerkan")
+    if (voice == "ya:silaerkan")
         return "tr-TR";
-    if (voice == "erkanyavas")
+    if (voice == "ya:erkanyavas")
         return "tr-TR";
-    if (voice == "alyss")
+    if (voice == "ya:alyss")
         return "en-US";
-    if (voice == "nick")
+    if (voice == "ya:nick")
         return "en-US";
     return "";
+}
+
+QStringList SpeechkitTTS::availableVoices(QString locale)
+{
+    QStringList voices;
+    if (locale == "ru_RU" || locale.isEmpty()) {
+        voices << "ya:oksana" << "ya:jane" << "ya:omazh" << "ya:zahar" << "ya:ermil" << "ya:alena" << "ya:filipp";
+    }
+    if (locale == "en_US" || locale.isEmpty()) {
+        voices << "ya:alyss" << "ya:nick";
+    }
+    if (locale == "tr_TR" || locale.isEmpty()) {
+        voices << "ya:silaerkan" << "ya:erkanyavas";
+    }
+    return voices;
+}
+
+void SpeechkitTTS::saveLastImToken()
+{
+    QSettings cfg;
+    cfg.beginGroup("Speechkit");
+    cfg.setValue("ImToken", m_tokenIm);
+    cfg.setValue("ImTokenExpiry", m_tokenExpiry);
+    cfg.endGroup();
+}
+
+void SpeechkitTTS::loadLastImToken()
+{
+    QSettings cfg;
+    cfg.beginGroup("Speechkit");
+    m_tokenIm = cfg.value("ImToken", "").toString();
+    m_tokenExpiry = cfg.value("ImTokenExpiry", QDateTime::currentDateTime()).toDateTime();
+    cfg.endGroup();
 }
 
 const QDateTime &SpeechkitTTS::tokenExpiry() const

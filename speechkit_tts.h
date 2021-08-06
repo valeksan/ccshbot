@@ -11,6 +11,7 @@
 #include <QUrlQuery>
 #include <QTemporaryFile>
 #include <QDataStream>
+#include <QSettings>
 
 #define defaultTimeoutGetIamToken       5000
 #define defaultTimeoutGetAudio          25000
@@ -28,7 +29,7 @@ public:
     static QString hostGetImToken;
     static QString hostSpeechKit;
 
-    explicit SpeechkitTTS(QObject *parent = nullptr, QString folderId = "", QString tokenOAuth = "");
+    explicit SpeechkitTTS(QObject *parent = nullptr);
 
     enum VoiceTaskType {
         UpdateToken,
@@ -46,19 +47,8 @@ public:
         Voice,
         Emotion,
         Speed,
-    };
-
-    enum Format {
-        DefaultFormat = -1,
-        OggOpus,
-        LPCM
-    };
-
-    enum SampleRateHertz {
-        DefaultSampleRateHertz = -1,
-        sr48000hz,
-        sr16000hz,
-        sr8000hz
+        Format,
+        SampleRateHertz
     };
 
     struct Options {
@@ -70,6 +60,7 @@ public:
     };
 
     struct Task {
+        quint64 id;
         int type;
         QString text;
         Options options;
@@ -87,23 +78,22 @@ public:
     const QString &tokenIm() const;
     void setTokenIm(const QString &newTokenIm);
 
-    Format format() const;
     const QString format();
-    void setFormat(SpeechkitTTS::Format newFormat);
     void setFormat(const QString newFormat);
 
-    SampleRateHertz sampleRateHertz() const;
     const QString sampleRateHertz();
-    void setSampleRateHertz(SpeechkitTTS::SampleRateHertz newSampleRateHertz);
     void setSampleRateHertz(const QString newSampleRateHertz);
 
+    static Options makeOptions(const QString &voice, const QString &lang, const QString &speed, const QString &emotion, bool ssml = false);
+    static QStringList availableVoices(QString locale = "ru_RU");
+
 public slots:
-    void voiceText(const QString text, const SpeechkitTTS::Options &options);
+    void makeAudioFile(quint64 id, const QString text, const SpeechkitTTS::Options &options);
     void replyFinished(QNetworkReply *reply);
 
 signals:
-    void voiceComplete(QString filename);
-    void voiceFail(int type, const QString info);
+    void complete(quint64 id, QString filename);
+    void fail(quint64 id, int type, const QString info);
 
 private:
     QNetworkAccessManager *m_pManager;
@@ -111,20 +101,23 @@ private:
     QString m_tokenIm;
     QString m_tokenOAuth;
     QString m_folderId;
-    int m_format;
-    int m_sampleRateHertz;
+    QString m_format;
+    QString m_sampleRateHertz;
 
-    void updateImTokenRequest(const QString text, const SpeechkitTTS::Options &options);
-    void updateImTokenRequest(const SpeechkitTTS::Options &options);
-    void voiceLoadRequest(const QString text, const SpeechkitTTS::Options &options);
-    bool completeUpdateImTokenRequest(QNetworkReply *reply);
-    bool completeLoadVoiceRequest(QNetworkReply *reply);
+    void updateImTokenRequest(quint64 id, const QString text, const SpeechkitTTS::Options &options);
+    void updateImTokenRequest(quint64 id, const SpeechkitTTS::Options &options);
+    void voiceLoadRequest(quint64 id, const QString text, const SpeechkitTTS::Options &options);
+    bool completeUpdateImTokenRequest(QNetworkReply *reply, const Task &task);
+    bool completeLoadVoiceRequest(QNetworkReply *reply, const Task &task);
 
     const QString getFormatOption();
     QString getSampleRateHertzOption();
 
     inline static bool isValidOption(int type, QString value);
     inline static QString getValidLangByVoice(QString voice);
+
+    void saveLastImToken();
+    void loadLastImToken();
 };
 
 Q_DECLARE_METATYPE(SpeechkitTTS::Options)

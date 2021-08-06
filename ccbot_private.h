@@ -40,17 +40,6 @@ private:
     QVariant m_data;
 };
 
-struct SpeakOptions {
-    QString voice = "";
-    QString lang = "";
-    QString speed = "";
-    QString emotion = "";
-    QString rate = "";
-    QString format = "";
-    QString folderId = "";
-    QString tokenOAuth = "";
-};
-
 class CCBotPrivate : public QObject
 {
     Q_OBJECT
@@ -87,6 +76,7 @@ protected:
     QString generateErrMsg(int type, int errCode, QString info = "");
     bool isValidVoiceName(const QString name);
     QString getLangByVoiceName(const QString name);
+    QString getTextRichFormatMessage(MessageData msg, bool withTime = true, QString timeFormat = "hh:mm");
 
     // data unpacking methods
     bool readMessagesFromJsonStr(QByteArray jsonData, QList<MessageData> &msgList, QString *errInfo = nullptr);
@@ -174,6 +164,6 @@ signals:
 };
 
 Q_DECLARE_METATYPE(TaskResult)
-Q_DECLARE_METATYPE(SpeakOptions)
+//Q_DECLARE_METATYPE(SpeakOptions)
 
 #endif // CCBOT_PRIVATE_H

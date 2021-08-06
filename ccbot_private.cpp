@@ -78,6 +78,39 @@ QString CCBotPrivate::getLangByVoiceName(const QString name)
     return "";
 }
 
+QString CCBotPrivate::getTextRichFormatMessage(MessageData msg, bool withTime, QString timeFormat)
+{
+    QString timeStr = msg.timestamp.toString(timeFormat);
+    QString fragment0 = withTime ?
+                timeStr + ": "
+                :
+                "";
+    QString nikStr = msg.sender;
+    QString fragment1 = nikStr.isEmpty() ?
+                ""
+                :
+                msg.sender + ": ";
+    QString fmtFragment1 = msg.nik_color.isEmpty() ?
+                fragment1
+                :
+                "<a href=\"" +
+                    msg.sender +
+                    "\" style=\"text-decoration:none;color:" +
+                    msg.nik_color +
+                    "\">" +
+                    fragment1 +
+                "</a>";
+    QString fragment2 = msg.msg;
+    QString fmtFragment2 = fragment2.isEmpty() ?
+                ((msg.type == 2) ? _bclr_(QString("($") + QString::number(static_cast<double>(msg.pay), 'f', 2) + ")", "#fff200") : "")
+                :
+                ((msg.type == 2) ? _bclr_(fragment2 + " ($" + QString::number(static_cast<double>(msg.pay),'f', 2) + ")", "#fff200") : fragment2);
+
+    QString msgStr = fragment0 + fmtFragment1 + fmtFragment2;
+
+    return msgStr;
+}
+
 bool CCBotPrivate::readMessagesFromJsonStr(QByteArray jsonData,
                                     QList<MessageData> &msgList,
                                     QString *errInfo)
@@ -1376,6 +1409,7 @@ bool CCBotPrivate::commandDrink(QStringList &args, const QString target, bool is
 bool CCBotPrivate::commandVoice(QStringList &args, const QString target, bool isStreamer)
 {
     bool isValidCommand = false;
+    QString lang = "ru";
 
     if (args.isEmpty()) {
         args.append("help");
@@ -1433,8 +1467,20 @@ bool CCBotPrivate::commandVoice(QStringList &args, const QString target, bool is
                     isValidCommand = true;
                 }
             }
+        } else if (option == "lang") {
+            lang = value;
         } else if (option == "names") {
-            QString info = "names(ru): oksana, filipp, alena, jane, omazh, zahar, ermil; names(en): alyss, nick.";
+            QStringList voices;
+            if (lang == "ru" || lang.isEmpty()) {
+                voices << SpeechkitTTS::availableVoices("ru_RU").join(",");
+            }
+            if (lang == "en" || lang.isEmpty()) {
+                voices << SpeechkitTTS::availableVoices("en_US").join(",");
+            }
+            if (lang == "tr" || lang.isEmpty()) {
+                voices << SpeechkitTTS::availableVoices("tr_TR").join(",");
+            }
+            QString info = voices.join(",");
             isValidCommand = true;
             if (isStreamer) {
                 QString infoFmt = _clr_(info, "yellow");
@@ -1641,46 +1687,8 @@ void CCBotPrivate::updateChat(const QList<MessageData> &msgsl,
 {
     for (int i = 0; i < msgsl.size(); i++) {
         MessageData msg = msgsl.value(i);
-        QString timeStr = msg.timestamp.toString(timeFormat);
-        QString fragment0 = withTime ?
-                    timeStr + ": "
-                    :
-                    "";
-        QString nikStr = msg.sender;
-        QString fragment1 = nikStr.isEmpty() ?
-                    ""
-                    :
-                    msg.sender + ": ";
-        QString fmtFragment1 = msg.nik_color.isEmpty() ?
-                    fragment1
-                    :
-                    "<a href=\"" + msg.sender+"\" style=\"text-decoration:none;color:" + msg.nik_color + "\">" + fragment1 + "</a>"; //, msg.nik_color);
-        QString fragment2 = msg.msg;
-        QString fmtFragment2 = fragment2.isEmpty() ?
-                    (
-                        msg.type == 2 ?
-                        _bclr_(
-                                QString("($")
-                                + QString::number(static_cast<double>(msg.pay),
-                                                   'f', 2) + ")",
-                                "#fff200"
-                        )
-                        :
-                        ""
-                    )
-                    :
-                    (
-                        msg.type == 2 ?
-                        _bclr_(
-                                fragment2
-                                + " ($"
-                                + QString::number(static_cast<double>(msg.pay),
-                                                  'f', 2) + ")",
-                               "#fff200")
-                        :
-                        fragment2
-                    );
-        QString msgStr = fragment0 + fmtFragment1 + fmtFragment2;
+
+        QString msgStr = getTextRichFormatMessage(msg, withTime, timeFormat);
 
         if (!history)
             emit showChatMessage(msgStr);
@@ -1782,11 +1790,16 @@ void CCBotPrivate::analyseNewMessages(const QList<MessageData> &msgsl)
             if (emotionIn.isEmpty()) {
                 emotionIn = m_params->speechkitEmotion();
             }
+            //----------------------------
+            // ... TODO CODE TO SWITCH TTS
+            //----------------------------
             SpeechkitTTS::Options options;
             options.voice = voiceIn;
             options.speed = speedIn;
             options.emotion = emotionIn;
-            m_pSpeechKitTTS->voiceText(text, options);
+            TTSManager::Task task = TTSManager::makeTask(TTSManager::TypeTTS::SpeechKit, text, QVariant::fromValue(options));
+            m_pManagerTTS->addTask(task);
+            //m_pSpeechKitTTS->makeAudioFile(text, options);
         }
     }
 }

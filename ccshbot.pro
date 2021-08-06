@@ -5,7 +5,7 @@ TEMPLATE = app
 TARGET  = ccshbot
 VERSION = 0.5.8-0
 ORGANIZATION = valeksan-soft
-DOMAIN = ru.valeksan-soft.ccshbot
+DOMAIN = ccshbot.valeksan-soft.ru
 
 QT += core gui          # + LGPLv3
 QT += qml               # + LGPLv3
@@ -24,17 +24,7 @@ equals(QT_VERSION, 6) {
    QT += core5compat
 }
 
-CONFIG += c++17
-#QMAKE_CXXFLAGS += -std=c++17
-#CONFIG += use_gold_linker
-
-# You can make your code fail to compile if it uses deprecated APIs.
-# In order to do so, uncomment the following line.
-#DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
-DEFINES += 'VERSION_STRING=\\\"$$VERSION\\\"'
-DEFINES += 'APPLICATION_NAME=\\\"$$TARGET\\\"'
-DEFINES += 'ORGANIZATION=\\\"$$ORGANIZATION\\\"'
-DEFINES += 'DOMAIN=\\\"$$DOMAIN\\\"'
+CONFIG += c++2a
 
 SOURCES += \
         ccbot.cpp \
@@ -90,18 +80,24 @@ win32: RC_ICONS += app.ico
 unix:!android: {
     QMAKE_LFLAGS += -no-pie
     QMAKE_CXXFLAGS += "-fno-sized-deallocation"
-    QMAKE_CXXFLAGS += -std=c++17
+#    QMAKE_CXXFLAGS += -std=c++17
 }
 
 # Additional import path used to resolve QML modules in Qt Creator's code model
-QML_IMPORT_PATH += $$PWD/qml
+#QML_IMPORT_PATH =
 
 # Additional import path used to resolve QML modules just for Qt Quick Designer
-#QML_DESIGNER_IMPORT_PATH = #$$PWD/qml
+#QML_DESIGNER_IMPORT_PATH =
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
-
+# You can make your code fail to compile if it uses deprecated APIs.
+# In order to do so, uncomment the following line.
+#DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
+DEFINES += 'APP_VERSION=\\\"$$VERSION\\\"'
+DEFINES += 'APP_NAME=\\\"$$TARGET\\\"'
+DEFINES += 'ORGANIZATION=\\\"$$ORGANIZATION\\\"'
+DEFINES += 'DOMAIN=\\\"$$DOMAIN\\\"'

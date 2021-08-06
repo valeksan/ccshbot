@@ -20,15 +20,16 @@ int main(int argc, char *argv[])
     QApplication app(argc, argv);
     QQmlApplicationEngine engine;
 
+    app.setApplicationName(APP_NAME);
+    app.setApplicationVersion(APP_VERSION);
     app.setOrganizationName(ORGANIZATION);
     app.setOrganizationDomain(DOMAIN);
-    app.setApplicationName(APPLICATION_NAME);
-    app.setApplicationVersion(VERSION_STRING);
+
     app.setWindowIcon(QIcon(":/app.svg"));
 
     // default font for the entire application
-    int id = QFontDatabase::addApplicationFont("qrc:/fonts/NotoSans-Regular.ttf");
-    QString family = QFontDatabase::applicationFontFamilies(id).value(0, "");
+    const int id = QFontDatabase::addApplicationFont("qrc:/fonts/NotoSans-Regular.ttf");
+    const QString family = QFontDatabase::applicationFontFamilies(id).value(0, "");
     if(!family.isEmpty()) {
         app.setFont(QFont(family));
     }
@@ -40,20 +41,15 @@ int main(int argc, char *argv[])
     CCBot *ccbot = new CCBot(properties);
 
     // Reading the date and time of the current compilation
-    const QString cstrDateBuild = QLocale(QLocale::C)
-            .toDate(QString(__DATE__).simplified(), QLatin1String("MMM d yyyy"))
-            .toString("yyyyMMdd");
-    const QString cstrTimeBuild = QString("%1%2%3%4%5%6")
-            .arg(__TIME__[0])
-            .arg(__TIME__[1])
-            .arg(__TIME__[3])
-            .arg(__TIME__[4])
-            .arg(__TIME__[6])
-            .arg(__TIME__[7]);
-    QString build = cstrDateBuild + cstrTimeBuild;
+    const QString build = QString("%1%2%3%4").arg(
+        QLocale(QLocale::C).toDate(QString(__DATE__).simplified(), QLatin1String("MMM d yyyy")).toString("yyyyMMdd"),
+        QString("%1").arg(__TIME__[0]) + QString("%2").arg(__TIME__[1]),//hh
+        QString("%1").arg(__TIME__[3]) + QString("%2").arg(__TIME__[4]),//mm
+        QString("%1").arg(__TIME__[6]) + QString("%2").arg(__TIME__[7]) //ss
+    );
 
-    QDateTime datetime = QDateTime::fromString(build, "yyyyMMddhhmmss");
-    const QString releaseDate = datetime.toString("dd.MM.yyyy hh:mm:ss");
+    const QString releaseDate = QDateTime::fromString(build, "yyyyMMddhhmmss")
+            .toString("dd.MM.yyyy hh:mm:ss");
 
     engine.rootContext()->setContextProperty("releaseDate", releaseDate);
     engine.rootContext()->setContextProperty("ccbot", ccbot);
