@@ -16,7 +16,7 @@ QT += websockets        # + LGPLv3
 QT += sql               # + LGPLv3
 QT += multimedia        # + LGPLv3
 QT += svg               # + LGPLv3
-QT += texttospeech      # ???
+QT += texttospeech      # + LGPLv3
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -51,9 +51,6 @@ HEADERS += \
 RESOURCES += \
     qml.qrc
 
-#TRANSLATIONS += \
-#    ccshbot_en_US.ts
-
 DISTFILES += \
     LICENSE.md \
     README.md \
@@ -80,14 +77,13 @@ win32: RC_ICONS += app.ico
 unix:!android: {
     QMAKE_LFLAGS += -no-pie
     QMAKE_CXXFLAGS += "-fno-sized-deallocation"
-#    QMAKE_CXXFLAGS += -std=c++17
 }
 
 # Additional import path used to resolve QML modules in Qt Creator's code model
-#QML_IMPORT_PATH =
+QML_IMPORT_PATH =
 
 # Additional import path used to resolve QML modules just for Qt Quick Designer
-#QML_DESIGNER_IMPORT_PATH =
+QML_DESIGNER_IMPORT_PATH =
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
