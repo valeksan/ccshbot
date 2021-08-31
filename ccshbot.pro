@@ -3,7 +3,7 @@
 #-------------------------------------------------
 TEMPLATE = app
 TARGET  = ccshbot
-VERSION = 0.5.8-0
+VERSION = 0.5.8-1
 ORGANIZATION = valeksan-soft
 DOMAIN = ccshbot.valeksan-soft.ru
 
@@ -27,17 +27,23 @@ equals(QT_VERSION, 6) {
 CONFIG += c++2a
 
 SOURCES += \
-        ccbot.cpp \
-        ccbot_private.cpp \
-        console.cpp \
-        logmaker.cpp \
-        main.cpp \
-        speechkit_tts.cpp \
-        ttsmanager.cpp
+    ccbot.cpp \
+    ccbot_private.cpp \
+    cicero.cpp \
+    cicero_imp/log.cpp \
+    cicero_imp/md5.cpp \
+    cicero_imp/util.cpp \
+    cicero_imp/version.cpp \
+    console.cpp \
+    logmaker.cpp \
+    main.cpp \
+    speechkit_tts.cpp \
+    ttsmanager.cpp
 
 HEADERS += \
     ccbot.h \
     ccbot_private.h \
+    cicero.h \
     console.h \
     core.h \
     enums.h \
@@ -71,12 +77,23 @@ DISTFILES += \
     qml/panels/AppStatusBar.qml \
     qml/panels/AppToolBar.qml \
 
-win32: RC_ICONS += app.ico
-
-## параметры линковщика
-unix:!android: {
+win32 {
+    SOURCES += cicero_imp/windows/windows_manager.cpp
+    HEADERS += cicero_imp/windows/windows_manager.hpp
+    RC_ICONS = $$PWD/app.ico
+    DEFINES += SYSTEM_WINDOWS
+}
+linux {
+    SOURCES += cicero_imp/linux/linux_manager.cpp
+    HEADERS += cicero_imp/linux/linux_manager.hpp
     QMAKE_LFLAGS += -no-pie
     QMAKE_CXXFLAGS += "-fno-sized-deallocation"
+    DEFINES += SYSTEM_LINUX
+}
+macx {
+    SOURCES += cicero_imp/mac/mac_manager.cpp
+    HEADERS += cicero_imp/mac/mac_manager.hpp
+    DEFINES += SYSTEM_MAC
 }
 
 # Additional import path used to resolve QML modules in Qt Creator's code model
@@ -93,6 +110,7 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 # You can make your code fail to compile if it uses deprecated APIs.
 # In order to do so, uncomment the following line.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
+#DEFINES += ENABLE_USE_ENUM_NAMESPACES
 DEFINES += 'APP_VERSION=\\\"$$VERSION\\\"'
 DEFINES += 'APP_NAME=\\\"$$TARGET\\\"'
 DEFINES += 'ORGANIZATION=\\\"$$ORGANIZATION\\\"'

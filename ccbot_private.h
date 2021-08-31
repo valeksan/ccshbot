@@ -16,6 +16,7 @@
 #include "console.h"
 #include "speechkit_tts.h"
 #include "ttsmanager.h"
+#include "cicero.h"
 
 class TaskResult {
 public:
@@ -59,6 +60,7 @@ protected:
     QList<QSslError> m_errorsSsl;
     SpeechkitTTS *m_pSpeechKitTTS;
     TTSManager *m_pManagerTTS;
+    Cicero m_antiPirat;
 
     mutable QMutex m_mutex;
 

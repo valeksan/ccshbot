@@ -57,21 +57,27 @@ int main(int argc, char *argv[])
 
     // Passing functional objects to the QML engine
     // - Declaring QML Classes
+#ifdef ENABLE_USE_ENUM_NAMESPACES
     qmlRegisterUncreatableMetaObject(CCBotTaskEnums::staticMetaObject,
                                      "ccbot.enums",
                                      1, 0,
                                      "Task",
-                                     "Access to enums & flags only");
+                                     "Err Task enum");
     qmlRegisterUncreatableMetaObject(SpeakReasonEnums::staticMetaObject,
                                      "ccbot.enums",
                                      1, 0,
                                      "SpeakReason",
-                                     "Access to enums & flags only");
+                                     "Err SpeakReason enum");
     qmlRegisterUncreatableMetaObject(SaveSectionEnums::staticMetaObject,
                                      "ccbot.enums",
                                      1, 0,
                                      "SaveSection",
-                                     "Access to enums & flags only");
+                                     "Err SaveSection enum");
+#else
+    qmlRegisterType<CCBotTaskEnums>("ccbot.enums", 1, 0, "Task");
+    qmlRegisterType<SpeakReasonEnums>("ccbot.enums", 1, 0, "SpeakReason");
+    qmlRegisterType<SaveSectionEnums>("ccbot.enums", 1, 0, "SaveSection");
+#endif
 
     // Loading the interface
     engine.load(QUrl(QStringLiteral("qrc:/qml/main.qml")));
