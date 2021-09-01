@@ -29,7 +29,8 @@ public:
     * друг за другом
     */
    static std::string GetHardwareProperties( const Version& version );
-//private:
+
+ private:
    /**
     * @brief Перевести строку в нижний регистр
     * @param string Результат с символами в нижнем регистре

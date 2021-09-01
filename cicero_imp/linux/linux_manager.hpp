@@ -15,7 +15,7 @@ struct Version;
  */
 class NativeOSManager
 {
-public:
+ public:
    /**
     * @brief Получить строку с идентификаторами железа
     * @param hidVersion Версия алгоритма
@@ -23,7 +23,8 @@ public:
     * за другом
     */
    static std::string GetHardwareProperties( const Version& hidVersion );
-//private:
+
+ private:
    /**
     * @brief Получить свойство DMI
     * @param service Целевой сервис
