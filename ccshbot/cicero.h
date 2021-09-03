@@ -19,12 +19,21 @@
 
 #include <qrsaencryption.h>
 
+#define KEYGEN_PUB_KEY "490c54e81f7c73c2802fb48ad3e16b3b4a7bb6333730a00f93bb1ad842b5ffb7"
+#define PROGRA_PRI_KEY "0b5044f49020d691f47e23907ba42139869a7da03943ad5915a2e1ce533d0e0b"
+
 class Cicero
 {
  public:
     Cicero();
-    const QString getHardwareID(const QString algVer = "1.4");
 
  private:
-    const QByteArray keygPubKey = "2ca16caa7b5c04e0fafc46573e98a7634a7bb6333730a00f93bb1ad842b5ffb7";
+    const QByteArray convToKeyFormat(const QByteArray &binKey);
+    const QByteArray clearKeyFormat(const QByteArray &fmtKey);
+    const QByteArray getHID(const QString algVer = "1.4");
+    const QByteArray makeRegistrationKey(const QString algVer = "1.4");
+    const QByteArray makeActivationKey(QByteArray registrationKey, QByteArray keygenPriKey, QByteArray prograPubKey);
+    const QByteArray getHIDFromKey(QByteArray fmtKey, QByteArray priKey);
+    bool verifyActivation(const QByteArray &activationKey);
+
 };
