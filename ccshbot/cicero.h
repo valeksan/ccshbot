@@ -27,13 +27,12 @@ class Cicero
  public:
     Cicero();
 
- private:
-    const QByteArray convToKeyFormat(const QByteArray &binKey);
-    const QByteArray clearKeyFormat(const QByteArray &fmtKey);
-    const QByteArray getHID(const QString algVer = "1.4");
-    const QByteArray makeRegistrationKey(const QString algVer = "1.4");
-    const QByteArray makeActivationKey(QByteArray registrationKey, QByteArray keygenPriKey, QByteArray prograPubKey);
-    const QByteArray getHIDFromKey(QByteArray fmtKey, QByteArray priKey);
-    bool verifyActivation(const QByteArray &activationKey);
+    inline static const QByteArray convToKeyFormat(const QByteArray &binKey);
+    inline static const QByteArray clearKeyFormat(const QByteArray &fmtKey);
+    inline static const QByteArray getHID(const QString algVer = "1.4");
+    inline static const QByteArray makeRegistrationKey(const QString algVer = "1.4");
+    inline static const QByteArray makeActivationKey(QByteArray registrationKey, QByteArray keygenPriKey, QByteArray prograPubKey);
+    inline static const QByteArray getHIDFromKey(QByteArray fmtKey, QByteArray priKey);
+    inline static bool verifyActivation(const QByteArray &activationKey);
 
 };

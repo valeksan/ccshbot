@@ -57,6 +57,10 @@ void CCBot::loadSettings()
 {
     QSettings cfg;
 
+    cfg.beginGroup("App");
+    m_params->setActKey(cfg.value("ActivationKey","").toString());
+    cfg.endGroup();
+
     cfg.beginGroup("Window");
     m_params->setWindowX(cfg.value("X", 0).toInt());
     m_params->setWindowY(cfg.value("Y", 0).toInt());
@@ -140,6 +144,11 @@ void CCBot::saveSettings(quint32 section, bool beforeExit)
 {
     QSettings cfg;
 
+    if ((section & SaveSectionEnums::App) == SaveSectionEnums::App) {
+        cfg.beginGroup("App");
+        cfg.setValue("ActivationKey", m_params->actKey());
+        cfg.endGroup();
+    }
     if ((section & SaveSectionEnums::Window) == SaveSectionEnums::Window) {
         cfg.beginGroup("Window");
         cfg.setValue("X", m_params->windowX());
@@ -229,6 +238,27 @@ void CCBot::saveSettings(quint32 section, bool beforeExit)
         // save command buffer stack
         m_consoleInput->saveCommandBufferStack();
     }
+}
+
+const QString CCBot::getRegistrationCode()
+{
+    return Cicero::makeRegistrationKey();
+}
+
+const QString CCBot::getActivationCode()
+{
+    return m_params->actKey();
+}
+
+void CCBot::setActivationCode(QString keyFmt)
+{
+    m_params->setActKey(keyFmt);
+    saveSettings(SaveSectionEnums::App);
+}
+
+bool CCBot::verifyActivation()
+{
+    return Cicero::verifyActivation(m_params->actKey().toLatin1());
 }
 
 void CCBot::initSpeechkitTts()

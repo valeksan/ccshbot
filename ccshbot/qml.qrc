@@ -19,5 +19,6 @@
         <file>app.svg</file>
         <file>qml/pages/HistoryPage.qml</file>
         <file>qml/pages/HistoryPageForm.ui.qml</file>
+        <file>qml/dialogs/Activation.qml</file>
     </qresource>
 </RCC>

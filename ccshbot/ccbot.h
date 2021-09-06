@@ -12,18 +12,6 @@
 #include "ccbot_private.h"
 
 #define constNameBaseStr                "ccbot_storage.db"
-//#define constTimeoutGetIamToken         5000
-//#define constTimeoutGetAudio            25000
-
-//#define defaultSpeechkitHost            "https://tts.api.cloud.yandex.net/speech/v1/tts:synthesize"
-//#define defaultSpeechkitGetIamTokenHost "https://iam.api.cloud.yandex.net/iam/v1/tokens"
-
-//#define defaultSpeechkitLang            ""          // def "ru-RU" or: "en-US" or "tr-TR"
-//#define defaultSpeechkitFormat          ""          // def "oggopus" or: "lpcm" (wav)
-//#define defaultSpeechkitVoice           "filipp"    // def "oksana" or: (https://cloud.yandex.ru/docs/speechkit/tts/voices)
-//#define defaultSpeechkitEmotion         ""          // def "neutral" or: "good", "evil" (only RU: jane & omazh)
-//#define defaultSpeechkitSpeed           ""          // def "1.0" ("0.1" .. "3.0")
-//#define defaultSpeechkitSampleRateHertz ""          // def "48000" or: "16000", "8000"
 
 class CCBot : public CCBotPrivate
 {
@@ -65,6 +53,12 @@ public slots:
     // save \ load settings
     void loadSettings();
     void saveSettings(quint32 section = SaveSectionEnums::All, bool beforeExit = true);
+
+    // anti-pirat
+    const QString getRegistrationCode();
+    const QString getActivationCode();
+    void setActivationCode(QString keyFmt);
+    bool verifyActivation();
 
 signals:
     void showMessage(QString title, QString text, bool alert);

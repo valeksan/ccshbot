@@ -55,7 +55,8 @@ namespace SaveSectionEnums {
         ToReplaceForVoice = 16,
         Box = 32,
         Optimise = 64,
-        CommandBuffer = 128
+        CommandBuffer = 128,
+        App = 256
     };
 #ifndef ENABLE_USE_ENUM_NAMESPACES
 };

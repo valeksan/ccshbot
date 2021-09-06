@@ -61,6 +61,7 @@ DISTFILES += \
     qml/controls/NumBox.qml \
     qml/controls/NumBoxForm.ui.qml \
     qml/dialogs/About.qml \
+    qml/dialogs/Activation.qml \
     qml/dialogs/Message.qml \
     qml/main.qml \
     qml/pages/HistoryPage.qml \

@@ -11,8 +11,8 @@ class Properties : public QObject
 {
     Q_OBJECT
 
-    // test
-    Q_PROPERTY(QString testStr READ testStr WRITE setTestStr NOTIFY testStrChanged)
+    // App
+    Q_PROPERTY(QString actKey READ actKey WRITE setActKey NOTIFY actKeyChanged)
 
     // Window
     Q_PROPERTY(int windowX READ windowX WRITE setWindowX NOTIFY windowXChanged)
@@ -84,7 +84,6 @@ class Properties : public QObject
     QString m_fontNameForChat;
     float m_fontPointSizeForChat;
     QColor m_textColorForChat;
-    QString m_testStr;
     QString m_currentStreamerNikname;
     bool m_flagLogging = false;
     double m_boxUserStartingBalance = 0.0;
@@ -92,6 +91,7 @@ class Properties : public QObject
     double m_speechKitPriceBySymbol = 0.0;
     int m_speakOptionReasonType = 0;
     bool m_boxNotificationChatByEmptyUserBalanceForVoice = false;
+    QString m_actKey = "";
 
 public:
     explicit Properties(QObject *parent = nullptr) : QObject(parent),
@@ -179,9 +179,6 @@ public:
     const QColor &textColorForChat() const;
     void setTextColorForChat(const QColor &newTextColorForChat);
 
-    const QString &testStr() const;
-    void setTestStr(const QString &newTestStr);
-
     const QString &currentStreamerNikname() const;
     void setCurrentStreamerNikname(const QString &newCurrentStreamerNikname);
 
@@ -203,10 +200,12 @@ public:
     bool boxNotificationChatByEmptyUserBalanceForVoice() const;
     void setBoxNotificationChatByEmptyUserBalanceForVoice(bool newBoxNotificationChatByEmptyUserBalanceForVoice);
 
+    const QString &actKey() const;
+    void setActKey(const QString &newActKey);
+
 public slots:
 
 signals:
-
     void flagLoadingChatChanged();
     void currentStreamIdChanged();
     void listenClientsChanged();
@@ -232,7 +231,6 @@ signals:
     void fontNameForChatChanged();
     void fontPointSizeForChatChanged();
     void textColorForChatChanged();
-    void testStrChanged();
     void currentStreamerNiknameChanged();
     void flagLoggingChanged();
     void boxUserStartingBalanceChanged();
@@ -240,7 +238,21 @@ signals:
     void speechKitPriceBySymbolChanged();
     void speakOptionReasonTypeChanged();
     void boxNotificationChatByEmptyUserBalanceForVoiceChanged();
+    void actKeyChanged();
 };
+
+inline const QString &Properties::actKey() const
+{
+    return m_actKey;
+}
+
+inline void Properties::setActKey(const QString &newActKey)
+{
+    if (m_actKey == newActKey)
+        return;
+    m_actKey = newActKey;
+    emit actKeyChanged();
+}
 
 inline bool Properties::boxNotificationChatByEmptyUserBalanceForVoice() const
 {
@@ -331,19 +343,6 @@ inline void Properties::setCurrentStreamerNikname(const QString &newCurrentStrea
         return;
     m_currentStreamerNikname = newCurrentStreamerNikname;
     emit currentStreamerNiknameChanged();
-}
-
-inline const QString &Properties::testStr() const
-{
-    return m_testStr;
-}
-
-inline void Properties::setTestStr(const QString &newTestStr)
-{
-    if (m_testStr == newTestStr)
-        return;
-    m_testStr = newTestStr;
-    emit testStrChanged();
 }
 
 inline const QColor &Properties::textColorForChat() const

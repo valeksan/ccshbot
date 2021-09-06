@@ -93,6 +93,10 @@ ApplicationWindow {
         id: aboutDlg
         anchors.centerIn: parent
     }
+    Activation {
+        id: activationDlg
+        anchors.centerIn: parent
+    }
 
     Connections {
         target: ccbot
