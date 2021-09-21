@@ -1,3 +1,6 @@
 [submodule "Qt-Secret"]
 	path = Qt-Secret
 	url = https://github.com/QuasarApp/Qt-Secret.git
+[submodule "libhid"]
+	path = libhid
+	url = https://github.com/valeksan/libhid.git
