@@ -30,10 +30,6 @@ SOURCES += \
     ccbot.cpp \
     ccbot_private.cpp \
     cicero.cpp \
-    cicero_imp/log.cpp \
-    cicero_imp/md5.cpp \
-    cicero_imp/util.cpp \
-    cicero_imp/version.cpp \
     console.cpp \
     logmaker.cpp \
     main.cpp \
@@ -77,22 +73,26 @@ DISTFILES += \
     qml/panels/AppToolBar.qml \
 
 win32 {
-    SOURCES += cicero_imp/windows/windows_manager.cpp
-    HEADERS += cicero_imp/windows/windows_manager.hpp
+    SOURCES +=
+    HEADERS +=
     RC_ICONS = app.ico
-    DEFINES += SYSTEM_WINDOWS
 }
 linux {
-    SOURCES += cicero_imp/linux/linux_manager.cpp
-    HEADERS += cicero_imp/linux/linux_manager.hpp
+    SOURCES +=
+    HEADERS +=
     QMAKE_LFLAGS += -no-pie
     QMAKE_CXXFLAGS += "-fno-sized-deallocation"
-    DEFINES += SYSTEM_LINUX
 }
 macx {
-    SOURCES += cicero_imp/mac/mac_manager.cpp
-    HEADERS += cicero_imp/mac/mac_manager.hpp
-    DEFINES += SYSTEM_MAC
+    SOURCES +=
+    HEADERS +=
+}
+
+INCLUDEPATH += $$PWD/../libhid
+CONFIG(release, debug|release): {
+    LIBS += -L"$$PWD/../libhid/build/release" -lhid
+} else {
+    LIBS += -L"$$PWD/../libhid/build/debug" -lhid
 }
 
 include($$PWD/../Qt-Secret/src/Qt-Secret.pri)

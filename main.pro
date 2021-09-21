@@ -2,8 +2,9 @@ TEMPLATE = subdirs
 CONFIG += ordered
 
 SUBDIRS += \
-           Qt-Secret \
-           ccshbot \
+    Qt-Secret \
+    libhid \
+    ccshbot \
 
 DISTFILES += \
     LICENSE.md \
