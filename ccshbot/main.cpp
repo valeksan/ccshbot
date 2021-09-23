@@ -23,7 +23,6 @@ int main(int argc, char *argv[])
     app.setApplicationName(APP_NAME);
     app.setApplicationVersion(APP_VERSION);
     app.setOrganizationName(ORGANIZATION);
-    app.setOrganizationDomain(DOMAIN);
 
     app.setWindowIcon(QIcon(":/app.svg"));
 

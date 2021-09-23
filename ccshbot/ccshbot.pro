@@ -3,9 +3,8 @@
 #-------------------------------------------------
 TEMPLATE = app
 TARGET  = ccshbot
-VERSION = 0.5.8-1
+VERSION = 0.5.8-2
 ORGANIZATION = valeksan-soft
-DOMAIN = ccshbot.valeksan-soft.ru
 
 QT += core gui          # + LGPLv3
 QT += qml               # + LGPLv3
@@ -73,27 +72,23 @@ DISTFILES += \
     qml/panels/AppToolBar.qml \
 
 win32 {
-    SOURCES +=
-    HEADERS +=
     RC_ICONS = app.ico
 }
 linux {
-    SOURCES +=
-    HEADERS +=
     QMAKE_LFLAGS += -no-pie
     QMAKE_CXXFLAGS += "-fno-sized-deallocation"
 }
 macx {
-    SOURCES +=
-    HEADERS +=
+    #...
 }
 
-INCLUDEPATH += $$PWD/../libhid
-CONFIG(release, debug|release): {
-    LIBS += -L"$$PWD/../libhid/build/release" -lhid
-} else {
-    LIBS += -L"$$PWD/../libhid/build/debug" -lhid
-}
+#INCLUDEPATH += $$PWD/../libhid
+
+#CONFIG(release, debug|release): {
+#    LIBS += -L"$$PWD/../libhid/build/release" -lhid
+#} else {
+#    LIBS += -L"$$PWD/../libhid/build/debug" -lhid
+#}
 
 include($$PWD/../Qt-Secret/src/Qt-Secret.pri)
 
@@ -115,4 +110,10 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 DEFINES += 'APP_VERSION=\\\"$$VERSION\\\"'
 DEFINES += 'APP_NAME=\\\"$$TARGET\\\"'
 DEFINES += 'ORGANIZATION=\\\"$$ORGANIZATION\\\"'
-DEFINES += 'DOMAIN=\\\"$$DOMAIN\\\"'
+
+win32:CONFIG(release, debug|release): LIBS += -L$$PWD/../libs/ -llibhi
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/../libs/ -llibhid
+else:unix: LIBS += -L$$PWD/../libs/ -llibhi
+
+INCLUDEPATH += $$PWD/../libhid
+DEPENDPATH += $$PWD/../libhid
