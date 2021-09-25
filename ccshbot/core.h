@@ -318,7 +318,7 @@ public:
     {
         m_blockStartTask = true;
         QTimer *pTimer = new QTimer();
-        connect(pTimer, &QTimer::timeout, this, [=, this]()
+        connect(pTimer, &QTimer::timeout, this, [=]()
         {
             if(m_activeTaskList.isEmpty())
             {
@@ -454,7 +454,7 @@ private:
     void stopTask(QSharedPointer<Task> pTask)
     {
         pTask->m_stopFlag.store(true);
-        QTimer::singleShot(m_taskHash[pTask->m_type].m_stopTimeout, this, [=, this]()
+        QTimer::singleShot(m_taskHash[pTask->m_type].m_stopTimeout, this, [=]()
         {
             switch(pTask->m_state)
             {
@@ -483,7 +483,7 @@ private:
 
         TaskHelper *pTaskHelper = new TaskHelper(pTask->m_functionBound);
 
-        connect(pTaskHelper, &TaskHelper::finished, this, [=, this](QVariant result)
+        connect(pTaskHelper, &TaskHelper::finished, this, [=](QVariant result)
         {
             pTask->m_state = FINISHED;
 

@@ -3,7 +3,7 @@
 #-------------------------------------------------
 TEMPLATE = app
 TARGET  = ccshbot
-VERSION = 0.5.8-2
+VERSION = 0.5.9
 ORGANIZATION = valeksan-soft
 
 QT += core gui          # + LGPLv3
@@ -23,7 +23,7 @@ equals(QT_VERSION, 6) {
    QT += core5compat
 }
 
-CONFIG += c++2a
+CONFIG += c++17
 
 SOURCES += \
     ccbot.cpp \
@@ -82,14 +82,6 @@ macx {
     #...
 }
 
-#INCLUDEPATH += $$PWD/../libhid
-
-#CONFIG(release, debug|release): {
-#    LIBS += -L"$$PWD/../libhid/build/release" -lhid
-#} else {
-#    LIBS += -L"$$PWD/../libhid/build/debug" -lhid
-#}
-
 include($$PWD/../Qt-Secret/src/Qt-Secret.pri)
 
 # Additional import path used to resolve QML modules in Qt Creator's code model
@@ -111,9 +103,7 @@ DEFINES += 'APP_VERSION=\\\"$$VERSION\\\"'
 DEFINES += 'APP_NAME=\\\"$$TARGET\\\"'
 DEFINES += 'ORGANIZATION=\\\"$$ORGANIZATION\\\"'
 
-win32:CONFIG(release, debug|release): LIBS += -L$$PWD/../libs/ -llibhi
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/../libs/ -llibhid
-else:unix: LIBS += -L$$PWD/../libs/ -llibhi
+LIBS += -L$$PWD/../libs/ -llibhid
 
 INCLUDEPATH += $$PWD/../libhid
 DEPENDPATH += $$PWD/../libhid

@@ -5,50 +5,44 @@ import QtQuick.Controls.Material 2.12
 NumBoxForm {
     id: control
 
-    // Основные параметры
-    property int precision: 2               // Точность
-    property int decimalPlaces: precision   // Сколько знаков после запятой отображать (в режиме отображения действующего значения)
-    property double value: 0.0              // Действительное значение
-    property var memory: NaN                // Хранимое в памяти значение
-    property double step: 0.0               // Действительный шаг приращения
-    property bool enableSequenceGrid: false // Включить сетку разрешенных значений по шагу step
-    property double from: -3.40282e+038/2.0 // Действительный минимальный предел (включительно)
+    property int precision: 2
+    property int decimalPlaces: precision
+    property double value: 0.0
+    property var memory: NaN
+    property double step: 0.0
+    property bool enableSequenceGrid: false
+    property double from: -3.40282e+038/2.0
     property alias minimumValue: control.from
-    property double to: 3.40282e+038/2.0    // Действительный максимальный предел (включительно)
+    property double to: 3.40282e+038/2.0
     property alias maximumValue: control.to
-    property bool fixed: false              // Показывать лишние нули в дробной части под точность
+    property bool fixed: false
 
-    // Вид
-    property string suffix: ""              // текст который идет сразу за выводом числа (например можно указать единицу измерения) - "суфикс"
-    property string prefix: ""              // текст который идет сразу перед выводом числа - "префикс"
-    property bool strongIntegerPartOfNumber: false  // увеличивать жирность целой части числа в текстовом представлении
-    property color colorMainPartOfValue: "transparent"              // цвет целой части
-    property color colorFractionPartOfValue: "transparent"          // цвет дробной части
-    property color colorDotePartOfValue: colorFractionPartOfValue   // цвет точки (по умолчанию заимствует цвет дробной части)
+    property string suffix: ""
+    property string prefix: ""
+    property bool strongIntegerPartOfNumber: false
+    property color colorMainPartOfValue: "transparent"
+    property color colorFractionPartOfValue: "transparent"
+    property color colorDotePartOfValue: colorFractionPartOfValue
     property color colorSuffix: "transparent"
     property color colorPrefix: "transparent"
-    property bool visibleSuffixInEdit: true     // показывать "суфикс" при редактировании
+    property bool visibleSuffixInEdit: true
     property color backgroundColor: "#4E4E4E"   //"white"
 
-    // Функциональные параметры
-    property bool editable: false           // Включить возможность ввода
-    property bool doubleClickEdit: false    // Опция. Редактировать только при двойном клике (если включен параметр editable)
-    property bool enableEditPanel: false    /* Опция: Отправка сигнала showCustomEditPanel начала редактирования вместо редактирования
-                                                         (например если имеется своя виртуальная клавиатура ввода, если включен параметр editable) */
+    property bool editable: false
+    property bool doubleClickEdit: false
+    property bool enableEditPanel: false
     property string displayTextValue: viewRegimeMethods.getDisplayValueString()
 
-    // Функциональные сигналы
-    signal finishEdit(double number);       /* Сигнал на изменение хранимого реального значения.
-                                                Закомментировать или переопределить обработчик onFinishEdit (если сигнал должен обрабатываться как-то по особенному) */
-    signal showCustomEditPanel(string name, double current); // Сигнал для нужд коннекта к своей клавиатуре ввода (для связи: имя контрола, текущее значение)
-    signal clicked(QtObject mouse);         // Сигнал посылается при клике на контрол
-    signal doubleClicked(QtObject mouse);   // Сигнал посылается при двойном клике на контрол
-    signal editStart();                     // Началось редактирование с клавиатуры
-    signal editEnd();                       // Закончилось редактирование с клавиатуры
-    signal up();                            // Сигнал посылается при прокручивании колеса мыши
-    signal down();                          // Сигнал посылается при прокручивании колеса мыши
+    signal finishEdit(double number);
+    signal showCustomEditPanel(string name, double current);
+    signal clicked(QtObject mouse);
+    signal doubleClicked(QtObject mouse);
+    signal editStart();
+    signal editEnd();
+    signal up();
+    signal down();
 
-    //state: "edit" // для просмотра состояний в дизайнере ("view"/"edit") - не используется в рабочем состоянии
+
     padding: 3
     wheelEnabled: editable
 
@@ -61,25 +55,19 @@ NumBoxForm {
 
     //Material.foreground: Material.Pink
 
-    // Методы
     function saveValueInMemory() {
-        // Сохранить действующее значение в память
         memory = value;
     }
     function clearValueInMemory() {
-        // Очистить память от сохраненного ранее значения
         memory = NaN;
     }
     function loadValueFromMemory() {
-        // Отправить сигнал на замену действующего значения значением из памяти
         control.finishEdit(memory);
     }
     function copy() {
-        // Копировать значение в буфер обмена
         clipboard.copy(textFromValue(value, precision));
     }
     function past() {
-        // Вставить значение из буфера обмена в сигнал установки действующего значения
         if (clipboard.canPast()) {
             let number = valueFromText(clipboard.past())
             if (valueInRange(number)) {
@@ -91,7 +79,6 @@ NumBoxForm {
         }
     }
 
-    // Реализация буфера обмена
     TextEdit {
         id: clipboard
         text: ""
@@ -124,7 +111,6 @@ NumBoxForm {
         }
     }
 
-    // Обработка колеса мыши
     MouseArea {
         anchors.fill: parent
         acceptedButtons: Qt.NoButton
@@ -144,7 +130,6 @@ NumBoxForm {
         }
     }
 
-    // Настройка displayText:
     displayText.text: displayTextValue
     displayTextMouseArea.onClicked: {
         control.clicked(mouse);
@@ -181,7 +166,6 @@ NumBoxForm {
         }
     }
 
-    // Настройка inputText:
     inputTextMouseArea.onClicked: {
         inputRegimeMethods.counterNumPutSymbols = 0;
         displayText.forceActiveFocus();
@@ -225,13 +209,10 @@ NumBoxForm {
         inputRegimeMethods.valueEditFinisher();
     }
 
-    // Настройка placeholderText:
     placeholderText.text: controlInMethods.textFromValue(value, precision)
 
-    // Настройка sufInfoInEdit:
     sufInfoInEdit.text: control.suffix
 
-    // Обработка клавиш клавиатуры в режиме ввода
     Keys.onEscapePressed: {
         if (inputText.activeFocus) {
             inputRegimeMethods.counterNumPutSymbols = 0;
@@ -259,11 +240,9 @@ NumBoxForm {
     QtObject {
         id: controlInMethods
         function getSystemLocaleDecimalChar() {
-            // Получить символ разделителя целого числа от дробного в локализации среды
             return Qt.locale("").decimalPoint;
         }
         function isColorEmpty(_color) {
-            // Проверка цвета на пустоту
             return Qt.colorEqual(_color, "transparent");
         }
         function textFromValue(_number, _precision) {
@@ -320,7 +299,6 @@ NumBoxForm {
             return text;
         }
         function valueFromText(_text) {
-            // Преобразование текста в число по формату дефолтной локали окружения
             let index_dote = -1;
             let textConv = _text;
             index_dote = textConv.indexOf(".");
@@ -333,7 +311,6 @@ NumBoxForm {
             return parseFloat(textConv);
         }
         function valueInRange(_x) {
-            // Проверка на вхождение числа в диапазон
             if (_x >= minimumValue && _x <= maximumValue) {
                 return true;
             }
@@ -344,11 +321,9 @@ NumBoxForm {
     QtObject {
         id: mathMethods
         function fixValue(_x, _precision) {
-            // Отброс незначащей части числа согласно точности
             return Math.round(_x * Math.pow(10, _precision)) / Math.pow(10, _precision);
         }
         function isNumberInSequenceGrid(_fstep, _number, _precision) {
-            // Число входит в сетку последовательности (real_value кратно числу realStep, с точностью _precision)
             if (isNaN(_number)) {
                 return false;
             }
@@ -358,10 +333,9 @@ NumBoxForm {
             if ((valPr % valArgPr) === 0) {
                 return true;
             }
-            return false; // получившееся значение не кратно шагу последовательности!
+            return false;
         }
         function adj(_x) {
-            // Привести число к сетки
             return (Math.round((_x - minimumValue) / step) * step + minimumValue);
         }
     }
@@ -385,17 +359,14 @@ NumBoxForm {
             return false;
         }
         function valueEditFinisher() {
-            // Завершение редактирования метод
             if (inputText.text.length > 0) {
                 const rValue = controlInMethods.valueFromText(inputText.text);
                 const newValue = controlInMethods.valueFromText(placeholderText.text);
                 if (rValue !== newValue) {
                     if (control.enableSequenceGrid) {
-                        // проверка на кратность
                         if (mathMethods.isNumberInSequenceGrid(step, rValue, precision)) {
                             control.finishEdit(rValue);
                         } else {
-                            // преобразование к кратному числу
                             let conv_value = mathMethods.adj(rValue);
                             if (conv_value > maximumValue) {
                                 conv_value -= step;
@@ -441,19 +412,16 @@ NumBoxForm {
     QtObject {
         id: viewRegimeMethods
         function increase() {
-            // Послать сигнал на увеличение значения на step
             if (mathMethods.fixValue((value + step), precision) <= maximumValue) {
                 control.finishEdit(mathMethods.fixValue((value + step), precision));
             }
         }
         function decrease() {
-            // Послать сигнал на уменьшение значения на step
             if (mathMethods.fixValue((value - step), precision) >= minimumValue) {
                 control.finishEdit(mathMethods.fixValue((value - step), precision));
             }
         }
         function getDisplayValueString() {
-            // Метод отображения (который всеже можно переопределить извне, показывать так как нужно)
             if (value.toString().length > 0) {
                 const prefixFull = controlInMethods.isColorEmpty(colorPrefix) ? prefix : "<font color=\"" + colorPrefix + "\">" + prefix + "</font>";
                 const suffixFull = controlInMethods.isColorEmpty(colorSuffix) ? suffix : "<font color=\"" + colorSuffix + "\">" + suffix + "</font>";
@@ -463,7 +431,6 @@ NumBoxForm {
         }
     }
 
-    // Обработчики сигналов (по умолчанию, можно переопределить)
     onUp: {
         viewRegimeMethods.increase();
     }
@@ -471,7 +438,6 @@ NumBoxForm {
         viewRegimeMethods.decrease();
     }
 
-    // Обработчик исправления ввода FIX_1 (системное)
     onEnableSequenceGridChanged: {
         if (enableSequenceGrid) {
             if (!mathMethods.isNumberInSequenceGrid(step, value, precision)) {

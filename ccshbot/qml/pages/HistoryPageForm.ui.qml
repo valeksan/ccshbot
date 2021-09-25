@@ -33,12 +33,12 @@ Page {
             spacing: 5
             ComboBox {
                 id: selectNikname
-                displayText: qsTr("Стример: ") + currentText
+                displayText: qsTr("Streamer") + ": " + currentText
                 Layout.fillWidth: true
             }
             ComboBox {
                 id: selectStreamId
-                displayText: qsTr("Номер стрима: ") + currentText
+                displayText: qsTr("Stream number") + ": " + currentText
                 Layout.fillWidth: true
             }
         }

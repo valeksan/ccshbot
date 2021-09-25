@@ -5,7 +5,7 @@ import ccbot.enums 1.0
 SettingsViewPageForm {
     id: page
 
-    title: qsTr("Вид")
+    title: qsTr("View")
 
     fontSelector.model: Qt.fontFamilies()
     fontSelector.onActivated: {
@@ -28,7 +28,7 @@ SettingsViewPageForm {
     }
 
     fontSelectTest {
-        text: "Вот так будет!\nThat's how it will be!\n"
+        text: qsTr("That's how it will be!") + "\n"
                                 + String.fromCodePoint(0x1F601) //😁
                                 + String.fromCodePoint(0x1F602) //😂
                                 + String.fromCodePoint(0x1F603) //😃

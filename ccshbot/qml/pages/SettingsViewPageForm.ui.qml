@@ -39,7 +39,7 @@ Page {
                 width: flickSettings.width
                 spacing: 15
                 Label {
-                    text: qsTr("Настройка отображения чата")
+                    text: qsTr("Configuring chat display")
                     Layout.fillWidth: true
                     horizontalAlignment: "AlignLeft"
                     font.bold: true
@@ -52,7 +52,7 @@ Page {
                     ColumnLayout {
                         spacing: 5
                         Label {
-                            text: qsTr("Название шрифта")
+                            text: qsTr("Font name")
                         }
                         ComboBox {
                             id: fontSelector
@@ -64,7 +64,7 @@ Page {
                     ColumnLayout {
                         spacing: 5
                         Label {
-                            text: qsTr("Размер")
+                            text: qsTr("Size")
                         }
                         NumBox {
                             id: fontSelectSize
@@ -74,7 +74,7 @@ Page {
                     }
                 }
                 GroupBox {
-                    title: qsTr("Отображение")
+                    title: qsTr("Viewing display changes")
                     Layout.minimumWidth: 300
                     Label {
                         id: fontSelectTest

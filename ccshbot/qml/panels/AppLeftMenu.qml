@@ -9,10 +9,10 @@ Drawer {
         anchors.fill: parent
 
         ItemDelegate {
-            text: qsTr("История")
+            text: qsTr("History")
             width: parent.width
             onClicked: {
-                stackView.push("qrc:///qml/pages/HistoryPage.qml");
+                stackView.push(Qt.resolvedUrl("qrc:///qml/pages/HistoryPage.qml"));
                 drawer.close();
             }
         }
@@ -22,19 +22,19 @@ Drawer {
         }
 
         ItemDelegate {
-            text: qsTr("Вид")
+            text: qsTr("View")
             width: parent.width
             onClicked: {
-                stackView.push("qrc:///qml/pages/SettingsViewPage.qml");
+                stackView.push(Qt.resolvedUrl("qrc:///qml/pages/SettingsViewPage.qml"));
                 drawer.close();
             }
         }
 
         ItemDelegate {
-            text: qsTr("Настройки")
+            text: qsTr("Settings")
             width: parent.width
             onClicked: {
-                stackView.push("qrc:///qml/pages/SettingsPage.qml");
+                stackView.push(Qt.resolvedUrl("qrc:///qml/pages/SettingsPage.qml"));
                 drawer.close();
             }
         }
@@ -46,7 +46,7 @@ Drawer {
         ItemDelegate {
             id: menuItemOpenLogDir
             visible: Qt.application.arguments.includes('--log') || Qt.application.arguments.includes('-l')
-            text: qsTr("Логи")
+            text: qsTr("Logs")
             width: parent.width
             onClicked: {
                 ccbot.openLogDir();
@@ -54,7 +54,7 @@ Drawer {
         }
 
         ItemDelegate {
-            text: qsTr("О программе")
+            text: qsTr("About")
             width: parent.width
             onClicked: {
                 drawer.close();
@@ -67,7 +67,7 @@ Drawer {
         }
 
         ItemDelegate {
-            text: qsTr("Выход")
+            text: qsTr("Exit")
             width: parent.width
             onClicked: {
                 drawer.close();

@@ -4,7 +4,7 @@ import QtQuick.Controls.Material 2.15
 
 Dialog {
     id: dialog
-    title: qsTr("О программе")
+    title: qsTr("About")
     modal: true
     width: 400
 
@@ -14,26 +14,26 @@ Dialog {
         Label {
             id: codename
             textFormat: Label.RichText
-            text: "Наименование: <span style='color:white'>" + Qt.application.name + "</span>"
+            text: qsTr("Name") + ": <span style='color:white'>" + Qt.application.name + "</span>"
             color: "yellow"
         }
         Label {
             textFormat: Label.RichText
-            text: "Версия: <span style='color:white'>" + Qt.application.version + "</span>"
+            text: qsTr("Version") + ": <span style='color:white'>" + Qt.application.version + "</span>"
             color: "yellow"
         }
         Label {
             textFormat: Label.RichText
-            text: "Дата сборки: <span style='color:white'>" + releaseDate + "</span>"
+            text: qsTr("Build Date") + ": <span style='color:white'>" + releaseDate + "</span>"
             color: "yellow"
         }
         Label {
             textFormat: Label.RichText
-            text: "Активация: " + (activation ? "<span style='color:green'>Ок</span>" : "<span style='color:red'>Не активировано</span>")
+            text: qsTr("Activation") + ": " + (activation ? "<span style='color:green'>OK</span>" : "<span style='color:red'>" + qsTr("Not activated") + "</span>")
             color: "yellow"
         }
         Button {
-            text: "Активация"
+            text: "Activation"
             visible: !activation
             onClicked: {
                 activationDlg.visible = true

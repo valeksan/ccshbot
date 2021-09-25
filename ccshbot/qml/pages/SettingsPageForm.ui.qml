@@ -62,7 +62,7 @@ Page {
                 width: flickSettings.width
                 spacing: 15
                 Label {
-                    text: qsTr("Настройка сервера")
+                    text: qsTr("Server settings")
                     Layout.fillWidth: true
                     horizontalAlignment: "AlignLeft"
                     font.bold: true
@@ -75,7 +75,7 @@ Page {
                     RowLayout {
                         spacing: 10
                         Label {
-                            text: qsTr("Хост:")
+                            text: qsTr("Host") + ":"
                             font.pixelSize: cfgSocketHost.font.pixelSize
                         }
                         TextField {
@@ -86,7 +86,7 @@ Page {
                     RowLayout {
                         spacing: 10
                         Label {
-                            text: qsTr("Порт:")
+                            text: qsTr("Port") + ":"
                             font.pixelSize: cfgSocketPort.font.pixelSize
                         }
                         TextField {
@@ -100,7 +100,7 @@ Page {
                     Layout.fillWidth: true
                     spacing: 10
                     Label {
-                        text: qsTr("Времнное запаздывание пакета не польше (сек):")
+                        text: qsTr("Time delay of the packet no more (sec)") + ":"
                         font.pixelSize: cfgSocketTimestampDiff.font.pixelSize
                     }
                     SpinBox {
@@ -112,7 +112,7 @@ Page {
                     }
                 }
                 Label {
-                    text: qsTr("Настройка TTS: Yandex.Cloud SpeechKit")
+                    text: "TTS" + qsTr("setting") + ": Yandex.Cloud SpeechKit"
                     Layout.fillWidth: true
                     Layout.topMargin: 15
                     horizontalAlignment: "AlignLeft"
@@ -121,12 +121,12 @@ Page {
                     Material.foreground: Material.Yellow
                 }
                 GroupBox {
-                    title: qsTr("Данные для авторизации на сервисе")
+                    title: qsTr("Authorization")
                     ColumnLayout {
                         RowLayout {
                             spacing: 10
                             Label {
-                                text: qsTr("OAuth Token:")
+                                text: "OAuth token:"
                                 width: 100
                                 Layout.minimumWidth: width
                             }
@@ -143,7 +143,7 @@ Page {
                         RowLayout {
                             spacing: 10
                             Label {
-                                text: qsTr("Folder ID:")
+                                text: "Folder ID:"
                                 width: 100
                                 Layout.minimumWidth: width
                             }
@@ -160,7 +160,7 @@ Page {
                         Layout.fillWidth: true
                         spacing: 5
                         Label {
-                            text: qsTr("Голос (по умолчанию)")
+                            text: qsTr("Voice (default)")
                         }
                         ComboBox {
                             id: cfgSpeechkitVoice
@@ -174,7 +174,7 @@ Page {
                         spacing: 5
                         visible: false
                         Label {
-                            text: qsTr("Эмоция (по умолчанию)")
+                            text: qsTr("Emotion (default)")
                         }
                         ComboBox {
                             id: cfgSpeechkitEmotion
@@ -184,7 +184,7 @@ Page {
                     }
                     Button {
                         id: btTestVoice
-                        text: qsTr("Тест")
+                        text: qsTr("Test")
                         Layout.alignment: Qt.AlignBottom
                     }
                 }
@@ -193,7 +193,7 @@ Page {
                         Layout.fillWidth: true
                         spacing: 5
                         Label {
-                            text: qsTr("Формат синтезируемого аудио")
+                            text: qsTr("Synthesized audio format")
                         }
                         ComboBox {
                             id: cfgSpeechkitFormat
@@ -206,7 +206,7 @@ Page {
                         Layout.fillWidth: true
                         spacing: 5
                         Label {
-                            text: qsTr("Частота дискретизации")
+                            text: qsTr("Sampling frequency")
                         }
                         ComboBox {
                             id: cfgSpeechkitSampleRateHertz
@@ -220,7 +220,7 @@ Page {
                         Layout.fillWidth: true
                         spacing: 5
                         Label {
-                            text: qsTr("Темп")
+                            text: qsTr("Speed")
                         }
                         NumBox {
                             id: cfgSpeechkitSpeed
@@ -233,7 +233,7 @@ Page {
                         Layout.fillWidth: true
                         spacing: 5
                         Label {
-                            text: qsTr("Прайс за символ")
+                            text: qsTr("Price per symbol")
                         }
                         NumBox {
                             id: cfgSpeechkitSymbolPrice
@@ -248,7 +248,7 @@ Page {
                         Layout.fillWidth: true
                         spacing: 5
                         Label {
-                            text: qsTr("Тестирование озвучки")
+                            text: qsTr("Voice acting testing")
                         }
                         TextField {
                             id: testMsgTTS
@@ -259,12 +259,12 @@ Page {
                     }
                     Button {
                         id: btTestTextMsgTTS
-                        text: qsTr("Озвучить")
+                        text: qsTr("Voice")
                         Layout.alignment: Qt.AlignBottom
                     }
                 }
                 Label {
-                    text: qsTr("Автозамена произношения")
+                    text: qsTr("Pronunciation AutoCorrect")
                     Layout.fillWidth: true
                     Layout.topMargin: 15
                     horizontalAlignment: "AlignLeft"
@@ -278,7 +278,7 @@ Page {
                         Layout.leftMargin: 5
                         spacing: 5
                         Label {
-                            text: qsTr("Заменяемое")
+                            text: qsTr("Replaceable")
                         }
                         TextField {
                             id: replaceKeyword
@@ -286,7 +286,7 @@ Page {
                             Layout.minimumWidth: width
                             leftInset: -5.0
                             selectByMouse: true
-                            placeholderText: qsTr("Схивана")
+                            placeholderText: qsTr("fool")
                             background: Rectangle {
                                 border.color: "gray"
                                 radius: 5
@@ -299,7 +299,7 @@ Page {
                         Layout.leftMargin: 5
                         spacing: 5
                         Label {
-                            text: qsTr("Замена")
+                            text: qsTr("Replacement")
                         }
                         TextField {
                             id: replaceWord
@@ -307,7 +307,7 @@ Page {
                             Layout.minimumWidth: width
                             leftInset: -5.0
                             selectByMouse: true
-                            placeholderText: qsTr("Дживана")
+                            placeholderText: qsTr("cute")
                             background: Rectangle {
                                 border.color: "gray"
                                 radius: 5
@@ -317,7 +317,7 @@ Page {
                     }
                     Button {
                         id: btAddRepKeyword
-                        text: qsTr("Добавить")
+                        text: qsTr("Add")
                         Layout.alignment: Qt.AlignBottom
                         Layout.topMargin: 22
                         Layout.minimumHeight: 55
@@ -384,7 +384,7 @@ Page {
                         spacing: 10
                         Button {
                             id: btRemoveRepKeyword
-                            text: qsTr("Удалить")
+                            text: qsTr("Remove")
                             Layout.minimumHeight: 55
                             Layout.minimumWidth: 95
                         }
@@ -392,13 +392,13 @@ Page {
                             spacing: 0
                             Button {
                                 id: btRepWordUp
-                                text: qsTr("Вверх")
+                                text: qsTr("Up")
                                 Layout.minimumHeight: 55
                                 Layout.minimumWidth: 95
                             }
                             Button {
                                 id: btRepWordDown
-                                text: qsTr("Вниз")
+                                text: qsTr("Down")
                                 Layout.minimumHeight: 55
                                 Layout.minimumWidth: 95
                             }
@@ -406,7 +406,7 @@ Page {
                     }
                 }
                 Label {
-                    text: qsTr("Настройка стартовых параметров участников чата")
+                    text: qsTr("Configuring the starting parameters of the chat participants")
                     Layout.fillWidth: true
                     Layout.topMargin: 15
                     horizontalAlignment: "AlignLeft"
@@ -419,7 +419,7 @@ Page {
                         Layout.fillWidth: true
                         spacing: 5
                         Label {
-                            text: qsTr("Стартовый баланс (бонус) ")
+                            text: qsTr("Starting balance (bonus)")
                         }
                         NumBox {
                             id: cfgBoxUserStartBonusBalance
@@ -432,13 +432,13 @@ Page {
                 RowLayout {
                     CheckBox {
                         id: cfgBoxUserByRegisterOnFlag0
-                        text: qsTr("Включить озвучку сообщений сразу")
+                        text: qsTr("Enable voice-messages at once by default")
                     }
                 }
                 RowLayout {
                     CheckBox {
                         id: cfgBoxNotificationChatByEmptyUserBalanceForVoice
-                        text: qsTr("Оповещать чат если у собеседника недостаточно средств на озвучку")
+                        text: qsTr("Chat alert if not enough money to voice acting member")
                     }
                 }
             }

@@ -36,13 +36,15 @@ bool waitSignal(const typename QtPrivate::FunctionPointer<Func>::Object *sender,
     QTimer timer;
     timer.setSingleShot(true);
     QObject::connect(sender, signal, &loop, &QEventLoop::quit);
-    if(timeout > 0) {
+    if (timeout > 0) {
         QObject::connect(&timer, &QTimer::timeout, &loop, &QEventLoop::quit);
         timer.start(timeout);
     }
     loop.exec();
-    if(timer.isActive()) return true;
-    else return false;
+    if (timer.isActive())
+        return true;
+    else
+        return false;
 }
 
 template<typename Signal, typename Func>
@@ -56,8 +58,10 @@ bool waitSignalAfterFunction(const typename QtPrivate::FunctionPointer<Signal>::
     function();
     timer.start(timeout);
     loop.exec();
-    if(timer.isActive()) return true;
-    else return false;
+    if (timer.isActive())
+        return true;
+    else
+        return false;
 }
 
 template <typename T>
@@ -65,7 +69,7 @@ QByteArray toByteArray(T obj)
 {
     QByteArray ba;
     ba.resize(sizeof(T));
-    memcpy(ba.data(), &obj, ba.size());
+    std::memcpy(ba.data(), &obj, ba.size());
     return ba;
 }
 
@@ -73,9 +77,13 @@ QByteArray toByteArray(T obj)
 //T fromByteArray(QByteArray ba, bool *ok = nullptr)
 //{
 //    T obj;
-//    if(static_cast<std::size_t>(ba.size()) < sizeof(T) && ok) *ok = false;
-//    memcpy(&obj, ba.constData(), std::min(static_cast<size_t>(ba.size()), sizeof(T)));
-//    if(ok) *ok = true;
+//    if (static_cast<std::size_t>(ba.size()) < sizeof(T) && ok) {
+//        *ok = false;
+//    }
+//    std::memcpy(&obj, ba.constData(), std::min(static_cast<size_t>(ba.size()), sizeof(T)));
+//    if (ok) {
+//        *ok = true;
+//    }
 //    return obj;
 //}
 

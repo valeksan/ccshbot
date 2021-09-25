@@ -3,7 +3,7 @@ import QtQuick 2.15
 HistoryPageForm {
     id: page
 
-    title: qsTr("История")
+    title: qsTr("History")
 
     function chatAddText(msg) {
         var moveToBottom = flickChatH.atYEnd;

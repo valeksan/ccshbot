@@ -132,7 +132,8 @@ void TTSManager::initConnections()
             m_pVoicePlayer->setMedia(QUrl::fromLocalFile(filename));
             m_pVoicePlayer->play();
         } else {
-            if (m_tasks.contains(id)) {
+            auto searchId = m_tasks.find(id);
+            if (searchId != m_tasks.end()) {
                 m_tasks.at(id).ready = true;
                 m_tasks.at(id).sourceAudio = filename;
             }

@@ -7,7 +7,7 @@ import ccbot.enums 1.0
 ViewChatForm {
     id: page
 
-    title: qsTr("Чат") + getExtTitle()
+    title: qsTr("Chat") + getExtTitle()
 
     property bool baseOpenned: ccbot.isOpenedDB()
 
@@ -133,7 +133,7 @@ ViewChatForm {
                     messages = JSON.stringify(datagram['messages']);
                 } catch (err) {
                     console.warn(err);
-                    window.changeStatus("Ошибка: " + err, 2000, "red");
+                    window.changeStatus(qsTr("Error") + ": " + err, 2000, "red");
                     if (properties.flagLogging) {
                         ccbot.addToLog(`Error socket client read message. ${err}`);
                     }
@@ -144,7 +144,7 @@ ViewChatForm {
                 let diff = Math.abs(timestamp2 - timestamp1);
 
                 if (!streamId) {
-                    window.changeStatus("Ошибка, номер стрима не определен!", 2000, "red");
+                    window.changeStatus(qsTr("Error, stream number not defined!"), 2000, "red");
                     return;
                 }
 
@@ -175,7 +175,7 @@ ViewChatForm {
                         break;
                     }
                 } else {
-                    window.changeStatus("Ошибка обмена: временная метка пакета устарела", 1500, "red");
+                    window.changeStatus(qsTr("Exchange error: package timestamp is out of date"), 1500, "red");
                     if (properties.flagLogging) {
                         ccbot.addToLog(`Error. Discrepancy of timestamp diff(${diff})!`);
                     }
@@ -186,7 +186,7 @@ ViewChatForm {
 
         onErrorStringChanged: {
             console.log('Server error', errorString)
-            window.changeStatus("Server error: " + errorString, 2000, "red");
+            window.changeStatus(qsTr("Server error") + ": " + errorString, 2000, "red");
             if (properties.flagLogging) {
                 ccbot.addToLog(`Error socket server. ${errorString}`);
             }
@@ -217,14 +217,14 @@ ViewChatForm {
         console.log("text:", text)
     }
 
-    toolButtonStartServer.text: properties.listenClients ? qsTr("Отключиться") : qsTr("Читать чат")
+    toolButtonStartServer.text: properties.listenClients ? qsTr("Disconnect") : qsTr("Read chat")
     toolButtonStartServer.onClicked: {
         if (!properties.listenClients) {
-            window.changeStatus("Запуск сервера ...",
+            window.changeStatus(qsTr("Server start ..."),
                                 1500, "yellow");
             properties.flagLoadingChat = true;
         } else {
-            window.changeStatus("Остановка сервера ...",
+            window.changeStatus(qsTr("Stopping the server ..."),
                                 1500, "yellow");
             chatRepeater.clear();
             if (client.active) {

@@ -9,7 +9,7 @@ SettingsPageForm {
 
     property bool showOAuthToken: false
 
-    title: qsTr("Настройки")
+    title: qsTr("Settings")
 
     btShowOAuthToken.text: "👁"
     btShowOAuthToken.onClicked: {
@@ -60,47 +60,47 @@ SettingsPageForm {
 
     cfgSpeechkitVoice.textRole: "title"
     cfgSpeechkitVoice.model: [{
-            "title": "Оксана (Женский, Русский)",
+            "title": qsTr("Oksana (Female, Russian)"),
             "lang": "ru-RU",
             "voice": "ya:oksana"
         }, {
-            "title": "Филипп PR (Мужской, Русский)",
+            "title": qsTr("Philip PR (Male, Russian)"),
             "lang": "ru-RU",
             "voice": "ya:filipp"
         }, {
-            "title": "Алена PR (Женский, Русский)",
+            "title": qsTr("Alena PR (Female, Russian)"),
             "lang": "ru-RU",
             "voice": "ya:alena"
         }, {
-            "title": "Джейн (Женский, Русский)",
+            "title": qsTr("Jane (Female, Russian)"),
             "lang": "ru-RU",
             "voice": "ya:jane"
         }, {
-            "title": "Омаж (Женский, Русский)",
+            "title": qsTr("Omazh (Female, Russian)"),
             "lang": "ru-RU",
             "voice": "ya:omazh"
         }, {
-            "title": "Захар (Мужской, Русский)",
+            "title": qsTr("Zahar (Male, Russian)"),
             "lang": "ru-RU",
             "voice": "ya:zahar"
         }, {
-            "title": "Ермил (Мужской, Русский)",
+            "title": qsTr("Ermil (Male, Russian)"),
             "lang": "ru-RU",
             "voice": "ya:ermil"
         }, {
-            "title": "Silaerkan (Kadın, Türk)",
+            "title": qsTr("Silaerkan (Female, Turkish)"),
             "lang": "tr-TR",
             "voice": "ya:silaerkan"
         }, {
-            "title": "Erkanyavas (Erkek, Türk)",
+            "title": qsTr("Erkanyavas (Male, Turkish)"),
             "lang": "tr-TR",
             "voice": "ya:erkanyavas"
         }, {
-            "title": "Alyss (Female, English)",
+            "title": qsTr("Alyss (Female, English)"),
             "lang": "en-US",
             "voice": "ya:alyss"
         }, {
-            "title": "Nick (Male, English)",
+            "title": qsTr("Nick (Male, English)"),
             "lang": "en-US",
             "voice": "ya:nick"
         }]
@@ -132,13 +132,13 @@ SettingsPageForm {
     cfgSpeechkitEmotion.textRole: "title"
     cfgSpeechkitEmotion.valueRole: "emotion"
     cfgSpeechkitEmotion.model: [{
-            "title": "Раздраженный",
+            "title": qsTr("Evil"),
             "emotion": "evil"
         }, {
-            "title": "Нейтральный",
+            "title": qsTr("Neutral"),
             "emotion": "neutral"
         }, {
-            "title": "Радостный",
+            "title": qsTr("Good"),
             "emotion": "good"
         }]
     cfgSpeechkitEmotion.onActivated: {
@@ -172,15 +172,15 @@ SettingsPageForm {
     cfgSpeechkitSampleRateHertz.textRole: "title"
     cfgSpeechkitSampleRateHertz.valueRole: "rate"
     cfgSpeechkitSampleRateHertz.model: [{
-            "title": "48кГц",
+            "title": qsTr("48 kHz"),
             "rate": ""
         },
         {
-            "title": "16кГц",
+            "title": qsTr("16 kHz"),
             "rate": "16000"
         },
         {
-            "title": "8кГц",
+            "title": qsTr("8 kHz"),
             "rate": "8000"
         }
     ]
@@ -223,7 +223,7 @@ SettingsPageForm {
         properties.boxUserStartingBalance = number;
     }
 
-    testMsgTTS.text: "Здравствуйте, меня зовут AlexNek, и сегодня я раскажу 4 способа, 4 способа... И сегодня я вам раскажу 4 способа, как запустить стрим на Crazy Cash."
+    testMsgTTS.text: qsTr("Hello, my name is AlexNek, and today I will tell you 4 ways, 4 ways ... And today I will tell you 4 ways how to start a stream on Crazy Cash.")
     testMsgTTS.selectByMouse: true
     btTestTextMsgTTS.enabled: testMsgTTS.text.length > 0
     btTestTextMsgTTS.onClicked: {
@@ -323,7 +323,6 @@ SettingsPageForm {
             property var view: ListView.view
             property int itemIndex: index
             text: modelData.w
-            width: parent.width
             height: 30
             MouseArea {
                 anchors.fill: parent
@@ -361,7 +360,7 @@ SettingsPageForm {
                 anchors.rightMargin: btEditRepWord.width + 5
                 anchors.leftMargin: 15
                 verticalAlignment: "AlignVCenter"
-                text: modelData.length > 0 ? modelData : qsTr("[ <i>текст отсутствует</i> ]")
+                text: modelData.length > 0 ? modelData : ("[ <i>" + qsTr("no text") + "</i> ]")
             }
             MouseArea {
                 anchors.fill: parent

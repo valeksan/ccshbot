@@ -4,7 +4,7 @@ import QtQuick.Controls.Material 2.15
 
 Dialog {
     id: dialog
-    title: qsTr("Активация")
+    title: qsTr("Activation")
     modal: true
     width: 600
 
@@ -16,12 +16,12 @@ Dialog {
                 wrapMode: "WrapAnywhere"
                 readOnly: true
                 selectByMouse: true
-                text: "Регистрационный ключ: <span style='color:white'>" + ccbot.getRegistrationCode() + "</span>"
+                text: qsTr("Registration key") + ": <span style='color:white'>" + ccbot.getRegistrationCode() + "</span>"
                 color: "yellow"
             }
             Button {
                 width: 120
-                text: "Скопировать"
+                text: qsTr("Copy")
             }
         }
     }

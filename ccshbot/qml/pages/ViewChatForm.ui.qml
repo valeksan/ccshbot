@@ -50,25 +50,25 @@ Page {
                 RowLayout {
                     anchors.verticalCenter: parent.verticalCenter
                     Label {
-                        text: qsTr("Озвучка")
+                        text: qsTr("Voice")
                         color: "#FFF200"
                         font.bold: true
                     }
                     RadioButton {
                         id: btVoiceOff
-                        text: qsTr("Отключена")
+                        text: qsTr("Disabled")
                     }
                     RadioButton {
                         id: btVoiceType2
-                        text: qsTr("Донаты")
+                        text: qsTr("Donates")
                     }
                     RadioButton {
                         id: btVoiceBalanceSpending
-                        text: qsTr("Баланс")
+                        text: qsTr("Balance")
                     }
                     RadioButton {
                         id: btVoiceAll
-                        text: qsTr("Все")
+                        text: qsTr("All")
                     }
                 }
             }
@@ -141,7 +141,7 @@ Page {
         }
         Button {
             id: btSendMsg
-            text: qsTr("Отправить")
+            text: qsTr("Send")
             anchors {
                 left: inputMsg.right
                 right: parent.right

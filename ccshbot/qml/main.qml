@@ -52,7 +52,7 @@ ApplicationWindow {
 
     color: "#1F1F2A"
 
-    visibility: "Windowed"
+
 
     visible: true
 
@@ -72,7 +72,7 @@ ApplicationWindow {
 
     StackView {
         id: stackView
-        initialItem: "qrc:///qml/pages/ViewChat.qml"
+        initialItem:  Qt.resolvedUrl("qrc:///qml/pages/ViewChat.qml")
         anchors.fill: parent
     }
 
@@ -84,7 +84,7 @@ ApplicationWindow {
         }
     }
 
-    // диалоговые окна
+
     Message {
         id: messageDlg
         anchors.centerIn: parent

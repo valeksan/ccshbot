@@ -281,7 +281,7 @@ void CCBot::initComponents()
 void CCBot::initConnections()
 {
     // номер стрима был изменен
-    connect(m_params, &Properties::currentStreamIdChanged, [=, this]() {
+    connect(m_params, &Properties::currentStreamIdChanged, [=]() {
         m_mapSubscribeUserNotified.clear();
     });
 
