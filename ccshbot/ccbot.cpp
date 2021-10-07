@@ -21,6 +21,8 @@ CCBot::CCBot(Properties *params, QObject *parent) : CCBotPrivate(parent)
     m_pManagerTTS = new TTSManager(this);
 
     loadSettings();
+
+    m_params->setIsActivated(Cicero::verifyActivation(m_params->actKey().toLatin1()));
 }
 
 void CCBot::start()

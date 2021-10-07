@@ -13,6 +13,7 @@ class Properties : public QObject
 
     // App
     Q_PROPERTY(QString actKey READ actKey WRITE setActKey NOTIFY actKeyChanged)
+    Q_PROPERTY(bool isActivated READ isActivated WRITE setIsActivated NOTIFY isActivatedChanged)
 
     // Window
     Q_PROPERTY(int windowX READ windowX WRITE setWindowX NOTIFY windowXChanged)
@@ -92,6 +93,7 @@ class Properties : public QObject
     int m_speakOptionReasonType = 0;
     bool m_boxNotificationChatByEmptyUserBalanceForVoice = false;
     QString m_actKey = "";
+    bool m_isActivated;
 
 public:
     explicit Properties(QObject *parent = nullptr) : QObject(parent),
@@ -203,6 +205,9 @@ public:
     const QString &actKey() const;
     void setActKey(const QString &newActKey);
 
+    bool isActivated() const;
+    void setIsActivated(bool newIsActivated);
+
 public slots:
 
 signals:
@@ -239,7 +244,21 @@ signals:
     void speakOptionReasonTypeChanged();
     void boxNotificationChatByEmptyUserBalanceForVoiceChanged();
     void actKeyChanged();
+    void isActivatedChanged();
 };
+
+inline bool Properties::isActivated() const
+{
+    return m_isActivated;
+}
+
+inline void Properties::setIsActivated(bool newIsActivated)
+{
+    if (m_isActivated == newIsActivated)
+        return;
+    m_isActivated = newIsActivated;
+    emit isActivatedChanged();
+}
 
 inline const QString &Properties::actKey() const
 {

@@ -68,6 +68,7 @@ Dialog {
 
     onAccepted: {
         properties.actKey = actKeyNew.text.replace(/\s/g, '');
+        properties.isActivated = ccbot.verifyActivation(properties.actKey);
     }
 
     standardButtons: Dialog.Ok

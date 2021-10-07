@@ -8,7 +8,7 @@ Dialog {
     modal: true
     width: 400
 
-    property bool activation: ccbot.verifyActivation(properties.actKey)
+    property bool activation: properties.isActivated
 
     Column {
         Label {
