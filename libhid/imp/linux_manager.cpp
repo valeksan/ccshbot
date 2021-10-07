@@ -56,7 +56,7 @@ std::string NativeOSManager::GetHDDSerialNumber()
     // Forming a dictionary "hard disk service name - UUID"
     // Collection sorted by key
     std::map<std::string, std::string> devices;
-    char buffer[200];
+    char buffer[PATH_MAX];
     for (const std::string &uuid : uuids) {
         std::string uuidPath = uuidFolder + uuid;
         realpath(uuidPath.c_str(), buffer);
