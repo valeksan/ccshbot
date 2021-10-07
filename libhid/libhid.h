@@ -20,7 +20,7 @@
 class SHAREDTESTLIB_EXPORT LibHid
 {
 public:
-    static std::string GetHardwareId();
+    std::string GetHardwareId();
 };
 
 

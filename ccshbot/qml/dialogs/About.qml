@@ -42,9 +42,4 @@ Dialog {
     }
 
     standardButtons: Dialog.Ok
-
-    Component.onCompleted: {
-        console.log(properties.actKey)
-        console.log(ccbot.verifyActivation(properties.actKey))
-    }
 }

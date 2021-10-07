@@ -99,6 +99,7 @@ Page {
                 RowLayout {
                     Layout.fillWidth: true
                     spacing: 10
+                    visible: false
                     Label {
                         text: qsTr("Time delay of the packet no more (sec)") + ":"
                         font.pixelSize: cfgSocketTimestampDiff.font.pixelSize

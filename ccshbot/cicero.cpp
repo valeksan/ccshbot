@@ -31,8 +31,8 @@ const QByteArray Cicero::clearKeyFormat(const QByteArray &fmtKey)
 
 const QByteArray Cicero::getHID()
 {
-    //LibHid hid;
-    return QByteArray::fromStdString(LibHid().GetHardwareId());
+    LibHid hid;
+    return QByteArray::fromStdString(hid.GetHardwareId());
 }
 
 const QByteArray Cicero::makeRegistrationKey()

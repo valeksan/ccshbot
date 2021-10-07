@@ -17,7 +17,6 @@ Dialog {
             spacing: 10
             TextArea {
                 id: regKeyHw
-                //textFormat: Label.RichText
                 width: dialog.width - 160
                 wrapMode: "WrapAnywhere"
                 readOnly: true
@@ -42,7 +41,6 @@ Dialog {
             spacing: 10
             TextArea {
                 id: actKeyNew
-                //textFormat: Label.RichText
                 width: dialog.width - 160
                 wrapMode: "WrapAnywhere"
                 selectByMouse: true
