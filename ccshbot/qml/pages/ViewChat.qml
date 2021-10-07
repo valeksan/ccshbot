@@ -227,9 +227,11 @@ ViewChatForm {
             window.changeStatus(qsTr("Stopping the server ..."),
                                 1500, "yellow");
             chatRepeater.clear();
-            if (client.active) {
-                client.active = false;
-            }
+            try {
+                if (client.active) {
+                    client.active = false;
+                }
+            } catch(e){}
             properties.currentStreamId = "";
             properties.currentStreamerNikname = "";
         }
