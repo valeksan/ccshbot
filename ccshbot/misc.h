@@ -7,6 +7,8 @@
 #include <QFileInfo>
 #include <QJsonArray>
 
+#include <cstring>
+
 // Formatting for Rich Text
 inline const QString _clr_(const QString &str, const QString &color) {
     return QString("<span style=\"color:") + color + "\">" + str + "</span>";
