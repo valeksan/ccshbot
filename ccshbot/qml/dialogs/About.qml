@@ -8,7 +8,7 @@ Dialog {
     modal: true
     width: 400
 
-    property bool activation: ccbot.verifyActivation()
+    property bool activation: ccbot.verifyActivation(properties.actKey)
 
     Column {
         Label {
@@ -29,7 +29,7 @@ Dialog {
         }
         Label {
             textFormat: Label.RichText
-            text: qsTr("Activation") + ": " + (activation ? "<span style='color:green'>OK</span>" : "<span style='color:red'>" + qsTr("Not activated") + "</span>")
+            text: qsTr("Activation") + ": " + (dialog.activation ? "<span style='color:white'>" + qsTr("Activated") + "</span>" : "<span style='color:red'>" + qsTr("Not activated") + "</span>")
             color: "yellow"
         }
         Button {
@@ -42,4 +42,9 @@ Dialog {
     }
 
     standardButtons: Dialog.Ok
+
+    Component.onCompleted: {
+        console.log(properties.actKey)
+        console.log(ccbot.verifyActivation(properties.actKey))
+    }
 }
