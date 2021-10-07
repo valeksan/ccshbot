@@ -53,3 +53,5 @@ compile_commands.json
 
 # Another
 /libs/*
+/libhid/build
+/libhid/build/*
