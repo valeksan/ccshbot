@@ -74,9 +74,18 @@ DISTFILES += \
 win32 {
     RC_ICONS = app.ico
 }
+win32:mingw {
+    LIBS += -L"$$PWD/../libs/" -lhid
+    message("MINGW_INIT")
+}
+win32:msvc* {
+    LIBS += -L"$$PWD/../libs/" -llibhid
+    message("MSVC_INIT")
+}
 linux {
     QMAKE_LFLAGS += -no-pie
     QMAKE_CXXFLAGS += "-fno-sized-deallocation"
+    LIBS += -L"$$PWD/../libs/" -llibhid
 }
 macx {
     #...
@@ -103,7 +112,7 @@ DEFINES += 'APP_VERSION=\\\"$$VERSION\\\"'
 DEFINES += 'APP_NAME=\\\"$$TARGET\\\"'
 DEFINES += 'ORGANIZATION=\\\"$$ORGANIZATION\\\"'
 
-LIBS += -L$$PWD/../libs/ -llibhid
+
 
 INCLUDEPATH += $$PWD/../libhid
 DEPENDPATH += $$PWD/../libhid
