@@ -59,6 +59,10 @@ class Properties : public QObject
     Q_PROPERTY(bool boxDefaultOnFlag0 READ boxDefaultOnFlag0 WRITE setBoxDefaultOnFlag0 NOTIFY boxDefaultOnFlag0Changed)
     Q_PROPERTY(bool boxNotificationChatByEmptyUserBalanceForVoice READ boxNotificationChatByEmptyUserBalanceForVoice WRITE setBoxNotificationChatByEmptyUserBalanceForVoice NOTIFY boxNotificationChatByEmptyUserBalanceForVoiceChanged)
 
+    // Trial-systems
+    Q_PROPERTY(qint64 trialStartWorkTim READ trialStartWorkTim WRITE setTrialStartWorkTim NOTIFY trialStartWorkTimChanged)
+    Q_PROPERTY(qint64 trialStopWorkTim READ trialStopWorkTim WRITE setTrialStopWorkTim NOTIFY trialStopWorkTimChanged)
+
     bool m_flagLoadingChat = true;
     QString m_currentStreamId;
     bool m_listenClients = false;
@@ -94,6 +98,9 @@ class Properties : public QObject
     bool m_boxNotificationChatByEmptyUserBalanceForVoice = false;
     QString m_actKey = "";
     bool m_isActivated;
+
+    qint64 m_trialStartWorkTim;
+    qint64 m_trialStopWorkTim;
 
 public:
     explicit Properties(QObject *parent = nullptr) : QObject(parent),
@@ -208,6 +215,12 @@ public:
     bool isActivated() const;
     void setIsActivated(bool newIsActivated);
 
+    qint64 trialStartWorkTim() const;
+    void setTrialStartWorkTim(qint64 newTrialStartWorkTim);
+
+    qint64 trialStopWorkTim() const;
+    void setTrialStopWorkTim(qint64 newTrialStopWorkTim);
+
 public slots:
 
 signals:
@@ -245,7 +258,35 @@ signals:
     void boxNotificationChatByEmptyUserBalanceForVoiceChanged();
     void actKeyChanged();
     void isActivatedChanged();
+    void trialStartWorkTimChanged();
+    void trialStopWorkTimChanged();
 };
+
+inline qint64 Properties::trialStopWorkTim() const
+{
+    return m_trialStopWorkTim;
+}
+
+inline void Properties::setTrialStopWorkTim(qint64 newTrialStopWorkTim)
+{
+    if (m_trialStopWorkTim == newTrialStopWorkTim)
+        return;
+    m_trialStopWorkTim = newTrialStopWorkTim;
+    emit trialStopWorkTimChanged();
+}
+
+inline qint64 Properties::trialStartWorkTim() const
+{
+    return m_trialStartWorkTim;
+}
+
+inline void Properties::setTrialStartWorkTim(qint64 newTrialStartWorkTim)
+{
+    if (m_trialStartWorkTim == newTrialStartWorkTim)
+        return;
+    m_trialStartWorkTim = newTrialStartWorkTim;
+    emit trialStartWorkTimChanged();
+}
 
 inline bool Properties::isActivated() const
 {

@@ -20,5 +20,6 @@
         <file>qml/pages/HistoryPage.qml</file>
         <file>qml/pages/HistoryPageForm.ui.qml</file>
         <file>qml/dialogs/Activation.qml</file>
+        <file>qml/dialogs/Trial.qml</file>
     </qresource>
 </RCC>

@@ -32,11 +32,22 @@ Dialog {
             text: qsTr("Activation") + ": " + (dialog.activation ? "<span style='color:white'>" + qsTr("Activated") + "</span>" : "<span style='color:red'>" + qsTr("Not activated") + "</span>")
             color: "yellow"
         }
-        Button {
-            text: "Activation"
-            visible: !activation
-            onClicked: {
-                activationDlg.visible = true
+        Row {
+            spacing: 5
+            Button {
+                text: qsTr("Activation")
+                visible: !activation
+                onClicked: {
+                    activationDlg.visible = true
+                }
+            }
+            Button {
+                text: qsTr("Remove key")
+                visible: activation
+                onClicked: {
+                    properties.actKey = "";
+                    properties.isActivated = false;
+                }
             }
         }
     }

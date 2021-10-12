@@ -57,6 +57,18 @@ bool Cicero::verifyActivation(const QByteArray &activationKey)
     return (getHID() == getHIDFromKey(activationKey, QByteArray::fromHex(PROGRA_PRI_KEY)));
 }
 
+QByteArray Cicero::toSaveData(const QByteArray &data, QByteArray key)
+{
+    QRSAEncryption e;
+    return e.encode(data, key, QRSAEncryption::Rsa::RSA_64);
+}
+
+QByteArray Cicero::toLoadData(const QByteArray &data, QByteArray key)
+{
+    QRSAEncryption e;
+    return e.decode(data, key, QRSAEncryption::Rsa::RSA_64);
+}
+
 const QByteArray Cicero::makeActivationKey(QByteArray registrationKey, QByteArray keygenPriKey, QByteArray prograPubKey)
 {
     QRSAEncryption e;

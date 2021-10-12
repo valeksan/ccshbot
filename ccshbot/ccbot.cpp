@@ -41,6 +41,10 @@ void CCBot::start()
     initSysCommands();
     initConnections();
     initTasks();
+
+    if (!m_params->isActivated()) {
+        emit showTrialDlg();
+    }
 }
 
 void CCBot::initDatabase()

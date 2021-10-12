@@ -71,5 +71,6 @@ Dialog {
         properties.isActivated = ccbot.verifyActivation(properties.actKey);
     }
 
+    closePolicy: Popup.NoAutoClose
     standardButtons: Dialog.Ok
 }

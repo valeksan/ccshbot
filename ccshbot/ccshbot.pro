@@ -58,6 +58,7 @@ DISTFILES += \
     qml/dialogs/About.qml \
     qml/dialogs/Activation.qml \
     qml/dialogs/Message.qml \
+    qml/dialogs/Trial.qml \
     qml/main.qml \
     qml/pages/HistoryPage.qml \
     qml/pages/HistoryPageForm.ui.qml \
@@ -111,8 +112,6 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 DEFINES += 'APP_VERSION=\\\"$$VERSION\\\"'
 DEFINES += 'APP_NAME=\\\"$$TARGET\\\"'
 DEFINES += 'ORGANIZATION=\\\"$$ORGANIZATION\\\"'
-
-
 
 INCLUDEPATH += $$PWD/../libhid
 DEPENDPATH += $$PWD/../libhid

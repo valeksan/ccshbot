@@ -60,7 +60,7 @@ protected:
     QList<QSslError> m_errorsSsl;
     SpeechkitTTS *m_pSpeechKitTTS;
     TTSManager *m_pManagerTTS;
-//    Cicero m_antiPirat;
+    Cicero m_antiPirat;
 
     mutable QMutex m_mutex;
 

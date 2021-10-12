@@ -52,9 +52,7 @@ ApplicationWindow {
 
     color: "#1F1F2A"
 
-
-
-    visible: true
+    visible: properties.isActivated
 
     header: AppToolBar {
         id: appToolBar
@@ -102,6 +100,19 @@ ApplicationWindow {
         target: ccbot
         function onShowMessage(title, text, alert) {
             messageDlg.show(title, text, alert);
+        }
+        function onShowTrialDlg() {
+            var component = Qt.createComponent("qrc:/qml/dialogs/Trial.qml");
+            if (component.status == Component.Ready) {
+                try {
+                    var dlg = component.createObject();
+                    dlg.onShowMainWindow.connect(function(){
+                        window.visible = true;
+                        dlg.destroy();
+                    });
+                    dlg.visible = true
+                } catch(e){}
+            }
         }
     }
 

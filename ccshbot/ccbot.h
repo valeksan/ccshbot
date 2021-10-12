@@ -65,6 +65,7 @@ signals:
     void completeRequestGetIamToken();
     void completeRequestGetAudio();
     void completePlayFile();
+    void showTrialDlg();
 };
 
 #endif // CCBOT_H
