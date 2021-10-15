@@ -61,6 +61,7 @@ protected:
     SpeechkitTTS *m_pSpeechKitTTS;
     TTSManager *m_pManagerTTS;
     Cicero m_antiPirat;
+    QTimer m_trialRegenTimer;
 
     mutable QMutex m_mutex;
 

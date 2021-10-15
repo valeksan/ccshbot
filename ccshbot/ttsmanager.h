@@ -32,6 +32,9 @@ public:
         QString text;
         QVariant options;
         QString sourceAudio;
+        qint64 duration;
+        int error = 0;
+        QString errorText = "";
         bool ready = false;
     };
 
@@ -50,11 +53,11 @@ public:
     static Task makeTask(TypeTTS tts, QString text, QVariant options);
 
 public slots:
-    void addTask(Task task);
+    void addTask(TTSManager::Task task);
 
 signals:
-    void fail(quint64 id, int type, const QString info);
-    void complete(quint64 id);
+    //void fail(quint64 id, int type, const QString info);
+    void complete(TTSManager::Task task);
 
 private:
     bool m_isEmpty = true;

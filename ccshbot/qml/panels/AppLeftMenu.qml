@@ -9,6 +9,18 @@ Drawer {
         anchors.fill: parent
 
         ItemDelegate {
+            text: qsTr("Hide menu")
+            width: parent.width
+            onClicked: {
+                drawer.close();
+            }
+        }
+
+        MenuSeparator {
+            width: parent.width
+        }
+
+        ItemDelegate {
             text: qsTr("History")
             width: parent.width
             onClicked: {

@@ -104,23 +104,31 @@ void TTSManager::initConnections()
     // voice task connect
     connect(m_pSystemTTS, &QTextToSpeech::stateChanged, [this](QTextToSpeech::State state) {
         if (state == QTextToSpeech::Ready) {
-            emit complete(m_currentId);
+            emit complete(m_currentTask);
             nextTask();
         }
     });
     connect(m_pVoicePlayer, &QMediaPlayer::stateChanged, [this](QMediaPlayer::State state) {
-        if (state == QMediaPlayer::StoppedState) {
-            emit complete(m_currentId);
+        if (state == QMediaPlayer::StoppedState &&
+                m_pVoicePlayer->mediaStatus() == QMediaPlayer::EndOfMedia)
+        {
+            emit complete(m_currentTask);
             clearCurrentTmpData();
             nextTask();
         }
     });
     connect(m_pVoicePlayer, QOverload<QMediaPlayer::Error>::of(&QMediaPlayer::error), [this](QMediaPlayer::Error error) {
-        Q_UNUSED(error)
-        emit fail(m_currentId, FailPlay, m_pVoicePlayer->errorString());
-        emit complete(m_currentId);
+        //emit fail(m_currentId, FailPlay, m_pVoicePlayer->errorString());
+        m_currentTask.error = error;
+        m_currentTask.errorText = m_pVoicePlayer->errorString();
+        emit complete(m_currentTask);
         clearCurrentTmpData();
         nextTask();
+    });
+    connect(m_pVoicePlayer, &QMediaPlayer::durationChanged, [=](qint64 duration) {
+        if (!m_isEmpty) {
+            m_currentTask.duration = duration;
+        }
     });
     // prepare task connect
     connect(m_pSpeechKitTTS, &SpeechkitTTS::complete, [this](quint64 id, QString filename) {
@@ -130,6 +138,7 @@ void TTSManager::initConnections()
             m_currentTask.ready = true;
             m_currentTask.sourceAudio = filename;
             m_pVoicePlayer->setMedia(QUrl::fromLocalFile(filename));
+            //m_currentTask.duration = m_pVoicePlayer->duration();
             m_pVoicePlayer->play();
         } else {
             auto searchId = m_tasks.find(id);
@@ -155,6 +164,7 @@ bool TTSManager::nextTask()
     if (m_currentTask.ready) {
         if (m_currentTask.tts == SpeechKit) {
             m_pVoicePlayer->setMedia(QUrl::fromLocalFile(m_currentTask.sourceAudio));
+            //m_currentTask.duration = m_pVoicePlayer->duration();
             m_pVoicePlayer->play();
             qDebug() << " -> Task play" << m_currentId;
         } else if (m_currentTask.tts == System) {

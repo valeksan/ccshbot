@@ -22,8 +22,17 @@ ViewChatForm {
     chatRepeater.text: ""
 
     function getExtTitle() {
-        if (properties.currentStreamId.length > 0)
-            return ` ${properties.currentStreamId} <span style="color:yellow">${properties.currentStreamerNikname}</span>`;
+        if (properties.currentStreamId.length > 0) {
+            if (properties.isActivated) {
+                return ` ${properties.currentStreamId} <span style="color:yellow">${properties.currentStreamerNikname}</span>`;
+            } else {
+                if (properties.trialRegenWait) {
+                    return ` ${properties.currentStreamId} <span style="color:yellow">${properties.currentStreamerNikname}</span> <span style="color:red">Trial regen: ${(120-properties.trialRegenCounter)}</span>`;
+                } else {
+                    return ` ${properties.currentStreamId} <span style="color:yellow">${properties.currentStreamerNikname}</span> <span style="color:red">Trial quota: ${(60000-properties.trialWorkInMSecCounter)}</span>`;
+                }
+            }
+        }
 
         return "";
     }

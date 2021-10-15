@@ -1806,7 +1806,7 @@ void CCBotPrivate::analyseNewMessages(const QList<MessageData> &msgsl)
 
 bool CCBotPrivate::checkAutoVoiceMessage(const MessageData &msg, QString &text, bool drunked)
 {
-    if (msg.msg.isEmpty() || msg.type == 1) {
+    if (msg.msg.isEmpty() || msg.type == 1 || m_params->trialRegenWait()) {
         return false;
     }
 

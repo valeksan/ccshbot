@@ -7,6 +7,9 @@
 
 #include "enums.h"
 
+#define TRIAL_MAX_WORK_IN_SEC 60
+#define TRIAL_WORK_REGEN 120
+
 class Properties : public QObject
 {
     Q_OBJECT
@@ -60,8 +63,9 @@ class Properties : public QObject
     Q_PROPERTY(bool boxNotificationChatByEmptyUserBalanceForVoice READ boxNotificationChatByEmptyUserBalanceForVoice WRITE setBoxNotificationChatByEmptyUserBalanceForVoice NOTIFY boxNotificationChatByEmptyUserBalanceForVoiceChanged)
 
     // Trial-systems
-    Q_PROPERTY(qint64 trialStartWorkTim READ trialStartWorkTim WRITE setTrialStartWorkTim NOTIFY trialStartWorkTimChanged)
-    Q_PROPERTY(qint64 trialStopWorkTim READ trialStopWorkTim WRITE setTrialStopWorkTim NOTIFY trialStopWorkTimChanged)
+    Q_PROPERTY(qint64 trialWorkInMSecCounter READ trialWorkInMSecCounter WRITE setTrialWorkInMSecCounter NOTIFY trialWorkInMSecCounterChanged)
+    Q_PROPERTY(bool trialRegenWait READ trialRegenWait WRITE setTrialRegenWait NOTIFY trialRegenWaitChanged)
+    Q_PROPERTY(int trialRegenCounter READ trialRegenCounter WRITE setTrialRegenCounter NOTIFY trialRegenCounterChanged)
 
     bool m_flagLoadingChat = true;
     QString m_currentStreamId;
@@ -97,10 +101,10 @@ class Properties : public QObject
     int m_speakOptionReasonType = 0;
     bool m_boxNotificationChatByEmptyUserBalanceForVoice = false;
     QString m_actKey = "";
-    bool m_isActivated;
-
-    qint64 m_trialStartWorkTim;
-    qint64 m_trialStopWorkTim;
+    bool m_isActivated = false;
+    qint64 m_trialWorkInMSecCounter = 0;
+    bool m_trialRegenWait = false;
+    int m_trialRegenCounter = 0;
 
 public:
     explicit Properties(QObject *parent = nullptr) : QObject(parent),
@@ -215,11 +219,14 @@ public:
     bool isActivated() const;
     void setIsActivated(bool newIsActivated);
 
-    qint64 trialStartWorkTim() const;
-    void setTrialStartWorkTim(qint64 newTrialStartWorkTim);
+    qint64 trialWorkInMSecCounter() const;
+    void setTrialWorkInMSecCounter(qint64 newTrialWorkInMSecCounter);
 
-    qint64 trialStopWorkTim() const;
-    void setTrialStopWorkTim(qint64 newTrialStopWorkTim);
+    bool trialRegenWait() const;
+    void setTrialRegenWait(bool newTrialRegenWait);
+
+    int trialRegenCounter() const;
+    void setTrialRegenCounter(int newTrialRegenCounter);
 
 public slots:
 
@@ -258,34 +265,48 @@ signals:
     void boxNotificationChatByEmptyUserBalanceForVoiceChanged();
     void actKeyChanged();
     void isActivatedChanged();
-    void trialStartWorkTimChanged();
-    void trialStopWorkTimChanged();
+    void trialWorkInMSecCounterChanged();
+    void trialRegenWaitChanged();
+    void trialRegenCounterChanged();
 };
 
-inline qint64 Properties::trialStopWorkTim() const
+inline int Properties::trialRegenCounter() const
 {
-    return m_trialStopWorkTim;
+    return m_trialRegenCounter;
 }
 
-inline void Properties::setTrialStopWorkTim(qint64 newTrialStopWorkTim)
+inline void Properties::setTrialRegenCounter(int newTrialRegenCounter)
 {
-    if (m_trialStopWorkTim == newTrialStopWorkTim)
+    if (m_trialRegenCounter == newTrialRegenCounter)
         return;
-    m_trialStopWorkTim = newTrialStopWorkTim;
-    emit trialStopWorkTimChanged();
+    m_trialRegenCounter = newTrialRegenCounter;
+    emit trialRegenCounterChanged();
 }
 
-inline qint64 Properties::trialStartWorkTim() const
+inline bool Properties::trialRegenWait() const
 {
-    return m_trialStartWorkTim;
+    return m_trialRegenWait;
 }
 
-inline void Properties::setTrialStartWorkTim(qint64 newTrialStartWorkTim)
+inline void Properties::setTrialRegenWait(bool newTrialRegenWait)
 {
-    if (m_trialStartWorkTim == newTrialStartWorkTim)
+    if (m_trialRegenWait == newTrialRegenWait)
         return;
-    m_trialStartWorkTim = newTrialStartWorkTim;
-    emit trialStartWorkTimChanged();
+    m_trialRegenWait = newTrialRegenWait;
+    emit trialRegenWaitChanged();
+}
+
+inline qint64 Properties::trialWorkInMSecCounter() const
+{
+    return m_trialWorkInMSecCounter;
+}
+
+inline void Properties::setTrialWorkInMSecCounter(qint64 newTrialWorkInMSecCounter)
+{
+    if (m_trialWorkInMSecCounter == newTrialWorkInMSecCounter)
+        return;
+    m_trialWorkInMSecCounter = newTrialWorkInMSecCounter;
+    emit trialWorkInMSecCounterChanged();
 }
 
 inline bool Properties::isActivated() const
