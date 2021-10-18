@@ -22,9 +22,12 @@ class Cicero
     static const QByteArray clearKeyFormat(const QByteArray &fmtKey);
     static const QByteArray getHID();
     static const QByteArray makeRegistrationKey();
+    static const QByteArray makeRegistrationKeyWithEndDateTime(QDateTime datetime);
     static const QByteArray makeActivationKey(QByteArray registrationKey, QByteArray keygenPriKey, QByteArray prograPubKey);
     static const QByteArray getHIDFromKey(QByteArray fmtKey, QByteArray priKey);
+    static const QString getEndDateActivation(const QByteArray &activationKey);
     static bool verifyActivation(const QByteArray &activationKey);
+    static bool verifyActivationWithEndDateTime(const QByteArray &activationKey);
     static QByteArray toSaveData(const QByteArray &data, QByteArray key = QByteArray::fromHex(KEY_SV_DATA));
     static QByteArray toLoadData(const QByteArray &data, QByteArray key = QByteArray::fromHex(KEY_LD_DATA));
 };

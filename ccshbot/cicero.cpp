@@ -1,17 +1,19 @@
 #include "cicero.h"
 
+#include <QDateTime>
+
 #include <QDebug>
 
 Cicero::Cicero()
 {
     auto hid = getHID();
-    auto rkey = makeRegistrationKey();
+    auto rkey = makeRegistrationKeyWithEndDateTime(QDateTime::currentDateTime().addSecs(500));
     auto akey = makeActivationKey(rkey, QByteArray::fromHex("2ca16caa7b5c04e0fafc46573e98a7634a7bb6333730a00f93bb1ad842b5ffb7"), QByteArray::fromHex("4f549a2085f54ae8c042a0952f0b1db1869a7da03943ad5915a2e1ce533d0e0b"));
     qDebug() << "HID:" << hid;
     qDebug() << "REG_KEY:" << rkey;
     //qDebug() << "CHK_REG_KEY:" << getHIDFromKey(rkey, QByteArray::fromHex("2ca16caa7b5c04e0fafc46573e98a7634a7bb6333730a00f93bb1ad842b5ffb7"));
     qDebug() << "ACT_KEY:" << akey;
-    qDebug() << "VERIFY:" << verifyActivation(akey);
+    qDebug() << "VERIFY:" << verifyActivationWithEndDateTime(akey);
     //qDebug() << QByteArray::fromHex(KEYGEN_PUB_KEY).toHex(' ');
 }
 
@@ -42,6 +44,14 @@ const QByteArray Cicero::makeRegistrationKey()
     return convToKeyFormat(rkey);
 }
 
+const QByteArray Cicero::makeRegistrationKeyWithEndDateTime(QDateTime datetime)
+{
+    QByteArray data = getHID() + ":" + QString::number(datetime.toSecsSinceEpoch()).toLatin1();
+    QRSAEncryption e;
+    QByteArray rkey = e.encode(data, QByteArray::fromHex(KEYGEN_PUB_KEY), QRSAEncryption::Rsa::RSA_128);
+    return convToKeyFormat(rkey);
+}
+
 const QByteArray Cicero::getHIDFromKey(QByteArray fmtKey, QByteArray priKey)
 {
     QRSAEncryption e;
@@ -52,9 +62,41 @@ const QByteArray Cicero::getHIDFromKey(QByteArray fmtKey, QByteArray priKey)
     return hid;
 }
 
+const QString Cicero::getEndDateActivation(const QByteArray &activationKey)
+{
+    QByteArray keyData = getHIDFromKey(activationKey, QByteArray::fromHex(PROGRA_PRI_KEY));
+    QString dt = QString::fromLatin1(keyData).section(':', -1, -1);
+    QDateTime actDT;
+    actDT.setSecsSinceEpoch(dt.toLongLong());
+    return actDT.toString(Qt::DefaultLocaleShortDate);
+}
+
 bool Cicero::verifyActivation(const QByteArray &activationKey)
 {
     return (getHID() == getHIDFromKey(activationKey, QByteArray::fromHex(PROGRA_PRI_KEY)));
+}
+
+bool Cicero::verifyActivationWithEndDateTime(const QByteArray &activationKey)
+{
+    QDateTime currentDT = QDateTime::currentDateTime();
+
+    QByteArray keyData = getHIDFromKey(activationKey, QByteArray::fromHex(PROGRA_PRI_KEY));
+    QString dt = QString::fromLatin1(keyData).section(':', -1, -1);
+    QByteArray actHid = QString::fromLatin1(keyData).section(QString(":%1").arg(dt), 0, 0).toLatin1();
+    QDateTime actDT;
+    actDT.setSecsSinceEpoch(dt.toLongLong());
+
+    QByteArray hid = getHID();
+    if (hid != actHid) {
+        qDebug() << hid << " != " << actHid << "(activation hid), bad activation key!";
+        return false;
+    }
+    if (currentDT > actDT) {
+        qDebug() << actDT << " < " << currentDT << "(current datetime), activation end!";
+        return false;
+    }
+
+    return true;
 }
 
 QByteArray Cicero::toSaveData(const QByteArray &data, QByteArray key)

@@ -23,7 +23,7 @@ CCBot::CCBot(Properties *params, QObject *parent) : CCBotPrivate(parent)
 
     loadSettings();
 
-    m_params->setIsActivated(Cicero::verifyActivation(m_params->actKey().toLatin1()));
+    m_params->setIsActivated(Cicero::verifyActivationWithEndDateTime(m_params->actKey().toLatin1()));
 }
 
 void CCBot::start()
@@ -249,12 +249,17 @@ void CCBot::saveSettings(quint32 section, bool beforeExit)
 
 const QString CCBot::getRegistrationCode()
 {
-    return Cicero::makeRegistrationKey();
+    return Cicero::makeRegistrationKeyWithEndDateTime(QDateTime::currentDateTime().addDays(31));
 }
 
 const QString CCBot::getActivationCode()
 {
     return m_params->actKey();
+}
+
+const QString CCBot::getEndActivationDate()
+{
+    return Cicero::getEndDateActivation(m_params->actKey().toLatin1());
 }
 
 void CCBot::setActivationCode(QString keyFmt)
@@ -265,7 +270,7 @@ void CCBot::setActivationCode(QString keyFmt)
 
 bool CCBot::verifyActivation()
 {
-    return Cicero::verifyActivation(m_params->actKey().toLatin1());
+    return Cicero::verifyActivationWithEndDateTime(m_params->actKey().toLatin1());
 }
 
 void CCBot::initSpeechkitTts()

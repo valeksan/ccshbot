@@ -57,6 +57,7 @@ public slots:
     // anti-pirat
     const QString getRegistrationCode();
     const QString getActivationCode();
+    const QString getEndActivationDate();
     void setActivationCode(QString keyFmt);
     bool verifyActivation();
 

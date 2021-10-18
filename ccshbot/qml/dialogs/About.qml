@@ -14,14 +14,14 @@ Dialog {
         Label {
             id: codename
             textFormat: Label.RichText
-            text: qsTr("Name") + ": <span style='color:white'>" + Qt.application.name + "</span>"
+            text: Qt.application.name + Qt.application.version
             color: "yellow"
         }
-        Label {
-            textFormat: Label.RichText
-            text: qsTr("Version") + ": <span style='color:white'>" + Qt.application.version + "</span>"
-            color: "yellow"
-        }
+//        Label {
+//            textFormat: Label.RichText
+//            text: qsTr("Version") + ": <span style='color:white'>" + Qt.application.version + "</span>"
+//            color: "yellow"
+//        }
         Label {
             textFormat: Label.RichText
             text: qsTr("Build Date") + ": <span style='color:white'>" + releaseDate + "</span>"
@@ -29,9 +29,15 @@ Dialog {
         }
         Label {
             textFormat: Label.RichText
-            text: qsTr("Activation") + ": " + (dialog.activation ? "<span style='color:white'>" + qsTr("Activated") + "</span>" : "<span style='color:red'>" + qsTr("Not activated") + "</span>")
+            text: qsTr("Activation") + ": " + (dialog.activation ? "<span style='color:white'>" + qsTr("Activated") + ", " + qsTr("expiry in ") + ccbot.getEndActivationDate() + "</span>" : "<span style='color:red'>" + qsTr("Not activated") + "</span>")
             color: "yellow"
         }
+//        Label {
+//            textFormat: Label.RichText
+//            visible: activation
+//            text: qsTr("expiry in ") + ccbot.getEndActivationDate();
+//        }
+
         Row {
             spacing: 5
             Button {

@@ -22,6 +22,7 @@ Dialog {
                 readOnly: true
                 selectByMouse: true
                 text: ccbot.getRegistrationCode()
+                font.pointSize: 9
             }
             Button {
                 width: 100
@@ -46,6 +47,7 @@ Dialog {
                 selectByMouse: true
                 text: properties.actKey
                 placeholderText: "XXXXXXXX-XXXXXXX-XXXXXXX-XXXXXXX-XXXXXXX-XXXXXXX-XXXXXXX-XXXXXXX-XXXXXXX"
+                font.pointSize: 9
             }
             Button {
                 width: 100
