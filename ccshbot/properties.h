@@ -7,9 +7,6 @@
 
 #include "enums.h"
 
-#define TRIAL_MAX_WORK_IN_SEC 60
-#define TRIAL_WORK_REGEN 120
-
 class Properties : public QObject
 {
     Q_OBJECT

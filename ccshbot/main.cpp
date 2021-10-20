@@ -72,10 +72,16 @@ int main(int argc, char *argv[])
                                      1, 0,
                                      "SaveSection",
                                      "Err SaveSection enum");
+    qmlRegisterUncreatableMetaObject(TrialConstEnums::staticMetaObject,
+                                     "ccbot.enums",
+                                     1, 0,
+                                     "TrialConst",
+                                     "Err TrialConstEnum enum");
 #else
     qmlRegisterType<CCBotTaskEnums>("ccbot.enums", 1, 0, "Task");
     qmlRegisterType<SpeakReasonEnums>("ccbot.enums", 1, 0, "SpeakReason");
     qmlRegisterType<SaveSectionEnums>("ccbot.enums", 1, 0, "SaveSection");
+    qmlRegisterType<TrialConstEnums>("ccbot.enums", 1, 0, "TrialConst");
 #endif
 
     // Loading the interface

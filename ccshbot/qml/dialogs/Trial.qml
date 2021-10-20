@@ -2,6 +2,8 @@ import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Window 2.11
 
+import ccbot.enums 1.0
+
 Window {
     id: dialog
     title: qsTr("Waiting before launch (trial)")
@@ -46,7 +48,7 @@ Window {
     }
 
     onVisibleChanged: {
-        dialog.showSec = 5;
+        dialog.showSec = TrialConst.TrialStartProgramInSec;
         window.setTimeout(() => {
                               try {
                                 decrementShowSec();

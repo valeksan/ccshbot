@@ -144,4 +144,29 @@ namespace SpeakReasonEnums {
 #endif
 // ----------------------------------------------------------------------------
 
+#ifndef ENABLE_USE_ENUM_NAMESPACES
+class TrialConstEnums : public QObject
+{
+    Q_OBJECT
+    Q_ENUMS(TrialConstEnum)
+
+ public:
+    explicit TrialConstEnums(QObject *parent = nullptr): QObject(parent) {}
+#else
+namespace TrialConstEnums {
+    Q_NAMESPACE
+#endif
+    enum TrialConstEnum {
+        TrialStartProgramInSec = 60,
+        TrialWorkQuotaInUSec = 30000,
+        TrialRegenInSec = 120
+    };
+#ifndef ENABLE_USE_ENUM_NAMESPACES
+};
+#else
+    Q_ENUMS(TrialConstEnum)
+}
+#endif
+// ----------------------------------------------------------------------------
+
 #endif // ENUMS_H

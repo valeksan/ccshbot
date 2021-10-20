@@ -298,25 +298,23 @@ void CCBot::initConnections()
     // trial
     connect(&m_trialRegenTimer, &QTimer::timeout, [=]() {
         m_params->setTrialRegenCounter(m_params->trialRegenCounter() + 1);
-        if (m_params->trialRegenCounter() >= TRIAL_WORK_REGEN) {
+        if (m_params->trialRegenCounter() >= TrialConstEnums::TrialRegenInSec) {
             m_trialRegenTimer.stop();
             m_params->setTrialRegenWait(false);
-            qDebug() << "_____A3";
+            m_params->setTrialWorkInMSecCounter(0);
         }
     });
 
     // components
     // -- tts
     connect(m_pManagerTTS, &TTSManager::complete, [=](TTSManager::Task task) {
-        if (task.error != 0) {
-            emit showMessage(tr("Error"), task.errorText, true);
+        if (task.error != 0 && task.error != 1) {
+            emit showMessage(tr("Error"), QString("%1\nText:%2\nErr code: %3").arg(task.errorText).arg(task.text).arg(task.error), true);
         }
         if (!m_params->isActivated()) {
             // trial-mode!
-            qDebug() << "_____A1: " << m_params->trialWorkInMSecCounter() << "+" << task.duration;
             m_params->setTrialWorkInMSecCounter(m_params->trialWorkInMSecCounter() + task.duration);
-            if (m_params->trialWorkInMSecCounter() >= (TRIAL_MAX_WORK_IN_SEC * 1000)) {
-                qDebug() << "_____A2";
+            if (m_params->trialWorkInMSecCounter() >= (TrialConstEnums::TrialWorkQuotaInUSec)) {
                 m_params->setTrialRegenWait(true);
                 m_params->setTrialRegenCounter(0);
                 m_trialRegenTimer.start();
@@ -331,8 +329,8 @@ void CCBot::initConnections()
         bool isValidCommand = false;
         bool isStreamer = sender.toUpper() == m_params->currentStreamerNikname();
         QString target = "";
-        qDebug() << "type cmd:" << type;
 
+        qDebug() << "type cmd:" << type;
         if (isStreamer) {
             for (int i = 0; i < args.size(); i++) {
                 QString option = args.at(i).section('=', 0, 0);

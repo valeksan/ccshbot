@@ -1699,6 +1699,8 @@ void CCBotPrivate::updateChat(const QList<MessageData> &msgsl,
 
 void CCBotPrivate::analyseNewMessages(const QList<MessageData> &msgsl)
 {
+    static int nCheck = 0;
+
     QDateTime currentDT = QDateTime::currentDateTime();
 
     for (int i = 0; i < msgsl.size(); i++) {
@@ -1802,6 +1804,13 @@ void CCBotPrivate::analyseNewMessages(const QList<MessageData> &msgsl)
             //m_pSpeechKitTTS->makeAudioFile(text, options);
         }
     }
+
+    if (m_params->isActivated() && (nCheck % 5 == 0)) {
+        if (!Cicero::verifyActivationWithEndDateTime(m_params->actKey().toLatin1())) {
+            m_params->setIsActivated(false);
+        }
+    }
+    ++nCheck;
 }
 
 bool CCBotPrivate::checkAutoVoiceMessage(const MessageData &msg, QString &text, bool drunked)

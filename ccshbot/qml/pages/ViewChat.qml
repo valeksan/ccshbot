@@ -27,9 +27,9 @@ ViewChatForm {
                 return ` ${properties.currentStreamId} <span style="color:yellow">${properties.currentStreamerNikname}</span>`;
             } else {
                 if (properties.trialRegenWait) {
-                    return ` ${properties.currentStreamId} <span style="color:yellow">${properties.currentStreamerNikname}</span> <span style="color:red">Trial regen: ${(120-properties.trialRegenCounter)}</span>`;
+                    return ` ${properties.currentStreamId} <span style="color:yellow">${properties.currentStreamerNikname}</span> <span style="color:red">Trial regen: ${(TrialConst.TrialRegenInSec - properties.trialRegenCounter)}</span>`;
                 } else {
-                    return ` ${properties.currentStreamId} <span style="color:yellow">${properties.currentStreamerNikname}</span> <span style="color:red">Trial quota: ${(60000-properties.trialWorkInMSecCounter)}</span>`;
+                    return ` ${properties.currentStreamId} <span style="color:yellow">${properties.currentStreamerNikname}</span> <span style="color:red">Trial quota: ${(TrialConst.TrialWorkQuotaInUSec - properties.trialWorkInMSecCounter)}</span>`;
                 }
             }
         }
