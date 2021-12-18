@@ -23,7 +23,7 @@ CCBot::CCBot(Properties *params, QObject *parent) : CCBotPrivate(parent)
 
     loadSettings();
 
-    m_params->setIsActivated(Cicero::verifyActivationWithEndDateTime(m_params->actKey().toLatin1()));
+    m_params->setIsActivated(verifyActivation());
 }
 
 void CCBot::start()
@@ -249,7 +249,11 @@ void CCBot::saveSettings(quint32 section, bool beforeExit)
 
 const QString CCBot::getRegistrationCode()
 {
+#ifndef DISABLE_CHECK_LICENSE_KEY
     return Cicero::makeRegistrationKeyWithEndDateTime(QDateTime::currentDateTime().addDays(31));
+#else
+    return "no work in the current build";
+#endif
 }
 
 const QString CCBot::getActivationCode()
@@ -259,7 +263,11 @@ const QString CCBot::getActivationCode()
 
 const QString CCBot::getEndActivationDate()
 {
+#ifndef DISABLE_CHECK_LICENSE_KEY
     return Cicero::getEndDateActivation(m_params->actKey().toLatin1());
+#else
+    return tr("never");
+#endif
 }
 
 void CCBot::setActivationCode(QString keyFmt)
@@ -270,7 +278,11 @@ void CCBot::setActivationCode(QString keyFmt)
 
 bool CCBot::verifyActivation()
 {
+#ifndef DISABLE_CHECK_LICENSE_KEY
     return Cicero::verifyActivationWithEndDateTime(m_params->actKey().toLatin1());
+#else
+    return true;
+#endif
 }
 
 void CCBot::initSpeechkitTts()

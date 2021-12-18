@@ -14,6 +14,7 @@ class Properties : public QObject
     // App
     Q_PROPERTY(QString actKey READ actKey WRITE setActKey NOTIFY actKeyChanged)
     Q_PROPERTY(bool isActivated READ isActivated WRITE setIsActivated NOTIFY isActivatedChanged)
+    Q_PROPERTY(bool isTechnicalVersion READ isTechnicalVersion WRITE setIsTechnicalVersion NOTIFY isTechnicalVersionChanged)
 
     // Window
     Q_PROPERTY(int windowX READ windowX WRITE setWindowX NOTIFY windowXChanged)
@@ -102,6 +103,11 @@ class Properties : public QObject
     qint64 m_trialWorkInMSecCounter = 0;
     bool m_trialRegenWait = false;
     int m_trialRegenCounter = 0;
+#ifndef DISABLE_CHECK_LICENSE_KEY
+    bool m_isTechnicalVersion = false;
+#else
+    bool m_isTechnicalVersion = true;
+#endif
 
 public:
     explicit Properties(QObject *parent = nullptr) : QObject(parent),
@@ -225,6 +231,9 @@ public:
     int trialRegenCounter() const;
     void setTrialRegenCounter(int newTrialRegenCounter);
 
+    bool isTechnicalVersion() const;
+    void setIsTechnicalVersion(bool newIsTechnicalVersion);
+
 public slots:
 
 signals:
@@ -265,7 +274,21 @@ signals:
     void trialWorkInMSecCounterChanged();
     void trialRegenWaitChanged();
     void trialRegenCounterChanged();
+    void isTechnicalVersionChanged();
 };
+
+inline bool Properties::isTechnicalVersion() const
+{
+    return m_isTechnicalVersion;
+}
+
+inline void Properties::setIsTechnicalVersion(bool newIsTechnicalVersion)
+{
+    if (m_isTechnicalVersion == newIsTechnicalVersion)
+        return;
+    m_isTechnicalVersion = newIsTechnicalVersion;
+    emit isTechnicalVersionChanged();
+}
 
 inline int Properties::trialRegenCounter() const
 {

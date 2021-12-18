@@ -18,11 +18,18 @@ Dialog {
             color: "yellow"
         }
         Label {
+            visible: !properties.isTechnicalVersion
             textFormat: Label.RichText
             text: qsTr("Activation") + ": " + (dialog.activation ? qsTr("Activated") + ", " + qsTr("expiry in ") + ccbot.getEndActivationDate() : "<span style='color:red'>" + qsTr("Not activated") + "</span>")
         }
+        Label {
+            visible: properties.isTechnicalVersion
+            textFormat: Label.RichText
+            text: qsTr("This is technical special edition, ") + qsTr("expiry in ") + ccbot.getEndActivationDate();
+        }
         Row {
             spacing: 5
+            visible: !properties.isTechnicalVersion
             Button {
                 text: qsTr("Activation")
                 visible: !activation

@@ -1699,8 +1699,6 @@ void CCBotPrivate::updateChat(const QList<MessageData> &msgsl,
 
 void CCBotPrivate::analyseNewMessages(const QList<MessageData> &msgsl)
 {
-    static int nCheck = 0;
-
     QDateTime currentDT = QDateTime::currentDateTime();
 
     for (int i = 0; i < msgsl.size(); i++) {
@@ -1774,15 +1772,9 @@ void CCBotPrivate::analyseNewMessages(const QList<MessageData> &msgsl)
 
         if (state) {
             // get options
-//            SpeakOptions options; // OLD
             boxGetUserVoice(msg.sender, voiceIn);
             boxGetUserSpeedVoice(msg.sender, speedIn);
             boxGetUserEmotionVoice(msg.sender, emotionIn);
-//            options.voice = voiceIn; // OLD
-//            options.speed = speedIn; // OLD
-//            options.emotion = emotionIn; // OLD
-            //options.lang
-            //m_pCore->addTask(CCBotTaskEnums::VoiceLoad, text, options); // OLD
             if (voiceIn.isEmpty()) {
                 voiceIn = m_params->speechkitVoice();
             }
@@ -1804,13 +1796,15 @@ void CCBotPrivate::analyseNewMessages(const QList<MessageData> &msgsl)
             //m_pSpeechKitTTS->makeAudioFile(text, options);
         }
     }
-
+#ifndef DISABLE_CHECK_LICENSE_KEY
+    static int nCheck = 0;
     if (m_params->isActivated() && (nCheck % 5 == 0)) {
         if (!Cicero::verifyActivationWithEndDateTime(m_params->actKey().toLatin1())) {
             m_params->setIsActivated(false);
         }
     }
     ++nCheck;
+#endif
 }
 
 bool CCBotPrivate::checkAutoVoiceMessage(const MessageData &msg, QString &text, bool drunked)

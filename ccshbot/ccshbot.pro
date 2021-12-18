@@ -1,9 +1,13 @@
 #-------------------------------------------------
 #   CrazyCash Bot
 #-------------------------------------------------
+# Needs for work:
+# OpenSSL: https://slproweb.com/products/Win32OpenSSL.html (win)
+# Audio codecs: https://www.codecguide.com/download_k-lite_codec_pack_standard.htm (win)
+
 TEMPLATE = app
 TARGET  = ccshbot
-VERSION = 0.5.9
+VERSION = 0.6.0
 ORGANIZATION = valeksan-soft
 
 QT += core gui          # + LGPLv3
@@ -28,7 +32,6 @@ CONFIG += c++17
 SOURCES += \
     ccbot.cpp \
     ccbot_private.cpp \
-    cicero.cpp \
     console.cpp \
     logmaker.cpp \
     main.cpp \
@@ -38,7 +41,6 @@ SOURCES += \
 HEADERS += \
     ccbot.h \
     ccbot_private.h \
-    cicero.h \
     console.h \
     core.h \
     enums.h \
@@ -72,33 +74,49 @@ DISTFILES += \
     qml/panels/AppStatusBar.qml \
     qml/panels/AppToolBar.qml \
 
+# Defines init
+#DEFINES += ENABLE_USE_ENUM_NAMESPACES
+DEFINES += 'APP_VERSION=\\\"$$VERSION\\\"'
+DEFINES += 'APP_NAME=\\\"$$TARGET\\\"'
+DEFINES += 'ORGANIZATION=\\\"$$ORGANIZATION\\\"'
+DEFINES += DISABLE_CHECK_LICENSE_KEY
+
+# Linking init
 win32 {
-    RC_ICONS = app.ico
+    RC_ICONS = app.ico 
 }
-win32:mingw {
+win32:mingw:!contains(DEFINES, DISABLE_CHECK_LICENSE_KEY) {
     LIBS += -L"$$PWD/../libs/" -lhid
     message("MINGW_INIT")
 }
-win32:msvc* {
+win32:msvc*:!contains(DEFINES, DISABLE_CHECK_LICENSE_KEY) {
     LIBS += -L"$$PWD/../libs/" -llibhid
     message("MSVC_INIT")
 }
 linux {
     QMAKE_LFLAGS += -no-pie
     QMAKE_CXXFLAGS += "-fno-sized-deallocation"
+}
+linux:!contains(DEFINES, DISABLE_CHECK_LICENSE_KEY) {
     LIBS += -L"$$PWD/../libs/" -llibhid
 }
 macx {
     #...
 }
 
-include($$PWD/../Qt-Secret/src/Qt-Secret.pri)
+!contains(DEFINES, DISABLE_CHECK_LICENSE_KEY) {
+    include($$PWD/../Qt-Secret/src/Qt-Secret.pri)
+    INCLUDEPATH += $$PWD/../libhid
+    DEPENDPATH += $$PWD/../libhid
+    SOURCES += cicero.cpp
+    HEADERS += cicero.h
+}
 
 # Additional import path used to resolve QML modules in Qt Creator's code model
-QML_IMPORT_PATH =
+#QML_IMPORT_PATH =
 
 # Additional import path used to resolve QML modules just for Qt Quick Designer
-QML_DESIGNER_IMPORT_PATH =
+#QML_DESIGNER_IMPORT_PATH =
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
@@ -108,10 +126,3 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 # You can make your code fail to compile if it uses deprecated APIs.
 # In order to do so, uncomment the following line.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
-#DEFINES += ENABLE_USE_ENUM_NAMESPACES
-DEFINES += 'APP_VERSION=\\\"$$VERSION\\\"'
-DEFINES += 'APP_NAME=\\\"$$TARGET\\\"'
-DEFINES += 'ORGANIZATION=\\\"$$ORGANIZATION\\\"'
-
-INCLUDEPATH += $$PWD/../libhid
-DEPENDPATH += $$PWD/../libhid

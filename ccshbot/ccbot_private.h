@@ -16,7 +16,10 @@
 #include "console.h"
 #include "speechkit_tts.h"
 #include "ttsmanager.h"
+
+#ifndef DISABLE_CHECK_LICENSE_KEY
 #include "cicero.h"
+#endif
 
 class TaskResult {
 public:
@@ -60,7 +63,9 @@ protected:
     QList<QSslError> m_errorsSsl;
     SpeechkitTTS *m_pSpeechKitTTS;
     TTSManager *m_pManagerTTS;
+#ifndef DISABLE_CHECK_LICENSE_KEY
     Cicero m_antiPirat;
+#endif
     QTimer m_trialRegenTimer;
 
     mutable QMutex m_mutex;
@@ -167,6 +172,5 @@ signals:
 };
 
 Q_DECLARE_METATYPE(TaskResult)
-//Q_DECLARE_METATYPE(SpeakOptions)
 
 #endif // CCBOT_PRIVATE_H
