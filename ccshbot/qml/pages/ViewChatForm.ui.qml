@@ -89,7 +89,7 @@ Page {
             id: flickChat
             clip: true
             anchors.fill: parent
-            anchors.bottomMargin: 64
+            anchors.bottomMargin: 0 //64
             contentWidth: parent.width
             contentHeight: chatRepeater.contentHeight
             boundsBehavior: Flickable.StopAtBounds
@@ -122,6 +122,7 @@ Page {
         }
         TextField {
             id: inputMsg
+            visible: false
             anchors {
                 left: parent.left
                 right: parent.right
@@ -141,6 +142,7 @@ Page {
         }
         Button {
             id: btSendMsg
+            visible: false
             text: qsTr("Send")
             anchors {
                 left: inputMsg.right
@@ -158,7 +160,8 @@ Page {
 
 /*##^##
 Designer {
-    D{i:0;autoSize:true;height:600;width:800}
+    D{i:0;autoSize:true;height:600;width:800}D{i:4}D{i:5}D{i:8}D{i:9}D{i:10}D{i:11}D{i:12}
+D{i:7}D{i:6}D{i:3}D{i:1}D{i:17}D{i:16}D{i:15}D{i:14}D{i:19}D{i:21}D{i:13}
 }
 ##^##*/
 

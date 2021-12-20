@@ -1,0 +1,19 @@
+{
+    "manifest_version": 2,
+    "name": "VHBot",
+    "version": "0.28",
+    "description": "Extension for voice acting of special chat messages (or all messages), as well as processing special commands in the chat.",
+    "icons": {"48":"icon.png"},
+    "permissions": [
+        "storage",
+        "<all_urls>",
+        "tabs"
+    ],
+    "content_scripts": [
+        {
+            "matches": ["*://viewhub.cc/stream/*"],
+            "js": ["js/content.js"],
+            "run_at": "document_end"
+        }
+    ]
+}
